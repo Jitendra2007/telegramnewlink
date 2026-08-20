@@ -25,6 +25,8 @@ FULL_HISTORICAL_SCAN = os.environ.get("FULL_HISTORICAL_SCAN", "true").lower() ==
 DB_PATH = "live_harvest.db"
 CACHE_PATH = "master_resolved_cache.json"
 
+HINDISINK_REFERER = "https://hindisink.com/best-free-ai-tools-content-design-or-productivity/"
+
 # Regex Patterns
 BOT_RE = re.compile(r'https?://(?:t\.me|telegram\.me)/([A-Za-z0-9_]+)\?start=([A-Za-z0-9_%+/=\-]+)', re.IGNORECASE)
 SHORTLINK_RE = re.compile(r'https?://(?:linkshortx\.in|urlshortx\.io|hindisink\.com|v2links\.[a-z]+|droplink\.[a-z]+)/[A-Za-z0-9_\-]+', re.IGNORECASE)
@@ -90,7 +92,6 @@ async () => {
     }
   }
 
-  // Fast Unhide
   for (const el of document.querySelectorAll('.no_display, [style*="display: none"], [hidden]')) {
     el.classList.remove('no_display');
     el.hidden = false;
@@ -111,6 +112,23 @@ async () => {
     } catch(e) {
       try { bypassForm.submit(); return {action: "submitted_bypass_form_native"}; } catch(e2) {}
     }
+  }
+
+  const stepBtn = Array.from(document.querySelectorAll("button, a, input[type='button'], input[type='submit']")).find(el => {
+    const txt = (el.innerText || el.value || "").toLowerCase().trim();
+    return (
+      txt.includes("open your link") ||
+      txt.includes("go to step") ||
+      txt.includes("click to continue") ||
+      txt.includes("get link") ||
+      txt.includes("verify")
+    );
+  });
+  if (stepBtn) {
+    try {
+      stepBtn.click();
+      return {action: "clicked_step_button", text: stepBtn.innerText || stepBtn.value};
+    } catch(e) {}
   }
 
   const finalBtn = document.getElementById("final") ||
@@ -215,7 +233,6 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # 1. Live Harvest Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS `live_harvest` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -239,7 +256,6 @@ def init_db():
     cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_status` ON `live_harvest` (`status`);")
     cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_shortlink` ON `live_harvest` (`shortlink_url`);")
 
-    # 2. Dedicated Separate Storage for 100% Fully Resolved Stories
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS `fully_resolved_stories_master` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -257,7 +273,6 @@ def init_db():
     """)
     cursor.execute("CREATE INDEX IF NOT EXISTS `idx_resolved_story` ON `fully_resolved_stories_master` (`story_name`, `start_ep`);")
 
-    # 3. Channel Registry
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS `channel_verification_registry` (
             `channel_id` TEXT PRIMARY KEY,
@@ -280,7 +295,7 @@ async def notify_user(client, text):
     except Exception:
         pass
 
-# Ultra-Fast Shortlink Resolver Engine
+# Fast Cluster-Referer Engine
 async def resolve_one_shortlink(playwright_instance, shortlink):
     if shortlink in MASTER_RESOLVED_CACHE:
         return MASTER_RESOLVED_CACHE[shortlink]
@@ -291,7 +306,7 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
         )
-    except Exception as e:
+    except Exception:
         return None
 
     context = await browser.new_context(
@@ -326,24 +341,23 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
     page.on("response", lambda resp: check_hit(resp.url))
 
     try:
-        await page.goto(shortlink, wait_until="commit", timeout=12000)
+        await page.set_extra_http_headers({"referer": HINDISINK_REFERER})
     except Exception:
         pass
 
-    await asyncio.sleep(1.0)
-    
-    # Check for Expired / Dead shortlink immediately to avoid wasting time
     try:
-        body = await page.inner_text("body")
-        if any(w in body.lower() for w in ["doesn't exist", "may have expired", "wrong turn", "link expired", "invalid key", "404 page not found"]):
-            await browser.close()
-            return None
+        await page.goto(shortlink, wait_until="domcontentloaded", timeout=12000)
     except Exception:
         pass
 
-    # Fast 12-Step Bypass Loop
-    for _ in range(15):
+    if found:
+        await browser.close()
+        return normalize_bot_link(found)
+
+    for _ in range(12):
         if found: break
+        await asyncio.sleep(0.6)
+        
         try:
             html = await page.content()
             m = BOT_RE.search(html) or BOT_RE.search(page.url or "")
@@ -358,9 +372,8 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
             if isinstance(result, dict) and result.get("telegram"):
                 found = result["telegram"]
                 break
-            await asyncio.sleep(0.8)
         except Exception:
-            await asyncio.sleep(0.8)
+            pass
 
     if not found:
         try:
@@ -533,7 +546,7 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
     print(f"🔒 Rules:", flush=True)
     print(f"   1. Pre-verify channel has story shortlinks before extracting.", flush=True)
     print(f"   2. Skip channels already 100% resolved (0 pending links) in 0.05s.", flush=True)
-    print(f"   3. Fast-bypass resolution (Cache match in 0.001s, Browser in <10s).", flush=True)
+    print(f"   3. Fast cluster-hybrid bypass with referer header matching.", flush=True)
     print(f"   4. Advance to next channel only when current channel is 100% finished!", flush=True)
     print(f"=========================================================================================\n", flush=True)
 
@@ -689,7 +702,7 @@ async def handle_root(request):
 
     return web.json_response({
         "status": "online",
-        "service": "CODEX High-Speed Story Channel Resolution Daemon",
+        "service": "CODEX Fast Cluster Story Channel Resolution Daemon",
         "total_captured": total,
         "unique_stories": stories,
         "active_resolved": resolved,
@@ -774,7 +787,7 @@ async def start_http_server():
 
 async def main():
     print("=========================================================================================", flush=True)
-    print("🤖 STARTING CODEX HIGH-SPEED FULL RESOLUTION DAEMON (24/7 UPTIME)", flush=True)
+    print("🤖 STARTING CODEX FAST CLUSTER RESOLUTION DAEMON (24/7 UPTIME)", flush=True)
     print("=========================================================================================", flush=True)
     
     init_db()
