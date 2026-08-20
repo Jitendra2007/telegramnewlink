@@ -681,7 +681,7 @@ async def main():
     load_resolved_cache()
     await start_http_server()
     
-    client = TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH, timeout=15, auto_reconnect=True)
+    client = TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH, timeout=20, auto_reconnect=True)
     await client.connect()
     
     if not await client.is_user_authorized():
@@ -717,7 +717,18 @@ async def main():
             cid, cname = channel_entities[chat_id]
             pass
 
-    await client.run_until_disconnected()
+    # Resilient keep-alive loop to ignore schema errors
+    while True:
+        try:
+            await client.run_until_disconnected()
+        except Exception as e:
+            print(f"⚠️ Telegram event loop reconnected: {e}", flush=True)
+            await asyncio.sleep(3)
+            if not client.is_connected():
+                try:
+                    await client.connect()
+                except Exception:
+                    pass
 
 if __name__ == "__main__":
     asyncio.run(main())
