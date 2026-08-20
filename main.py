@@ -21,6 +21,7 @@ SESSION_STR = os.environ.get("TELEGRAM_STRING_SESSION", "1BVtsOJoBu79FGJDwT08Nrl
 PORT = int(os.environ.get("PORT", "8080"))
 FORWARD_TO_SAVED_MESSAGES = os.environ.get("FORWARD_TO_SAVED_MESSAGES", "true").lower() == "true"
 AUTO_RESOLVE = os.environ.get("AUTO_RESOLVE", "true").lower() == "true"
+FULL_HISTORICAL_SCAN = os.environ.get("FULL_HISTORICAL_SCAN", "true").lower() == "true"
 
 DB_PATH = "live_harvest.db"
 CACHE_PATH = "master_resolved_cache.json"
@@ -38,13 +39,28 @@ ABBREV_MAP = {
     'lom': "Lord of Money (English) •|Pocket FM|•",
     'spm': "Supreme Magus (English) •|Pocket FM|•",
     's&b': "Shadow and Bone (English) •|Pocket FM|•",
-    'syl': "Sylvia (English) •|Pocket FM|•"
+    'syl': "Sylvia (English) •|Pocket FM|•",
+    'dhruva_posts_formatted': "Dhruva •|Pocket FM|•",
+    'king_pocket_fm_telugu_posts_formatted': "King (Telugu) •|Pocket FM|•",
+    'king_posts_formatted': "The King",
+    'ge  2': "Godly Empress 2"
 }
 
 FLOW_HOSTS = {"hindisink.com", "linkshortx.in", "urlshortx.io", "telegram.me"}
 
-# In-Memory Master Cache of already resolved links
 MASTER_RESOLVED_CACHE = {}
+
+# Global Scan Progress State
+scan_progress = {
+    "status": "idle",
+    "current_channel_index": 0,
+    "total_channels": 0,
+    "current_channel_name": "",
+    "total_messages_scanned": 0,
+    "total_links_extracted": 0,
+    "started_at": "",
+    "completed_at": ""
+}
 
 def load_resolved_cache():
     global MASTER_RESOLVED_CACHE
@@ -230,7 +246,7 @@ async def notify_user(client, text):
         return
     try:
         await client.send_message("me", text, parse_mode="html")
-    except Exception as e:
+    except Exception:
         pass
 
 async def resolve_one_shortlink(playwright_instance, shortlink):
@@ -332,12 +348,11 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
 async def resolver_worker(telegram_client):
     if not AUTO_RESOLVE:
         return
-    print("🚀 Background Auto-Resolver Worker Started (Headless Playwright)", flush=True)
+    print("🚀 Background Auto-Resolver Worker Active (Headless Playwright)", flush=True)
     async with async_playwright() as p:
         while True:
             row_id, cname, rng, surl = await resolve_queue.get()
             
-            # 1. Double check memory cache first
             if surl in MASTER_RESOLVED_CACHE:
                 bot_url = MASTER_RESOLVED_CACHE[surl]
                 print(f"  ⚡ Found in Master Cache: {cname} [{rng}] -> {bot_url}", flush=True)
@@ -371,7 +386,7 @@ async def resolver_worker(telegram_client):
             resolve_queue.task_done()
             await asyncio.sleep(2)
 
-async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl, burl):
+async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl, burl, notify=True):
     cname = clean_story_title(cname)
     if not cname:
         return
@@ -386,7 +401,6 @@ async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl
     if surl == "N/A" and burl == "N/A":
         return
 
-    # Check Master Resolved Cache
     if burl == "N/A" and surl != "N/A" and surl in MASTER_RESOLVED_CACHE:
         burl = MASTER_RESOLVED_CACHE[surl]
 
@@ -397,7 +411,6 @@ async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Check if already resolved in database
     if status == "PENDING" and surl != "N/A":
         cursor.execute("SELECT telegram_bot_link FROM `live_harvest` WHERE shortlink_url = ? AND status = 'RESOLVED'", (surl,))
         existing_bot = cursor.fetchone()
@@ -448,28 +461,26 @@ async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl
         """, (cid, cname, mid, mdate, formatted_range, s_ep, e_ep, surl, burl, status, is_10ep, superseded_by if not is_10ep else None, now_str))
         row_id = cursor.lastrowid
         conn.commit()
-    except Exception as e:
+    except Exception:
         pass
     finally:
         conn.close()
 
     if row_id:
-        target_link = burl if burl != "N/A" else surl
-        type_icon = "📦 [10-EP BATCH]" if is_10ep else "🔹 [FRAGMENT]"
-        log_msg = f"{type_icon} <b>{cname}</b>\n• Range: <code>{formatted_range}</code>\n• Link: {target_link}\n• Status: <b>{status}</b>"
-        
-        if superseded_list:
-            log_msg += f"\n• 🗑️ <i>Superseded earlier fragments: {', '.join(superseded_list)}</i>"
-            
-        print(f"[{now_str}] {type_icon} {cname} [{formatted_range}] -> {target_link} ({status})", flush=True)
-        if status != "SUPERSEDED":
+        scan_progress["total_links_extracted"] += 1
+        if notify and status != "SUPERSEDED":
+            target_link = burl if burl != "N/A" else surl
+            type_icon = "📦 [10-EP BATCH]" if is_10ep else "🔹 [FRAGMENT]"
+            log_msg = f"{type_icon} <b>{cname}</b>\n• Range: <code>{formatted_range}</code>\n• Link: {target_link}\n• Status: <b>{status}</b>"
+            if superseded_list:
+                log_msg += f"\n• 🗑️ <i>Superseded earlier fragments: {', '.join(superseded_list)}</i>"
             await notify_user(client, log_msg)
-            # Queue for resolution ONLY if truly pending and not in cache
-            if status == "PENDING" and surl != "N/A" and AUTO_RESOLVE and surl not in queued_shortlinks:
-                queued_shortlinks.add(surl)
-                await resolve_queue.put((row_id, cname, formatted_range, surl))
 
-async def extract_message_links(client, message, cid, cname):
+        if status == "PENDING" and surl != "N/A" and AUTO_RESOLVE and surl not in queued_shortlinks:
+            queued_shortlinks.add(surl)
+            await resolve_queue.put((row_id, cname, formatted_range, surl))
+
+async def extract_message_links(client, message, cid, cname, notify=True):
     if not message:
         return
     mid = message.id
@@ -487,7 +498,7 @@ async def extract_message_links(client, message, cid, cname):
                     burl = b_m.group(0) if b_m else "N/A"
                     surl = s_m.group(0) if s_m else "N/A"
                     if burl != "N/A" or surl != "N/A":
-                        await process_and_store_link(client, cid, cname, mid, mdate, label, surl, burl)
+                        await process_and_store_link(client, cid, cname, mid, mdate, label, surl, burl, notify=notify)
 
     b_m = BOT_RE.search(text)
     s_m = SHORTLINK_RE.search(text)
@@ -496,7 +507,45 @@ async def extract_message_links(client, message, cid, cname):
         surl = s_m.group(0) if s_m else "N/A"
         rng_m = re.search(r'(\d+\s*[-–]\s*\d+)', text)
         brange = rng_m.group(1) if rng_m else "01-10"
-        await process_and_store_link(client, cid, cname, mid, mdate, brange, surl, burl)
+        await process_and_store_link(client, cid, cname, mid, mdate, brange, surl, burl, notify=notify)
+
+# Full Channel-by-Channel Historical Harvest Worker
+async def full_historical_harvester(client, joined_channels, channel_entities):
+    scan_progress["status"] = "in_progress"
+    scan_progress["started_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    scan_progress["total_channels"] = len(channel_entities)
+
+    print(f"\n=========================================================================================", flush=True)
+    print(f"🛰️ LAUNCHING FULL HISTORICAL CHANNEL SCAN ACROSS ALL {len(channel_entities)} STORY CHANNELS", flush=True)
+    print(f"=========================================================================================", flush=True)
+
+    idx = 0
+    for d in joined_channels:
+        if d.id in channel_entities:
+            idx += 1
+            cid, cname = channel_entities[d.id]
+            scan_progress["current_channel_index"] = idx
+            scan_progress["current_channel_name"] = cname
+            
+            print(f"[{idx}/{len(channel_entities)}] 📖 Scanning Story Channel: '{cname}' (ID: {cid})...", flush=True)
+            msg_count = 0
+            try:
+                async for message in client.iter_messages(d.entity, limit=None):
+                    msg_count += 1
+                    scan_progress["total_messages_scanned"] += 1
+                    await extract_message_links(client, message, cid, cname, notify=False)
+                    if msg_count % 100 == 0:
+                        await asyncio.sleep(0.05) # gentle pacing
+            except Exception as e:
+                print(f"  ⚠️ Error scanning channel {cname}: {e}", flush=True)
+                
+            await asyncio.sleep(0.2)
+
+    scan_progress["status"] = "completed"
+    scan_progress["completed_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"\n=========================================================================================", flush=True)
+    print(f"✅ FULL HISTORICAL SCAN COMPLETE! Scanned {scan_progress['total_messages_scanned']:,} messages | Extracted {scan_progress['total_links_extracted']:,} links", flush=True)
+    print(f"=========================================================================================\n", flush=True)
 
 # HTTP Server Routes
 async def handle_root(request):
@@ -516,7 +565,7 @@ async def handle_root(request):
 
     return web.json_response({
         "status": "online",
-        "service": "CODEX Telegram Live Link Watcher & Auto-Resolver Daemon",
+        "service": "CODEX Telegram Live Link Watcher & Complete Auto-Resolver Daemon",
         "total_captured": total,
         "unique_stories": stories,
         "active_resolved": resolved,
@@ -524,6 +573,7 @@ async def handle_root(request):
         "superseded_fragments": superseded,
         "cached_resolved_pairs": len(MASTER_RESOLVED_CACHE),
         "auto_resolver": "active",
+        "scan_progress": scan_progress,
         "uptime": "24/7"
     })
 
@@ -557,11 +607,41 @@ async def handle_links(request):
         })
     return web.json_response(result)
 
+async def handle_export_sql(request):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT channel_id, channel_name, message_id, message_date, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link, status
+        FROM `live_harvest`
+        WHERE status != 'SUPERSEDED'
+        ORDER BY channel_name ASC, start_ep ASC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    lines = []
+    lines.append("-- CODEX Live Cloud Harvest Database Export\n")
+    lines.append(f"-- Exported on: {datetime.datetime.now().isoformat()} | Total Rows: {len(rows):,}\n\n")
+    lines.append("INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message_id`, `message_date`, `button_range`, `start_episode`, `end_episode`, `shortlink_url`, `telegram_bot_link`, `status`, `source`) VALUES\n")
+
+    val_lines = []
+    for r in rows:
+        cid, cname, mid, mdate, rng, sep, eep, surl, burl, st = r
+        cname_esc = cname.replace("'", "''")
+        surl_esc = surl.replace("'", "''")
+        burl_esc = burl.replace("'", "''")
+        mdate_esc = mdate.replace("'", "''")
+        val_lines.append(f"('{cid}', '{cname_esc}', {mid or 0}, '{mdate_esc}', '{rng}', {sep}, {eep}, '{surl_esc}', '{burl_esc}', '{st}', 'live_cloud_harvest')")
+
+    sql_content = ",\n".join(val_lines) + ";\n"
+    return web.Response(text="\n".join(lines) + sql_content, content_type="text/plain; charset=utf-8")
+
 async def start_http_server():
     app = web.Application()
     app.router.add_get('/', handle_root)
     app.router.add_get('/health', handle_health)
     app.router.add_get('/links', handle_links)
+    app.router.add_get('/export.sql', handle_export_sql)
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -571,7 +651,7 @@ async def start_http_server():
 
 async def main():
     print("=========================================================================================", flush=True)
-    print("🤖 STARTING CODEX TELEGRAM LIVE WATCHER & AUTO-RESOLVER DAEMON (24/7 UPTIME)", flush=True)
+    print("🤖 STARTING CODEX TELEGRAM FULL-CHANNEL SCANNER & RESOLVER DAEMON (24/7 UPTIME)", flush=True)
     print("=========================================================================================", flush=True)
     
     init_db()
@@ -588,11 +668,12 @@ async def main():
     me = await client.get_me()
     print(f"✅ Connected & Authorized as: {me.first_name} (+{me.phone})", flush=True)
     
+    # 1. Start Auto-Resolver background worker
     asyncio.create_task(resolver_worker(client))
     
     dialogs = await client.get_dialogs()
     joined_channels = [d for d in dialogs if d.is_channel]
-    print(f"📡 Monitoring {len(joined_channels)} joined story channels in real time...", flush=True)
+    print(f"📡 Discovered {len(joined_channels)} joined story channels...", flush=True)
     
     channel_entities = {}
     for d in joined_channels:
@@ -602,15 +683,11 @@ async def main():
         if cname:
             channel_entities[d.id] = (clean_id, cname)
 
-    print(f"⚡ Performing initial bootstrap scan across {len(channel_entities)} story channels...", flush=True)
-    for d in joined_channels:
-        if d.id in channel_entities:
-            clean_id, cname = channel_entities[d.id]
-            try:
-                async for message in client.iter_messages(d.entity, limit=3):
-                    await extract_message_links(client, message, clean_id, cname)
-            except Exception:
-                pass
+    print(f"📖 {len(channel_entities)} valid story channels mapped for full scan.", flush=True)
+
+    # 2. Launch Full Channel-by-Channel Historical Scanner in background
+    if FULL_HISTORICAL_SCAN:
+        asyncio.create_task(full_historical_harvester(client, joined_channels, channel_entities))
 
     print("👀 Live Listener ACTIVE. Watching for incoming & edited drops 24/7...\n", flush=True)
 
@@ -619,14 +696,14 @@ async def main():
         chat_id = event.chat_id
         if chat_id in channel_entities:
             cid, cname = channel_entities[chat_id]
-            await extract_message_links(client, event.message, cid, cname)
+            await extract_message_links(client, event.message, cid, cname, notify=True)
 
     @client.on(events.MessageEdited)
     async def handler_message_edited(event):
         chat_id = event.chat_id
         if chat_id in channel_entities:
             cid, cname = channel_entities[chat_id]
-            await extract_message_links(client, event.message, cid, cname)
+            await extract_message_links(client, event.message, cid, cname, notify=True)
 
     await client.run_until_disconnected()
 
