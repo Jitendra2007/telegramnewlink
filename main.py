@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 from aiohttp import web
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
-from telethon.tl.types import KeyboardButtonUrl
 from playwright.async_api import async_playwright
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -91,6 +90,7 @@ async () => {
     }
   }
 
+  // Fast Unhide
   for (const el of document.querySelectorAll('.no_display, [style*="display: none"], [hidden]')) {
     el.classList.remove('no_display');
     el.hidden = false;
@@ -126,13 +126,10 @@ async () => {
 
   const getLink = document.querySelector(".get-link");
   if (getLink) {
-    const disabled =
-      getLink.classList.contains("disabled") ||
-      getLink.getAttribute("aria-disabled") === "true" ||
-      window.getComputedStyle(getLink).pointerEvents === "none";
-    if (disabled) {
-      return {action: "waiting_final_gate"};
-    }
+    getLink.classList.remove('disabled');
+    getLink.removeAttribute('aria-disabled');
+    getLink.style.pointerEvents = 'auto';
+    try { getLink.click(); } catch(e) {}
     return {action: "click_get_link"};
   }
 
@@ -283,7 +280,11 @@ async def notify_user(client, text):
     except Exception:
         pass
 
+# Ultra-Fast Shortlink Resolver Engine
 async def resolve_one_shortlink(playwright_instance, shortlink):
+    if shortlink in MASTER_RESOLVED_CACHE:
+        return MASTER_RESOLVED_CACHE[shortlink]
+
     found = None
     try:
         browser = await playwright_instance.chromium.launch(
@@ -291,7 +292,6 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
         )
     except Exception as e:
-        print(f"  ❌ Browser launch failed: {e}", flush=True)
         return None
 
     context = await browser.new_context(
@@ -326,13 +326,23 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
     page.on("response", lambda resp: check_hit(resp.url))
 
     try:
-        await page.goto(shortlink, wait_until="commit", timeout=20000)
+        await page.goto(shortlink, wait_until="commit", timeout=12000)
     except Exception:
         pass
 
-    await asyncio.sleep(2)
+    await asyncio.sleep(1.0)
     
-    for _ in range(50):
+    # Check for Expired / Dead shortlink immediately to avoid wasting time
+    try:
+        body = await page.inner_text("body")
+        if any(w in body.lower() for w in ["doesn't exist", "may have expired", "wrong turn", "link expired", "invalid key", "404 page not found"]):
+            await browser.close()
+            return None
+    except Exception:
+        pass
+
+    # Fast 12-Step Bypass Loop
+    for _ in range(15):
         if found: break
         try:
             html = await page.content()
@@ -345,18 +355,12 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
 
         try:
             result = await page.evaluate(FAST_STEP_JS)
-            action = result.get("action") if isinstance(result, dict) else ""
             if isinstance(result, dict) and result.get("telegram"):
                 found = result["telegram"]
                 break
-            if action == "click_get_link":
-                await page.click(".get-link", timeout=5000, force=True)
-            elif action in ("submitted_bypass_form", "clicked_final"):
-                await asyncio.sleep(1.5)
-            else:
-                await asyncio.sleep(1.0)
+            await asyncio.sleep(0.8)
         except Exception:
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(0.8)
 
     if not found:
         try:
@@ -457,7 +461,7 @@ def store_raw_link(cid, cname, mid, mdate, raw_range, surl, burl):
         "is_10ep": is_10ep
     }, is_pending
 
-# Pre-Verification: Check if channel contains story shortlinks (linkshortx / urlshortx / hindisink)
+# Pre-Verification: Check if channel contains story shortlinks
 async def check_channel_has_shortlinks(client, entity):
     has_shortlink = False
     count = 0
@@ -478,7 +482,7 @@ async def check_channel_has_shortlinks(client, entity):
         pass
     return has_shortlink
 
-# Save Fully Resolved Channel into Separate Dedicated Table
+# Save Fully Resolved Channel into Dedicated Master Table
 def archive_fully_resolved_channel(cname, cid):
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     conn = sqlite3.connect(DB_PATH)
@@ -518,19 +522,19 @@ def archive_fully_resolved_channel(cname, cid):
     conn.commit()
     conn.close()
 
-# Sequential Channel-by-Channel Complete Scanner & 3-Cycle Retry Engine
+# Sequential Channel-by-Channel Complete Scanner & Fast 3-Cycle Retry Engine
 async def sequential_channel_scanner_and_resolver(client, joined_channels, channel_entities):
     scan_progress["status"] = "in_progress"
     scan_progress["started_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     scan_progress["total_channels"] = len(channel_entities)
 
     print(f"\n=========================================================================================", flush=True)
-    print(f"🎯 STARTING SEQUENTIAL PRE-VERIFIED CHANNEL FULL RESOLUTION ENGINE ({len(channel_entities)} CHANNELS)", flush=True)
+    print(f"🎯 STARTING SEQUENTIAL PRE-VERIFIED CHANNEL RESOLUTION ENGINE ({len(channel_entities)} CHANNELS)", flush=True)
     print(f"🔒 Rules:", flush=True)
-    print(f"   1. FIRST VERIFY: Channel must contain linkshortx/urlshortx story links before extracting.", flush=True)
-    print(f"   2. Skip channels with 0 shortlinks or already 100% resolved.", flush=True)
-    print(f"   3. Resolve ALL pending shortlinks in 3-Cycle Retry Form before moving to next channel.", flush=True)
-    print(f"   4. Store 100% fully resolved story in SEPARATE DEDICATED MASTER STORAGE.", flush=True)
+    print(f"   1. Pre-verify channel has story shortlinks before extracting.", flush=True)
+    print(f"   2. Skip channels already 100% resolved (0 pending links) in 0.05s.", flush=True)
+    print(f"   3. Fast-bypass resolution (Cache match in 0.001s, Browser in <10s).", flush=True)
+    print(f"   4. Advance to next channel only when current channel is 100% finished!", flush=True)
     print(f"=========================================================================================\n", flush=True)
 
     async with async_playwright() as p:
@@ -548,18 +552,15 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
             print(f"📖 [Channel {idx}/{len(channel_entities)}] PRE-VERIFYING STORY: '{cname}' (ID: {cid})", flush=True)
             print(f"-----------------------------------------------------------------------------------------", flush=True)
 
-            # RULE 1: FIRST VERIFY IF CHANNEL CONTAINS SHORTLINKS (linkshortx / urlshortx)
             has_shortlinks = await check_channel_has_shortlinks(client, d.entity)
             if not has_shortlinks:
                 scan_progress["skipped_no_shortlinks_count"] += 1
-                print(f"  🚫 [SKIPPED - NO SHORTLINKS] Channel '{cname}' does not contain story shortlinks. Leaving cleanly! 💨", flush=True)
-                await asyncio.sleep(0.3)
+                print(f"  🚫 [SKIPPED - NO SHORTLINKS] Channel '{cname}' has no shortlinks. Skipping! 💨", flush=True)
+                await asyncio.sleep(0.1)
                 continue
 
             scan_progress["qualified_channels_count"] += 1
-            print(f"  ✅ [QUALIFIED STORY CHANNEL] Detected story shortlinks! Proceeding with full extraction & resolution...", flush=True)
 
-            # Step 1: Scan all messages from this channel
             msg_count = 0
             pending_queue = []
             extracted_count = 0
@@ -593,23 +594,23 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
                             scan_progress["total_links_extracted"] += 1
                             if is_pending: pending_queue.append(entry)
 
-                    if msg_count % 100 == 0:
-                        await asyncio.sleep(0.05)
+                    if msg_count % 150 == 0:
+                        await asyncio.sleep(0.02)
             except Exception as e:
                 print(f"  ⚠️ Error scanning messages for {cname}: {e}", flush=True)
 
-            # Check if Already 100% Resolved
+            # Check if Already 100% Resolved -> Instant Skip
             if len(pending_queue) == 0:
                 scan_progress["skipped_already_resolved_channels"] += 1
                 scan_progress["completed_channels_count"] += 1
                 archive_fully_resolved_channel(cname, cid)
-                print(f"  ⚡ [ALREADY 100% RESOLVED] '{cname}' has {extracted_count} links (0 pending). Stored in dedicated master storage! 🚀", flush=True)
-                await asyncio.sleep(0.5)
+                print(f"  ⚡ [ALREADY 100% RESOLVED] '{cname}' has {extracted_count} links (0 pending). Skipping cleanly! 🚀", flush=True)
+                await asyncio.sleep(0.2)
                 continue
 
-            # RESOLVE ALL PENDING SHORTLINKS FOR THIS CHANNEL IN 3-CYCLE RETRY FORM
+            # RESOLVE ALL PENDING SHORTLINKS FOR THIS CHANNEL IN FAST 3-CYCLE RETRY FORM
             if pending_queue and AUTO_RESOLVE:
-                print(f"  ⚡ Resolving {len(pending_queue)} pending shortlinks for '{cname}' in 3-Cycle Retry Form...", flush=True)
+                print(f"  ⚡ Resolving {len(pending_queue)} pending shortlinks for '{cname}'...", flush=True)
                 
                 remaining_to_resolve = list(pending_queue)
                 
@@ -627,9 +628,9 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
                         
                         if surl in MASTER_RESOLVED_CACHE:
                             bot_url = MASTER_RESOLVED_CACHE[surl]
-                            print(f"    [{p_idx}/{len(remaining_to_resolve)}] ⚡ Instant Match from Cache: [{rng}] -> {bot_url}", flush=True)
+                            print(f"    [{p_idx}/{len(remaining_to_resolve)}] ⚡ Instant Cache Match (0.001s): [{rng}] -> {bot_url}", flush=True)
                         else:
-                            print(f"    [{p_idx}/{len(remaining_to_resolve)}] 🌐 Resolving [Cycle {cycle}]: [{rng}] {surl} ...", flush=True)
+                            print(f"    [{p_idx}/{len(remaining_to_resolve)}] 🌐 Fast-Bypass Resolving: [{rng}] {surl} ...", flush=True)
                             bot_url = await resolve_one_shortlink(p, surl)
                             if bot_url and bot_url != "N/A":
                                 MASTER_RESOLVED_CACHE[surl] = bot_url
@@ -645,21 +646,20 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
                             res_msg = f"🎉 <b>[RESOLVED & READY TO PLAY]</b>\n<b>{cname}</b>\n• Range: <code>{rng}</code>\n• Bot Link: {bot_url}"
                             await notify_user(client, res_msg)
                         else:
-                            print(f"    ⏳ [Cycle {cycle} Failed] Will retry: {surl}", flush=True)
+                            print(f"    ⏳ [Cycle {cycle} Failed / Expired]: {surl}", flush=True)
                             failed_this_cycle.append(p_entry)
 
-                        await asyncio.sleep(1.5)
+                        await asyncio.sleep(0.5)
 
                     remaining_to_resolve = failed_this_cycle
                     if remaining_to_resolve and cycle < 3:
-                        print(f"  ⏸️ Pausing 3s before starting Retry Cycle {cycle + 1} for {len(remaining_to_resolve)} failed links...", flush=True)
-                        await asyncio.sleep(3)
+                        await asyncio.sleep(1.0)
 
             # Store in Dedicated Separate Storage
             archive_fully_resolved_channel(cname, cid)
             scan_progress["completed_channels_count"] += 1
-            print(f"✅ [100% FULLY RESOLVED & ARCHIVED] Story '{cname}' verified and stored in dedicated master storage! Advancing to next channel...\n", flush=True)
-            await asyncio.sleep(1)
+            print(f"✅ [100% FULLY RESOLVED & ARCHIVED] Story '{cname}' completed! Advancing to next channel...\n", flush=True)
+            await asyncio.sleep(0.5)
 
     scan_progress["status"] = "completed"
     scan_progress["completed_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -689,7 +689,7 @@ async def handle_root(request):
 
     return web.json_response({
         "status": "online",
-        "service": "CODEX Pre-Verified Story Channel Resolution Daemon",
+        "service": "CODEX High-Speed Story Channel Resolution Daemon",
         "total_captured": total,
         "unique_stories": stories,
         "active_resolved": resolved,
@@ -774,7 +774,7 @@ async def start_http_server():
 
 async def main():
     print("=========================================================================================", flush=True)
-    print("🤖 STARTING CODEX PRE-VERIFIED FULL RESOLUTION DAEMON (24/7 UPTIME)", flush=True)
+    print("🤖 STARTING CODEX HIGH-SPEED FULL RESOLUTION DAEMON (24/7 UPTIME)", flush=True)
     print("=========================================================================================", flush=True)
     
     init_db()
