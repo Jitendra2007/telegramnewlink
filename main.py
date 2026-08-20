@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import json
 import os
 import re
 import sqlite3
@@ -22,6 +23,7 @@ FORWARD_TO_SAVED_MESSAGES = os.environ.get("FORWARD_TO_SAVED_MESSAGES", "true").
 AUTO_RESOLVE = os.environ.get("AUTO_RESOLVE", "true").lower() == "true"
 
 DB_PATH = "live_harvest.db"
+CACHE_PATH = "master_resolved_cache.json"
 
 # Regex Patterns
 BOT_RE = re.compile(r'https?://(?:t\.me|telegram\.me)/([A-Za-z0-9_]+)\?start=([A-Za-z0-9_%+/=\-]+)', re.IGNORECASE)
@@ -40,6 +42,19 @@ ABBREV_MAP = {
 }
 
 FLOW_HOSTS = {"hindisink.com", "linkshortx.in", "urlshortx.io", "telegram.me"}
+
+# In-Memory Master Cache of already resolved links
+MASTER_RESOLVED_CACHE = {}
+
+def load_resolved_cache():
+    global MASTER_RESOLVED_CACHE
+    if os.path.exists(CACHE_PATH):
+        try:
+            with open(CACHE_PATH, "r", encoding="utf-8") as f:
+                MASTER_RESOLVED_CACHE = json.load(f)
+            print(f"📦 Loaded {len(MASTER_RESOLVED_CACHE):,} pre-resolved link mappings from master cache.", flush=True)
+        except Exception as e:
+            print(f"⚠️ Could not load cache: {e}", flush=True)
 
 FAST_STEP_JS = r"""
 async () => {
@@ -203,11 +218,12 @@ def init_db():
     """)
     cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_story` ON `live_harvest` (`channel_name`, `start_ep`, `end_ep`);")
     cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_status` ON `live_harvest` (`status`);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_shortlink` ON `live_harvest` (`shortlink_url`);")
     conn.commit()
     conn.close()
 
-# Resolution Queue
 resolve_queue = asyncio.Queue()
+queued_shortlinks = set()
 
 async def notify_user(client, text):
     if not FORWARD_TO_SAVED_MESSAGES or not client:
@@ -292,7 +308,6 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
         except Exception:
             await asyncio.sleep(1.0)
 
-    # Direct container check fallback
     if not found:
         try:
             get_link = await page.evaluate("""
@@ -321,30 +336,40 @@ async def resolver_worker(telegram_client):
     async with async_playwright() as p:
         while True:
             row_id, cname, rng, surl = await resolve_queue.get()
-            print(f"\n🔍 [Auto-Resolver] Resolving {cname} [{rng}]: {surl} ...", flush=True)
-            try:
-                bot_url = await resolve_one_shortlink(p, surl)
-                if bot_url and bot_url != "N/A":
-                    conn = sqlite3.connect(DB_PATH)
-                    cursor = conn.cursor()
-                    cursor.execute("""
-                        UPDATE `live_harvest` 
-                        SET telegram_bot_link = ?, status = 'RESOLVED'
-                        WHERE id = ?
-                    """, (bot_url, row_id))
-                    conn.commit()
-                    conn.close()
-                    
-                    print(f"  🎉 SUCCESS: {cname} [{rng}] -> {bot_url}", flush=True)
-                    res_msg = f"🎉 <b>[RESOLVED & READY TO PLAY]</b>\n<b>{cname}</b>\n• Range: <code>{rng}</code>\n• Direct Bot Link: {bot_url}"
-                    await notify_user(telegram_client, res_msg)
-                else:
-                    print(f"  ⏳ Resolution pending/failed for {surl}", flush=True)
-            except Exception as e:
-                print(f"  ❌ Resolver error: {e}", flush=True)
-            finally:
-                resolve_queue.task_done()
-                await asyncio.sleep(2)
+            
+            # 1. Double check memory cache first
+            if surl in MASTER_RESOLVED_CACHE:
+                bot_url = MASTER_RESOLVED_CACHE[surl]
+                print(f"  ⚡ Found in Master Cache: {cname} [{rng}] -> {bot_url}", flush=True)
+            else:
+                print(f"\n🔍 [Auto-Resolver] Resolving new link: {cname} [{rng}]: {surl} ...", flush=True)
+                try:
+                    bot_url = await resolve_one_shortlink(p, surl)
+                    if bot_url and bot_url != "N/A":
+                        MASTER_RESOLVED_CACHE[surl] = bot_url
+                except Exception as e:
+                    print(f"  ❌ Resolver error: {e}", flush=True)
+                    bot_url = None
+
+            if bot_url and bot_url != "N/A":
+                conn = sqlite3.connect(DB_PATH)
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE `live_harvest` 
+                    SET telegram_bot_link = ?, status = 'RESOLVED'
+                    WHERE id = ?
+                """, (bot_url, row_id))
+                conn.commit()
+                conn.close()
+                
+                print(f"  🎉 SUCCESS: {cname} [{rng}] -> {bot_url}", flush=True)
+                res_msg = f"🎉 <b>[RESOLVED & READY TO PLAY]</b>\n<b>{cname}</b>\n• Range: <code>{rng}</code>\n• Direct Bot Link: {bot_url}"
+                await notify_user(telegram_client, res_msg)
+            else:
+                print(f"  ⏳ Resolution pending for {surl}", flush=True)
+
+            resolve_queue.task_done()
+            await asyncio.sleep(2)
 
 async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl, burl):
     cname = clean_story_title(cname)
@@ -361,12 +386,24 @@ async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl
     if surl == "N/A" and burl == "N/A":
         return
 
+    # Check Master Resolved Cache
+    if burl == "N/A" and surl != "N/A" and surl in MASTER_RESOLVED_CACHE:
+        burl = MASTER_RESOLVED_CACHE[surl]
+
     is_10ep = 1 if (e_ep - s_ep >= 8) else 0
     status = "RESOLVED" if burl != "N/A" else "PENDING"
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+
+    # Check if already resolved in database
+    if status == "PENDING" and surl != "N/A":
+        cursor.execute("SELECT telegram_bot_link FROM `live_harvest` WHERE shortlink_url = ? AND status = 'RESOLVED'", (surl,))
+        existing_bot = cursor.fetchone()
+        if existing_bot and existing_bot[0] != "N/A":
+            burl = existing_bot[0]
+            status = "RESOLVED"
 
     superseded_list = []
 
@@ -427,8 +464,9 @@ async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl
         print(f"[{now_str}] {type_icon} {cname} [{formatted_range}] -> {target_link} ({status})", flush=True)
         if status != "SUPERSEDED":
             await notify_user(client, log_msg)
-            # Queue for auto-resolution if pending
-            if status == "PENDING" and surl != "N/A" and AUTO_RESOLVE:
+            # Queue for resolution ONLY if truly pending and not in cache
+            if status == "PENDING" and surl != "N/A" and AUTO_RESOLVE and surl not in queued_shortlinks:
+                queued_shortlinks.add(surl)
                 await resolve_queue.put((row_id, cname, formatted_range, surl))
 
 async def extract_message_links(client, message, cid, cname):
@@ -484,6 +522,7 @@ async def handle_root(request):
         "active_resolved": resolved,
         "active_pending": pending,
         "superseded_fragments": superseded,
+        "cached_resolved_pairs": len(MASTER_RESOLVED_CACHE),
         "auto_resolver": "active",
         "uptime": "24/7"
     })
@@ -536,6 +575,7 @@ async def main():
     print("=========================================================================================", flush=True)
     
     init_db()
+    load_resolved_cache()
     await start_http_server()
     
     client = TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH, timeout=15, auto_reconnect=True)
@@ -548,7 +588,6 @@ async def main():
     me = await client.get_me()
     print(f"✅ Connected & Authorized as: {me.first_name} (+{me.phone})", flush=True)
     
-    # Launch background auto-resolver worker
     asyncio.create_task(resolver_worker(client))
     
     dialogs = await client.get_dialogs()
