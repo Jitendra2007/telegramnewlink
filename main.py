@@ -297,185 +297,106 @@ async def notify_user(client, text):
         pass
 
 async def resolve_one_shortlink(playwright_instance, shortlink):
+    """
+    Resolve a shortlink to a Telegram bot link.
+    Strategy:
+      1. Instant cache lookup (0.001s) — verified 23,014 pairs
+      2. HTTP redirect-following via aiohttp (no browser, no OOM)
+         - Follow each redirect, check Location header & response body for bot link
+         - Max 10 hops, 12s timeout per hop, abort on Telegram match
+    """
     if shortlink in MASTER_RESOLVED_CACHE:
         return MASTER_RESOLVED_CACHE[shortlink]
 
-    start_time = time.time()
-    MAX_TIMEOUT_SECONDS = 28.0
-
-    found = None
-    launch_options = {
-        "headless": True,
-        "args": [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-gpu",
-            "--no-zygote",
-            "--single-process",
-            "--disable-extensions",
-            "--disable-software-rasterizer",
-            "--disable-background-networking",
-            "--disable-sync",
-            "--no-first-run",
-            "--mute-audio",
-            "--ignore-certificate-errors",
-        ],
+    HEADERS = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Referer": HINDISINK_REFERER,
     }
-    if PLAYWRIGHT_CHROMIUM_EXECUTABLE:
-        launch_options["executable_path"] = PLAYWRIGHT_CHROMIUM_EXECUTABLE
+
+    timeout = ClientTimeout(total=12)
+    current_url = shortlink
+    found = None
 
     try:
-        browser = await playwright_instance.chromium.launch(**launch_options)
+        async with ClientSession(timeout=timeout, headers=HEADERS) as session:
+            for hop in range(12):  # max 12 redirect hops
+                if not current_url or not current_url.startswith("http"):
+                    break
+
+                # Check current URL for bot link directly
+                m = BOT_RE.search(current_url)
+                if m:
+                    found = m.group(0)
+                    break
+
+                try:
+                    async with session.get(
+                        current_url,
+                        allow_redirects=False,
+                        ssl=False,
+                        timeout=ClientTimeout(total=10)
+                    ) as resp:
+                        # Check Location header
+                        location = resp.headers.get("Location", "")
+                        if location:
+                            m = BOT_RE.search(location)
+                            if m:
+                                found = m.group(0)
+                                break
+                            # Build absolute URL if relative
+                            if location.startswith("http"):
+                                current_url = location
+                            else:
+                                from urllib.parse import urljoin
+                                current_url = urljoin(current_url, location)
+                            continue
+
+                        # Dead link detection
+                        if resp.status in (404, 410):
+                            print(f"    🚫 [HTTP {resp.status} DEAD]: {shortlink}", flush=True)
+                            return "N/A"
+
+                        # Read body and scan for bot link
+                        try:
+                            body = await resp.text(encoding="utf-8", errors="ignore")
+                        except Exception:
+                            body = ""
+
+                        m = BOT_RE.search(body)
+                        if m:
+                            found = m.group(0)
+                            break
+
+                        # Dead content detection
+                        body_lower = body.lower()
+                        if any(t in body_lower for t in ["404 not found", "was not found", "doesn't exist", "may have expired", "link expired", "invalid key", "wrong turn"]):
+                            print(f"    🚫 [DEAD/EXPIRED]: {shortlink}", flush=True)
+                            return "N/A"
+
+                        # No more redirects, no bot link found — stop
+                        break
+
+                except asyncio.TimeoutError:
+                    print(f"    ⏱️ [HTTP TIMEOUT] hop {hop+1} for {shortlink}", flush=True)
+                    break
+                except Exception as e:
+                    print(f"    ⚠️ [HTTP ERR] hop {hop+1} for {shortlink}: {type(e).__name__}", flush=True)
+                    break
+
     except Exception as e:
-        print(f"    ⚠️ Resolver browser launch failed for {shortlink}: {e}", flush=True)
-        return None
+        print(f"    ⚠️ [SESSION ERR] for {shortlink}: {type(e).__name__}", flush=True)
 
-    context = await browser.new_context(
-        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        viewport={"width": 1280, "height": 720}
-    )
-    await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
-    
-    async def on_page(pop):
-        try:
-            if not context.pages or pop == context.pages[0]: return
-            for _ in range(5):
-                url = pop.url or ""
-                if url and url != "about:blank": break
-                await asyncio.sleep(0.1)
-            p_host = host_of(pop.url)
-            if not any(h in p_host for h in ["linkshortx", "urlshortx", "hindisink", "telegram"]):
-                await pop.close()
-        except Exception:
-            pass
+    final_link = normalize_bot_link(found) if found else None
+    if final_link and final_link != "N/A":
+        print(f"    ✅ [RESOLVED & STOPPED] (HTTP): {shortlink} -> {final_link}", flush=True)
+        MASTER_RESOLVED_CACHE[shortlink] = final_link
+        return final_link
 
-    context.on("page", lambda p: asyncio.create_task(on_page(p)))
-    page = await context.new_page()
+    print(f"    ⚠️ [UNRESOLVED HTTP]: {shortlink} — marking pending", flush=True)
+    return None
 
-    def check_hit(url):
-        nonlocal found
-        if found: return
-        m = BOT_RE.search(url)
-        if m:
-            found = m.group(0)
-
-    page.on("request", lambda req: check_hit(req.url))
-    page.on("response", lambda resp: check_hit(resp.url))
-
-    try:
-        await page.set_extra_http_headers({"referer": HINDISINK_REFERER})
-    except Exception:
-        pass
-
-    nav_error = False
-    try:
-        resp = await page.goto(shortlink, wait_until="domcontentloaded", timeout=14000)
-        if resp and resp.status in (404, 410):
-            print(f"    🚫 [HTTP {resp.status} DEAD LINK]: {shortlink} has expired on provider server.", flush=True)
-            await browser.close()
-            return "N/A"
-    except Exception as e:
-        nav_error = True
-        print(f"    ⚠️ Navigation note for {shortlink}: {e}", flush=True)
-
-    # After goto, check if we're stuck on original URL or chrome-error - abort immediately
-    try:
-        current_url = page.url or ""
-        if current_url.startswith("chrome-error://") or current_url == shortlink or not current_url:
-            if nav_error:
-                print(f"    🚫 [NAV FAIL]: Browser stuck on '{current_url}' for {shortlink}. Aborting.", flush=True)
-                await browser.close()
-                return None
-    except Exception:
-        pass
-
-    if found:
-        await browser.close()
-        return normalize_bot_link(found)
-
-    await asyncio.sleep(1.0)
-    try:
-        body_text = await page.inner_text("body")
-        if any(txt in body_text.lower() for txt in ["404 not found", "was not found", "doesn't exist", "may have expired", "link expired", "invalid key", "wrong turn", "back to home"]):
-            print(f"    🚫 [DEAD/404 LINK]: {shortlink} has expired on provider server.", flush=True)
-            await browser.close()
-            return "N/A"
-    except Exception:
-        pass
-
-    if found:
-        await browser.close()
-        return normalize_bot_link(found)
-
-    while (time.time() - start_time) < MAX_TIMEOUT_SECONDS:
-        if found: break
-        active_page = context.pages[0] if context.pages else page
-
-        try:
-            html = await active_page.content()
-            m = BOT_RE.search(html) or BOT_RE.search(active_page.url or "")
-            if m:
-                found = m.group(0)
-                break
-        except Exception:
-            pass
-
-        try:
-            result = await active_page.evaluate(FAST_STEP_JS)
-        except Exception:
-            result = {}
-
-        if isinstance(result, dict) and result.get("telegram"):
-            found = result["telegram"]
-            break
-
-        action = result.get("action") if isinstance(result, dict) else ""
-        if action in ("submitted_bypass_form", "clicked_final"):
-            await asyncio.sleep(1.5)
-        elif action == "waiting_final_gate":
-            await asyncio.sleep(0.8)
-        elif action == "click_get_link":
-            try:
-                await active_page.evaluate("""() => {
-                    for (const el of document.querySelectorAll('iframe, [data-vignette-loaded="true"]')) {
-                        try { el.remove(); } catch(e) {}
-                    }
-                }""")
-                await active_page.click(".get-link", timeout=4000, force=True)
-            except Exception:
-                pass
-            await asyncio.sleep(0.8)
-        else:
-            await asyncio.sleep(0.8)
-
-    if not found:
-        try:
-            get_link = await page.evaluate("""
-                () => {
-                    const snp = document.querySelector('#rtg-snp21');
-                    if (snp) {
-                        const a = snp.querySelector('a[href*="t.me"], a[href*="telegram.me"]');
-                        if (a && a.href && a.href.includes('start=')) return a.href;
-                    }
-                    const links = Array.from(document.querySelectorAll('a'));
-                    const tg = links.find(a => /telegram\\.me|t\\.me/i.test(a.href) && /\\?start=/i.test(a.href));
-                    return tg ? tg.href : null;
-                }
-            """)
-            if get_link: found = get_link
-        except Exception:
-            pass
-
-    final_link = normalize_bot_link(found)
-    if final_link == "N/A":
-        try:
-            print(f"    ⚠️ Resolver timeout ({time.time() - start_time:.1f}s) for {shortlink}; last URL: {page.url}", flush=True)
-        except Exception:
-            print(f"    ⚠️ Resolver timeout ({time.time() - start_time:.1f}s) for {shortlink}", flush=True)
-
-    await browser.close()
-    return final_link
 
 # Save Channel Set to Dedicated Database and Story File
 def save_channel_story_set(cid, cname, ordered_items):
