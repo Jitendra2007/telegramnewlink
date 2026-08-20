@@ -17,7 +17,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 # Configuration from Environment Variables
 API_ID = int(os.environ.get("API_ID", "36198115"))
 API_HASH = os.environ.get("API_HASH", "ce040e05f933e3e0a811f186c3d5d3bb")
-SESSION_STR = os.environ.get("TELEGRAM_STRING_SESSION", "1BVtsOJoBu79FGJDwT08NrlugEVjBbtOhq1Efnp2XxTJZJgwW_QZnhDnAW_gCxrdnf6p63BgH0VCRsGwBMe7DYoEoDIaq0WztDhZvYZ0YVZKwsvnafV5gGY53ouuGeEzDI9hVjgSjcSWKXJAx5bdT3SVKsNyNOqxivxr5VMP4s94YaCdZCV9RMM5qKIBlvFmFRqF9cilVU17bbsxGGkOsxYKy4dE5kv3tRsmSBipaMH4f1MXFgdN5C82kyknlFEm8ORSbnCp81_ms0Ye43Tnghuw2l-i9SKKeuNUQWZv8jSlEOMRfPKeqymbWci9fD50QyiwQLkw3d0dx6jxACG01g9ZzTYD7FYY=")
+SESSION_STR_MAIN = os.environ.get("TELEGRAM_STRING_SESSION", "1BVtsOJoBu79FGJDwT08NrlugEVjBbtOhq1Efnp2XxTJZJgwW_QZnhDnAW_gCxrdnf6p63BgH0VCRsGwBMe7DYoEoDIaq0WztDhZvYZ0YVZKwsvnafV5gGY53ouuGeEzDI9hVjgSjcSWKXJAx5bdT3SVKsNyNOqxivxr5VMP4s94YaCdZCV9RMM5qKIBlvFmFRqF9cilVU17bbsxGGkOsxYKy4dE5kv3tRsmSBipaMH4f1MXFgdN5C82kyknlFEm8ORSbnCp81_ms0Ye43Tnghuw2l-i9SKKeuNUQWZv8jSlEOMRfPKeqymbWci9fD50QyiwQLkw3d0dx6jxACG01g9ZzTYD7FYY=")
+SESSION_STR_SUB = os.environ.get("TELEGRAM_STRING_SESSION_SUB", "1BVtsOKABu30UGkzgJxm5hTt4bzvmO5EoUVOWdXgz5yhqmuEoLOWHZw7Zg5W6nui5zmT_Xk1UoaWPZGAWno-xzhr_41A6ieDvTtxPze2fdvyuora0eKL90zGhsNxSxsuqcuvEkbpH3YueaSiQTJRH7kZNjYANtk6-0i6ty-fgTkWaRw65LyEgKNcPGPaCR2niQsvJdcZ07Kbuo7Oaqmfw4KvPB-VaH8OmcyuB-awKviKfoAB2Ud87OSSHLf_6kM1IJ9DCHKKgQ19vSE1ZR9RjDg8CyJWg8CXJv1kKuTBDteF_K4nT_AJcOQTNI-zfYgNoOwhADM90Qm37xKqXu3IOEUnuu8-ZhRw=")
 PORT = int(os.environ.get("PORT", "8080"))
 FORWARD_TO_SAVED_MESSAGES = os.environ.get("FORWARD_TO_SAVED_MESSAGES", "true").lower() == "true"
 AUTO_RESOLVE = os.environ.get("AUTO_RESOLVE", "true").lower() == "true"
@@ -505,10 +506,10 @@ def save_channel_story_set(cid, cname, ordered_items):
             f.write(f"Range: {item['range_label']:<10} | Shortlink: {item['shortlink']:<32} | Bot Link: {item['bot_link']}\n")
 
 # Sequential Channel-by-Channel Complete Extraction & Resolution Engine (Message ID Order)
-async def sequential_channel_scanner_and_resolver(client, joined_channels, channel_entities):
+async def sequential_channel_scanner_and_resolver(channel_targets):
     scan_progress["status"] = "in_progress"
     scan_progress["started_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    scan_progress["total_channels"] = len(channel_entities)
+    scan_progress["total_channels"] = len(channel_targets)
 
     print(f"\n=========================================================================================", flush=True)
     print(f"🎯 STARTING FRESH CHRONOLOGICAL CHANNEL-BY-CHANNEL FULL EXTRACTION & RESOLUTION", flush=True)
@@ -521,18 +522,12 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
     print(f"=========================================================================================\n", flush=True)
 
     async with async_playwright() as p:
-        idx = 0
-        for d in joined_channels:
-            if d.id not in channel_entities:
-                continue
-                
-            idx += 1
-            cid, cname = channel_entities[d.id]
+        for idx, (cli, d, cid, cname) in enumerate(channel_targets, 1):
             scan_progress["current_channel_index"] = idx
             scan_progress["current_channel_name"] = cname
 
             print(f"\n-----------------------------------------------------------------------------------------", flush=True)
-            print(f"📖 [Channel {idx}/{len(channel_entities)}] EXTRACTING STORY: '{cname}' (ID: {cid})", flush=True)
+            print(f"📖 [Channel {idx}/{len(channel_targets)}] EXTRACTING STORY: '{cname}' (ID: {cid})", flush=True)
             print(f"-----------------------------------------------------------------------------------------", flush=True)
 
             raw_channel_items = []
@@ -540,7 +535,7 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
             
             # Step 1: Newly extract all messages in ascending chronological Message ID order (reverse=True)
             try:
-                async for message in client.iter_messages(d.entity, reverse=True, limit=None):
+                async for message in cli.iter_messages(d.entity, reverse=True, limit=None):
                     msg_count += 1
                     scan_progress["total_messages_scanned"] += 1
                     mdate = message.date.isoformat() if message.date else ""
@@ -775,52 +770,73 @@ async def main():
     await start_http_server()
     asyncio.create_task(keepalive_ping_loop())
     
-    client = TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH, timeout=20, auto_reconnect=True)
-    await client.connect()
+    clients = []
+    channel_targets = []
+    seen_channel_ids = set()
+
+    # 1. Main Account (9490590394)
+    client_main = TelegramClient(StringSession(SESSION_STR_MAIN), API_ID, API_HASH, timeout=20, auto_reconnect=True)
+    await client_main.connect()
     
-    if not await client.is_user_authorized():
-        print("❌ Telethon String Session not authorized!", flush=True)
+    if await client_main.is_user_authorized():
+        me1 = await client_main.get_me()
+        print(f"✅ Connected & Authorized Account 1 (Main): {me1.first_name} (+{me1.phone})", flush=True)
+        clients.append(client_main)
+        d1 = await client_main.get_dialogs()
+        for d in d1:
+            if d.is_channel:
+                clean_id = re.sub(r'^-?100', '', str(d.id))
+                clean_id = re.sub(r'^-', '', clean_id)
+                cname = clean_story_title(d.title)
+                if cname and clean_id not in seen_channel_ids:
+                    seen_channel_ids.add(clean_id)
+                    channel_targets.append((client_main, d, clean_id, cname))
+    else:
+        print("⚠️ Account 1 (Main) string session not authorized!", flush=True)
+
+    # 2. Sub Account (9848915830)
+    if SESSION_STR_SUB:
+        try:
+            client_sub = TelegramClient(StringSession(SESSION_STR_SUB), API_ID, API_HASH, timeout=20, auto_reconnect=True)
+            await client_sub.connect()
+            if await client_sub.is_user_authorized():
+                me2 = await client_sub.get_me()
+                print(f"✅ Connected & Authorized Account 2 (Sub): {me2.first_name} (+{me2.phone})", flush=True)
+                clients.append(client_sub)
+                d2 = await client_sub.get_dialogs()
+                for d in d2:
+                    if d.is_channel:
+                        clean_id = re.sub(r'^-?100', '', str(d.id))
+                        clean_id = re.sub(r'^-', '', clean_id)
+                        cname = clean_story_title(d.title)
+                        if cname and clean_id not in seen_channel_ids:
+                            seen_channel_ids.add(clean_id)
+                            channel_targets.append((client_sub, d, clean_id, cname))
+        except Exception as e:
+            print(f"⚠️ Account 2 (Sub) connect note: {e}", flush=True)
+
+    if not clients:
+        print("❌ No authorized Telegram accounts found!", flush=True)
         return
 
-    me = await client.get_me()
-    print(f"✅ Connected & Authorized as: {me.first_name} (+{me.phone})", flush=True)
-    
-    dialogs = await client.get_dialogs()
-    joined_channels = [d for d in dialogs if d.is_channel]
-    print(f"📡 Discovered {len(joined_channels)} joined story channels...", flush=True)
-    
-    channel_entities = {}
-    for d in joined_channels:
-        clean_id = re.sub(r'^-?100', '', str(d.id))
-        clean_id = re.sub(r'^-', '', clean_id)
-        cname = clean_story_title(d.title)
-        if cname:
-            channel_entities[d.id] = (clean_id, cname)
-
-    print(f"📖 {len(channel_entities)} valid story channels mapped for strict channel-by-channel full resolution.", flush=True)
+    print(f"📡 Combined unique story channels mapped across both accounts: {len(channel_targets)}", flush=True)
 
     if FULL_HISTORICAL_SCAN:
-        asyncio.create_task(sequential_channel_scanner_and_resolver(client, joined_channels, channel_entities))
+        asyncio.create_task(sequential_channel_scanner_and_resolver(channel_targets))
 
-    print("👀 Live Listener ACTIVE. Watching for incoming daily drops in real time...\n", flush=True)
+    print("👀 Live Listeners ACTIVE across authorized accounts. Watching for incoming daily drops...\n", flush=True)
 
-    @client.on(events.NewMessage)
-    async def handler_new_message(event):
-        chat_id = event.chat_id
-        if chat_id in channel_entities:
-            cid, cname = channel_entities[chat_id]
-            pass
-
-    # Resilient keep-alive loop to ignore schema errors
+    # Resilient keep-alive loop to keep service alive
+    primary_client = clients[0]
     while True:
         try:
-            await client.run_until_disconnected()
+            await primary_client.run_until_disconnected()
         except Exception as e:
             print(f"⚠️ Telegram event loop reconnected: {e}", flush=True)
             await asyncio.sleep(3)
-            if not client.is_connected():
+            if not primary_client.is_connected():
                 try:
-                    await client.connect()
+                    await primary_client.connect()
                 except Exception:
                     pass
 
