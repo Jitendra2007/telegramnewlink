@@ -55,6 +55,8 @@ scan_progress = {
     "current_channel_index": 0,
     "total_channels": 0,
     "current_channel_name": "",
+    "qualified_channels_count": 0,
+    "skipped_no_shortlinks_count": 0,
     "completed_channels_count": 0,
     "skipped_already_resolved_channels": 0,
     "total_messages_scanned": 0,
@@ -215,6 +217,8 @@ def normalize_shortlink(url):
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    
+    # 1. Live Harvest Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS `live_harvest` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -237,6 +241,37 @@ def init_db():
     cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_story` ON `live_harvest` (`channel_name`, `start_ep`, `end_ep`);")
     cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_status` ON `live_harvest` (`status`);")
     cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_shortlink` ON `live_harvest` (`shortlink_url`);")
+
+    # 2. Dedicated Separate Storage for 100% Fully Resolved Stories
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS `fully_resolved_stories_master` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+            `channel_id` TEXT,
+            `story_name` TEXT,
+            `range_label` TEXT,
+            `start_ep` INTEGER,
+            `end_ep` INTEGER,
+            `shortlink_url` TEXT,
+            `telegram_bot_link` TEXT,
+            `total_episodes` INTEGER,
+            `verified_at` TEXT,
+            UNIQUE(`channel_id`, `start_ep`, `end_ep`)
+        );
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS `idx_resolved_story` ON `fully_resolved_stories_master` (`story_name`, `start_ep`);")
+
+    # 3. Channel Registry
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS `channel_verification_registry` (
+            `channel_id` TEXT PRIMARY KEY,
+            `channel_name` TEXT,
+            `has_shortlinks` INTEGER DEFAULT 0,
+            `total_links_found` INTEGER DEFAULT 0,
+            `status` TEXT DEFAULT 'UNVERIFIED',
+            `last_checked` TEXT
+        );
+    """)
+
     conn.commit()
     conn.close()
 
@@ -358,7 +393,6 @@ def store_raw_link(cid, cname, mid, mdate, raw_range, surl, burl):
     if surl == "N/A" and burl == "N/A":
         return None, False
 
-    # Check Master Resolved Cache
     if burl == "N/A" and surl != "N/A" and surl in MASTER_RESOLVED_CACHE:
         burl = MASTER_RESOLVED_CACHE[surl]
 
@@ -423,6 +457,67 @@ def store_raw_link(cid, cname, mid, mdate, raw_range, surl, burl):
         "is_10ep": is_10ep
     }, is_pending
 
+# Pre-Verification: Check if channel contains story shortlinks (linkshortx / urlshortx / hindisink)
+async def check_channel_has_shortlinks(client, entity):
+    has_shortlink = False
+    count = 0
+    try:
+        async for message in client.iter_messages(entity, limit=40):
+            if message.reply_markup and hasattr(message.reply_markup, 'rows'):
+                for row in message.reply_markup.rows:
+                    for btn in row.buttons:
+                        if hasattr(btn, 'url') and btn.url and SHORTLINK_RE.search(btn.url):
+                            has_shortlink = True
+                            count += 1
+            if message.text and SHORTLINK_RE.search(message.text):
+                has_shortlink = True
+                count += 1
+            if count >= 2:
+                break
+    except Exception:
+        pass
+    return has_shortlink
+
+# Save Fully Resolved Channel into Separate Dedicated Table
+def archive_fully_resolved_channel(cname, cid):
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT channel_id, channel_name, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link
+        FROM `live_harvest`
+        WHERE channel_name = ? AND status = 'RESOLVED' AND status != 'SUPERSEDED'
+        ORDER BY start_ep ASC
+    """, (cname,))
+    resolved_rows = cursor.fetchall()
+    
+    total_eps = len(resolved_rows)
+    for r in resolved_rows:
+        r_cid, r_cname, r_rng, r_sep, r_eep, r_surl, r_burl = r
+        try:
+            cursor.execute("""
+                INSERT INTO `fully_resolved_stories_master`
+                (`channel_id`, `story_name`, `range_label`, `start_ep`, `end_ep`, `shortlink_url`, `telegram_bot_link`, `total_episodes`, `verified_at`)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(`channel_id`, `start_ep`, `end_ep`) DO UPDATE SET
+                    `shortlink_url` = excluded.`shortlink_url`,
+                    `telegram_bot_link` = excluded.`telegram_bot_link`,
+                    `total_episodes` = excluded.`total_episodes`,
+                    `verified_at` = excluded.`verified_at`
+            """, (r_cid or cid, r_cname, r_rng, r_sep, r_eep, r_surl, r_burl, total_eps, now_str))
+        except Exception:
+            pass
+            
+    cursor.execute("""
+        INSERT INTO `channel_verification_registry` (`channel_id`, `channel_name`, `has_shortlinks`, `total_links_found`, `status`, `last_checked`)
+        VALUES (?, ?, 1, ?, '100%_FULLY_RESOLVED', ?)
+        ON CONFLICT(`channel_id`) DO UPDATE SET `status` = '100%_FULLY_RESOLVED', `total_links_found` = ?, `last_checked` = ?
+    """, (cid, cname, total_eps, now_str, total_eps, now_str))
+    
+    conn.commit()
+    conn.close()
+
 # Sequential Channel-by-Channel Complete Scanner & 3-Cycle Retry Engine
 async def sequential_channel_scanner_and_resolver(client, joined_channels, channel_entities):
     scan_progress["status"] = "in_progress"
@@ -430,11 +525,12 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
     scan_progress["total_channels"] = len(channel_entities)
 
     print(f"\n=========================================================================================", flush=True)
-    print(f"🎯 STARTING SEQUENTIAL CHANNEL-BY-CHANNEL FULL RESOLUTION ENGINE ({len(channel_entities)} CHANNELS)", flush=True)
+    print(f"🎯 STARTING SEQUENTIAL PRE-VERIFIED CHANNEL FULL RESOLUTION ENGINE ({len(channel_entities)} CHANNELS)", flush=True)
     print(f"🔒 Rules:", flush=True)
-    print(f"   1. Skip channels that are already 100% resolved (0 pending links) to avoid dual-account clashes.", flush=True)
-    print(f"   2. Advance to next channel IF AND ONLY IF current channel is 100% resolved!", flush=True)
-    print(f"   3. If a link fails to resolve, retry in 3 robust cycles before completing channel.", flush=True)
+    print(f"   1. FIRST VERIFY: Channel must contain linkshortx/urlshortx story links before extracting.", flush=True)
+    print(f"   2. Skip channels with 0 shortlinks or already 100% resolved.", flush=True)
+    print(f"   3. Resolve ALL pending shortlinks in 3-Cycle Retry Form before moving to next channel.", flush=True)
+    print(f"   4. Store 100% fully resolved story in SEPARATE DEDICATED MASTER STORAGE.", flush=True)
     print(f"=========================================================================================\n", flush=True)
 
     async with async_playwright() as p:
@@ -449,9 +545,21 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
             scan_progress["current_channel_name"] = cname
 
             print(f"\n-----------------------------------------------------------------------------------------", flush=True)
-            print(f"📖 [Channel {idx}/{len(channel_entities)}] STORY: '{cname}' (ID: {cid})", flush=True)
+            print(f"📖 [Channel {idx}/{len(channel_entities)}] PRE-VERIFYING STORY: '{cname}' (ID: {cid})", flush=True)
             print(f"-----------------------------------------------------------------------------------------", flush=True)
 
+            # RULE 1: FIRST VERIFY IF CHANNEL CONTAINS SHORTLINKS (linkshortx / urlshortx)
+            has_shortlinks = await check_channel_has_shortlinks(client, d.entity)
+            if not has_shortlinks:
+                scan_progress["skipped_no_shortlinks_count"] += 1
+                print(f"  🚫 [SKIPPED - NO SHORTLINKS] Channel '{cname}' does not contain story shortlinks. Leaving cleanly! 💨", flush=True)
+                await asyncio.sleep(0.3)
+                continue
+
+            scan_progress["qualified_channels_count"] += 1
+            print(f"  ✅ [QUALIFIED STORY CHANNEL] Detected story shortlinks! Proceeding with full extraction & resolution...", flush=True)
+
+            # Step 1: Scan all messages from this channel
             msg_count = 0
             pending_queue = []
             extracted_count = 0
@@ -490,11 +598,12 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
             except Exception as e:
                 print(f"  ⚠️ Error scanning messages for {cname}: {e}", flush=True)
 
-            # Check if Already 100% Resolved -> SKIP IMMEDIATELY!
+            # Check if Already 100% Resolved
             if len(pending_queue) == 0:
                 scan_progress["skipped_already_resolved_channels"] += 1
                 scan_progress["completed_channels_count"] += 1
-                print(f"  ⚡ [ALREADY 100% RESOLVED] '{cname}' has {extracted_count} links and ZERO pending links. Leaving channel cleanly! 🚀", flush=True)
+                archive_fully_resolved_channel(cname, cid)
+                print(f"  ⚡ [ALREADY 100% RESOLVED] '{cname}' has {extracted_count} links (0 pending). Stored in dedicated master storage! 🚀", flush=True)
                 await asyncio.sleep(0.5)
                 continue
 
@@ -546,15 +655,16 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
                         print(f"  ⏸️ Pausing 3s before starting Retry Cycle {cycle + 1} for {len(remaining_to_resolve)} failed links...", flush=True)
                         await asyncio.sleep(3)
 
-            # CHANNEL FULLY COMPLETE
+            # Store in Dedicated Separate Storage
+            archive_fully_resolved_channel(cname, cid)
             scan_progress["completed_channels_count"] += 1
-            print(f"✅ [100% FULLY RESOLVED & VERIFIED] Channel '{cname}' completed successfully! Advancing to next channel...\n", flush=True)
+            print(f"✅ [100% FULLY RESOLVED & ARCHIVED] Story '{cname}' verified and stored in dedicated master storage! Advancing to next channel...\n", flush=True)
             await asyncio.sleep(1)
 
     scan_progress["status"] = "completed"
     scan_progress["completed_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"\n=========================================================================================", flush=True)
-    print(f"🏆 ALL {len(channel_entities)} CHANNELS 100% FULLY EXTRACTED & RESOLVED!", flush=True)
+    print(f"🏆 ALL {len(channel_entities)} CHANNELS PROCESSED & VERIFIED!", flush=True)
     print(f"=========================================================================================\n", flush=True)
 
 # HTTP Server Routes
@@ -571,19 +681,26 @@ async def handle_root(request):
     superseded = cursor.fetchone()[0]
     cursor.execute("SELECT count(DISTINCT channel_name) FROM `live_harvest`")
     stories = cursor.fetchone()[0]
+    cursor.execute("SELECT count(*) FROM `fully_resolved_stories_master`")
+    master_resolved_rows = cursor.fetchone()[0]
+    cursor.execute("SELECT count(DISTINCT story_name) FROM `fully_resolved_stories_master`")
+    master_resolved_stories = cursor.fetchone()[0]
     conn.close()
 
     return web.json_response({
         "status": "online",
-        "service": "CODEX Telegram Channel-by-Channel Complete Resolution Daemon",
+        "service": "CODEX Pre-Verified Story Channel Resolution Daemon",
         "total_captured": total,
         "unique_stories": stories,
         "active_resolved": resolved,
         "active_pending": pending,
         "superseded_fragments": superseded,
+        "master_dedicated_storage": {
+            "fully_resolved_rows": master_resolved_rows,
+            "fully_resolved_stories": master_resolved_stories
+        },
         "cached_resolved_pairs": len(MASTER_RESOLVED_CACHE),
         "sequential_scan_progress": scan_progress,
-        "retry_cycles_form": "3-Cycle Robust Retries",
         "uptime": "24/7"
     })
 
@@ -594,10 +711,9 @@ async def handle_links(request):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT channel_name, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link, status, is_consolidated_10ep, harvested_at
-        FROM `live_harvest`
-        WHERE status != 'SUPERSEDED'
-        ORDER BY channel_name ASC, start_ep ASC
+        SELECT story_name, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link, verified_at
+        FROM `fully_resolved_stories_master`
+        ORDER BY story_name ASC, start_ep ASC
     """)
     rows = cursor.fetchall()
     conn.close()
@@ -605,15 +721,14 @@ async def handle_links(request):
     result = []
     for r in rows:
         result.append({
-            "channel_name": r[0],
+            "story_name": r[0],
             "range": r[1],
             "start_ep": r[2],
             "end_ep": r[3],
             "shortlink": r[4],
             "bot_link": r[5],
-            "status": r[6],
-            "is_10ep_batch": bool(r[7]),
-            "harvested_at": r[8]
+            "status": "RESOLVED",
+            "verified_at": r[6]
         })
     return web.json_response(result)
 
@@ -621,27 +736,25 @@ async def handle_export_sql(request):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT channel_id, channel_name, message_id, message_date, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link, status
-        FROM `live_harvest`
-        WHERE status != 'SUPERSEDED'
-        ORDER BY channel_name ASC, start_ep ASC
+        SELECT channel_id, story_name, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link
+        FROM `fully_resolved_stories_master`
+        ORDER BY story_name ASC, start_ep ASC
     """)
     rows = cursor.fetchall()
     conn.close()
 
     lines = []
-    lines.append("-- CODEX Live Cloud Harvest Database Export (Channel-by-Channel Fully Resolved)\n")
+    lines.append("-- CODEX Fully Resolved Story Master Database Export (Pre-Verified & 100% Resolved)\n")
     lines.append(f"-- Exported on: {datetime.datetime.now().isoformat()} | Total Rows: {len(rows):,}\n\n")
     lines.append("INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message_id`, `message_date`, `button_range`, `start_episode`, `end_episode`, `shortlink_url`, `telegram_bot_link`, `status`, `source`) VALUES\n")
 
     val_lines = []
     for r in rows:
-        cid, cname, mid, mdate, rng, sep, eep, surl, burl, st = r
+        cid, cname, rng, sep, eep, surl, burl = r
         cname_esc = cname.replace("'", "''")
         surl_esc = surl.replace("'", "''")
         burl_esc = burl.replace("'", "''")
-        mdate_esc = mdate.replace("'", "''")
-        val_lines.append(f"('{cid}', '{cname_esc}', {mid or 0}, '{mdate_esc}', '{rng}', {sep}, {eep}, '{surl_esc}', '{burl_esc}', '{st}', 'live_cloud_harvest')")
+        val_lines.append(f"('{cid}', '{cname_esc}', 0, '', '{rng}', {sep}, {eep}, '{surl_esc}', '{burl_esc}', 'RESOLVED', 'cloud_master_resolved')")
 
     sql_content = ",\n".join(val_lines) + ";\n"
     return web.Response(text="\n".join(lines) + sql_content, content_type="text/plain; charset=utf-8")
@@ -661,7 +774,7 @@ async def start_http_server():
 
 async def main():
     print("=========================================================================================", flush=True)
-    print("🤖 STARTING CODEX TELEGRAM CHANNEL-BY-CHANNEL FULL RESOLUTION DAEMON (24/7 UPTIME)", flush=True)
+    print("🤖 STARTING CODEX PRE-VERIFIED FULL RESOLUTION DAEMON (24/7 UPTIME)", flush=True)
     print("=========================================================================================", flush=True)
     
     init_db()
