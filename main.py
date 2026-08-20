@@ -56,6 +56,7 @@ scan_progress = {
     "total_channels": 0,
     "current_channel_name": "",
     "completed_channels_count": 0,
+    "skipped_already_resolved_channels": 0,
     "total_messages_scanned": 0,
     "total_links_extracted": 0,
     "total_resolved_count": 0,
@@ -357,6 +358,7 @@ def store_raw_link(cid, cname, mid, mdate, raw_range, surl, burl):
     if surl == "N/A" and burl == "N/A":
         return None, False
 
+    # Check Master Resolved Cache
     if burl == "N/A" and surl != "N/A" and surl in MASTER_RESOLVED_CACHE:
         burl = MASTER_RESOLVED_CACHE[surl]
 
@@ -429,7 +431,9 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
 
     print(f"\n=========================================================================================", flush=True)
     print(f"🎯 STARTING SEQUENTIAL CHANNEL-BY-CHANNEL FULL RESOLUTION ENGINE ({len(channel_entities)} CHANNELS)", flush=True)
-    print(f"🔒 Rule: Advance to next channel IF AND ONLY IF current channel is 100% fully resolved!", flush=True)
+    print(f"🔒 Rules:", flush=True)
+    print(f"   1. Skip channels that are already 100% resolved (0 pending links) to avoid dual-account clashes.", flush=True)
+    print(f"   2. Advance to next channel IF AND ONLY IF current channel is 100% resolved!", flush=True)
     print(f"=========================================================================================\n", flush=True)
 
     async with async_playwright() as p:
@@ -444,29 +448,29 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
             scan_progress["current_channel_name"] = cname
 
             print(f"\n-----------------------------------------------------------------------------------------", flush=True)
-            print(f"📖 [Channel {idx}/{len(channel_entities)}] STARTING STORY: '{cname}' (ID: {cid})", flush=True)
+            print(f"📖 [Channel {idx}/{len(channel_entities)}] STORY: '{cname}' (ID: {cid})", flush=True)
             print(f"-----------------------------------------------------------------------------------------", flush=True)
 
             # Step 1: Scan all messages from this channel
             msg_count = 0
             pending_queue = []
+            extracted_count = 0
             
             try:
                 async for message in client.iter_messages(d.entity, limit=None):
                     msg_count += 1
                     scan_progress["total_messages_scanned"] += 1
                     
-                    # Extract from buttons
                     if message.reply_markup and hasattr(message.reply_markup, 'rows'):
                         for row in message.reply_markup.rows:
                             for btn in row.buttons:
                                 if hasattr(btn, 'url') and btn.url:
                                     entry, is_pending = store_raw_link(cid, cname, message.id, message.date.isoformat() if message.date else "", getattr(btn, 'text', ''), btn.url, "N/A")
                                     if entry:
+                                        extracted_count += 1
                                         scan_progress["total_links_extracted"] += 1
                                         if is_pending: pending_queue.append(entry)
 
-                    # Extract from text
                     text = message.text or ""
                     b_m = BOT_RE.search(text)
                     s_m = SHORTLINK_RE.search(text)
@@ -477,6 +481,7 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
                         brange = rng_m.group(1) if rng_m else "01-10"
                         entry, is_pending = store_raw_link(cid, cname, message.id, message.date.isoformat() if message.date else "", brange, surl, burl)
                         if entry:
+                            extracted_count += 1
                             scan_progress["total_links_extracted"] += 1
                             if is_pending: pending_queue.append(entry)
 
@@ -485,41 +490,46 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
             except Exception as e:
                 print(f"  ⚠️ Error scanning messages for {cname}: {e}", flush=True)
 
-            print(f"  📥 Channel extraction complete ({msg_count} messages scanned). Pending shortlinks to resolve: {len(pending_queue)}", flush=True)
+            # Step 2: Check if Already 100% Resolved -> SKIP IMMEDIATELY!
+            if len(pending_queue) == 0:
+                scan_progress["skipped_already_resolved_channels"] += 1
+                scan_progress["completed_channels_count"] += 1
+                print(f"  ⚡ [ALREADY 100% RESOLVED] '{cname}' has {extracted_count} links and ZERO pending links. Leaving channel cleanly! 🚀", flush=True)
+                await asyncio.sleep(0.5)
+                continue
 
-            # Step 2: RESOLVE ALL PENDING SHORTLINKS FOR THIS CHANNEL BEFORE MOVING ON!
-            if pending_queue and AUTO_RESOLVE:
-                print(f"  ⚡ Resolving {len(pending_queue)} pending shortlinks for '{cname}'...", flush=True)
-                for p_idx, p_entry in enumerate(pending_queue, 1):
-                    surl = p_entry['shortlink']
-                    rng = p_entry['range_label']
-                    row_id = p_entry['id']
-                    
-                    if surl in MASTER_RESOLVED_CACHE:
-                        bot_url = MASTER_RESOLVED_CACHE[surl]
-                        print(f"    [{p_idx}/{len(pending_queue)}] ⚡ Instant Match from Cache: [{rng}] -> {bot_url}", flush=True)
-                    else:
-                        print(f"    [{p_idx}/{len(pending_queue)}] 🌐 Resolving via Headless Chromium: [{rng}] {surl} ...", flush=True)
-                        bot_url = await resolve_one_shortlink(p, surl)
-                        if bot_url and bot_url != "N/A":
-                            MASTER_RESOLVED_CACHE[surl] = bot_url
-
+            # Step 3: RESOLVE ALL PENDING SHORTLINKS FOR THIS CHANNEL
+            print(f"  ⚡ Resolving {len(pending_queue)} pending shortlinks for '{cname}'...", flush=True)
+            for p_idx, p_entry in enumerate(pending_queue, 1):
+                surl = p_entry['shortlink']
+                rng = p_entry['range_label']
+                row_id = p_entry['id']
+                
+                if surl in MASTER_RESOLVED_CACHE:
+                    bot_url = MASTER_RESOLVED_CACHE[surl]
+                    print(f"    [{p_idx}/{len(pending_queue)}] ⚡ Instant Match from Cache: [{rng}] -> {bot_url}", flush=True)
+                else:
+                    print(f"    [{p_idx}/{len(pending_queue)}] 🌐 Resolving via Headless Chromium: [{rng}] {surl} ...", flush=True)
+                    bot_url = await resolve_one_shortlink(p, surl)
                     if bot_url and bot_url != "N/A":
-                        conn = sqlite3.connect(DB_PATH)
-                        cursor = conn.cursor()
-                        cursor.execute("UPDATE `live_harvest` SET telegram_bot_link = ?, status = 'RESOLVED' WHERE id = ?", (bot_url, row_id))
-                        conn.commit()
-                        conn.close()
-                        scan_progress["total_resolved_count"] += 1
-                        
-                        res_msg = f"🎉 <b>[RESOLVED & READY TO PLAY]</b>\n<b>{cname}</b>\n• Range: <code>{rng}</code>\n• Bot Link: {bot_url}"
-                        await notify_user(client, res_msg)
-                    else:
-                        print(f"    ⚠️ Could not resolve {surl}", flush=True)
+                        MASTER_RESOLVED_CACHE[surl] = bot_url
 
-                    await asyncio.sleep(1.5)
+                if bot_url and bot_url != "N/A":
+                    conn = sqlite3.connect(DB_PATH)
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE `live_harvest` SET telegram_bot_link = ?, status = 'RESOLVED' WHERE id = ?", (bot_url, row_id))
+                    conn.commit()
+                    conn.close()
+                    scan_progress["total_resolved_count"] += 1
+                    
+                    res_msg = f"🎉 <b>[RESOLVED & READY TO PLAY]</b>\n<b>{cname}</b>\n• Range: <code>{rng}</code>\n• Bot Link: {bot_url}"
+                    await notify_user(client, res_msg)
+                else:
+                    print(f"    ⚠️ Could not resolve {surl}", flush=True)
 
-            # Step 3: CHANNEL FULLY COMPLETE
+                await asyncio.sleep(1.5)
+
+            # Step 4: CHANNEL FULLY COMPLETE
             scan_progress["completed_channels_count"] += 1
             print(f"✅ [100% FULLY RESOLVED & VERIFIED] Channel '{cname}' completed successfully! Advancing to next channel...\n", flush=True)
             await asyncio.sleep(1)
@@ -664,7 +674,6 @@ async def main():
 
     print(f"📖 {len(channel_entities)} valid story channels mapped for strict channel-by-channel full resolution.", flush=True)
 
-    # Launch Sequential Channel-by-Channel Full Resolution Engine in background
     if FULL_HISTORICAL_SCAN:
         asyncio.create_task(sequential_channel_scanner_and_resolver(client, joined_channels, channel_entities))
 
