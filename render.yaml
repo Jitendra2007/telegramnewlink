@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: telegram-link-watcher
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: API_ID
+        value: "36198115"
+      - key: API_HASH
+        value: "ce040e05f933e3e0a811f186c3d5d3bb"
+      - key: TELEGRAM_STRING_SESSION
+        value: "1BVtsOJoBu79FGJDwT08NrlugEVjBbtOhq1Efnp2XxTJZJgwW_QZnhDnAW_gCxrdnf6p63BgH0VCRsGwBMe7DYoEoDIaq0WztDhZvYZ0YVZKwsvnafV5gGY53ouuGeEzDI9hVjgSjcSWKXJAx5bdT3SVKsNyNOqxivxr5VMP4s94YaCdZCV9RMM5qKIBlvFmFRqF9cilVU17bbsxGGkOsxYKy4dE5kv3tRsmSBipaMH4f1MXFgdN5C82kyknlFEm8ORSbnCp81_ms0Ye43Tnghuw2l-i9SKKeuNUQWZv8jSlEOMRfPKeqymbWci9fD50QyiwQLkw3d0dx6jxACG01g9ZzTYD7FYY="
+      - key: PORT
+        value: "8080"
+      - key: FORWARD_TO_SAVED_MESSAGES
+        value: "true"
