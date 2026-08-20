@@ -610,13 +610,15 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
                 # Check Master Cache for Shortlink
                 if item["bot_link"] == "N/A" and item["shortlink"] != "N/A":
                     if item["shortlink"] in MASTER_RESOLVED_CACHE:
-                        item["bot_link"] = MASTER_RESOLVED_CACHE[item["shortlink"]]
+                        cached_bot = MASTER_RESOLVED_CACHE[item["shortlink"]]
+                        item["bot_link"] = cached_bot
+                        print(f"    ✨ [RESOLVED FROM CACHE]: [{item['range_label']}] {item['shortlink']} -> {cached_bot}", flush=True)
                     else:
                         pending_items.append(item)
 
             # Step 3: Resolve all pending shortlinks for this story channel
             if pending_items and AUTO_RESOLVE:
-                print(f"  ⚡ Resolving {len(pending_items)} pending shortlinks for '{cname}'...", flush=True)
+                print(f"  ⚡ Resolving {len(pending_items)} pending live shortlinks for '{cname}'...", flush=True)
                 for p_idx, p_item in enumerate(pending_items, 1):
                     surl = p_item["shortlink"]
                     rng = p_item["range_label"]
@@ -627,10 +629,10 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
                         p_item["bot_link"] = bot_url
                         MASTER_RESOLVED_CACHE[surl] = bot_url
                         scan_progress["total_resolved_count"] += 1
-                        print(f"    👉 Success: {bot_url}", flush=True)
+                        print(f"    ✅ [RESOLVED & STOPPED]: [{rng}] {surl} -> {bot_url}", flush=True)
                     else:
-                        print(f"    ⚠️ Could not resolve: {surl}", flush=True)
-                    await asyncio.sleep(0.5)
+                        print(f"    ⚠️ [UNRESOLVED / SKIPPED]: [{rng}] {surl} -> N/A (Moved to next)", flush=True)
+                    await asyncio.sleep(0.3)
 
             # Step 4: Save 100% complete story set with Channel Name, Ranges, Shortlinks, Bot Links
             save_channel_story_set(cid, cname, ordered_story_items)
