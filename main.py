@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 from aiohttp import ClientSession, ClientTimeout, web
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
+import time
 from playwright.async_api import async_playwright
 
 sys.stdout.reconfigure(encoding='utf-8')
