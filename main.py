@@ -348,11 +348,15 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
         pass
 
     try:
-        await page.goto(shortlink, wait_until="domcontentloaded", timeout=15000)
+        resp = await page.goto(shortlink, wait_until="domcontentloaded", timeout=15000)
+        if resp and resp.status in (404, 410):
+            print(f"    🚫 [HTTP {resp.status} DEAD LINK]: {shortlink} has expired on provider server.", flush=True)
+            await browser.close()
+            return "N/A"
     except Exception as e:
         print(f"    ⚠️ Resolver initial page load failed for {shortlink}: {e}", flush=True)
 
-    await asyncio.sleep(1.0)
+    await asyncio.sleep(0.5)
     try:
         body_text = await page.inner_text("body")
         if any(txt in body_text.lower() for txt in ["404 not found", "was not found", "doesn't exist", "may have expired", "link expired", "invalid key", "wrong turn", "back to home"]):
