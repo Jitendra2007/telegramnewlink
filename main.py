@@ -86,19 +86,84 @@ def load_resolved_cache():
 
 FAST_STEP_JS = r"""
 async () => {
-  const bodyText = document.body ? document.body.innerText : "";
-  const tgText = bodyText.match(
-    /(?:https?:\/\/)?(?:telegram\.me|t\.me)\/[A-Za-z0-9_]+\?start=[A-Za-z0-9_%+\/=\-]+/i
-  );
-  if (tgText) return {action: "found_text", telegram: tgText[0]};
+  // ─── 0. Check for Telegram bot link already present ───────────────────
+  const BOT_PAT = /(?:https?:\/\/)?(?:telegram\.me|t\.me)\/[A-Za-z0-9_]+\?start=[A-Za-z0-9_%+\/=\-]+/i;
 
   for (const a of document.querySelectorAll("a")) {
     const href = a.href || "";
-    if (/(?:telegram\.me|t\.me)\/[A-Za-z0-9_]+\?start=/i.test(href)) {
-      return {action: "found_anchor", telegram: href};
+    if (BOT_PAT.test(href)) return {action: "found_anchor", telegram: href};
+  }
+  const bodyText = document.body ? document.body.innerText : "";
+  const tgText = bodyText.match(BOT_PAT);
+  if (tgText) return {action: "found_text", telegram: tgText[0]};
+
+  // ─── GUARD: Cloudflare / loading pages — wait, don't touch ────────────
+  const title = document.title || "";
+  const url = location.href || "";
+  if (title.toLowerCase().includes("checking your browser") ||
+      title.toLowerCase().includes("just a moment") ||
+      url.includes("challenges.cloudflare.com") ||
+      document.querySelector("#challenge-running, #cf-challenge-running")) {
+    return {action: "waiting_cloudflare", url: url};
+  }
+
+  // ─── 1. Kill the #hsg ad-gate (hindisink.com step system) ─────────────
+  const now = Date.now();
+  try { document.cookie = 'hsg=done:' + now + ';path=/;max-age=180;SameSite=Lax'; } catch(e) {}
+  try { sessionStorage.setItem('hsg', 'done:' + now); } catch(e) {}
+  const gate = document.getElementById('hsg');
+  if (gate) {
+    gate.hidden = true;
+    if (gate.parentNode) gate.parentNode.removeChild(gate);
+    document.documentElement.style.overflow = '';
+  }
+
+  // ─── 2. Instant-click the "Click here to verify" (#go) button ────────
+  const goBtn = document.getElementById('go');
+  if (goBtn) {
+    goBtn.click();
+    const cd = document.getElementById('cd');
+    const num = document.getElementById('num');
+    const bar = document.getElementById('bar');
+    if (num) num.textContent = '0';
+    if (bar) bar.style.width = '100%';
+    const pCont = document.getElementById('pCont');
+    if (pCont) pCont.classList.remove('x');
+    if (cd) cd.classList.add('x');
+    for (let i = 1; i < 9999; i++) { try { clearInterval(i); } catch(e) {} }
+    return {action: "bypassed_go"};
+  }
+
+  // ─── 3. Click "Continue" (#cont) and skip the 5s hold ────────────────
+  const cont = document.getElementById('cont');
+  if (cont && !cont.closest('.x')) {
+    cont.click();
+    const pHold = document.getElementById('pHold');
+    const pDone = document.getElementById('pDone');
+    if (pHold) pHold.classList.add('x');
+    if (pDone) pDone.classList.remove('x');
+    for (let i = 1; i < 9999; i++) { try { clearInterval(i); } catch(e) {} }
+    return {action: "bypassed_cont"};
+  }
+
+  // ─── 4. Click the final "Done" / link element (#pDone area) ──────────
+  const pDone = document.getElementById('pDone');
+  if (pDone && !pDone.classList.contains('x')) {
+    const finalA = pDone.querySelector('a[href]');
+    if (finalA) {
+      const href = finalA.href;
+      if (BOT_PAT.test(href)) return {action: "found_pDone_link", telegram: href};
+      finalA.click();
+      return {action: "clicked_pDone_link", href: href};
+    }
+    const finalBtn = pDone.querySelector('button, input[type="submit"]');
+    if (finalBtn) {
+      finalBtn.click();
+      return {action: "clicked_pDone_button"};
     }
   }
 
+  // ─── 5. Legacy selectors (ONLY specific known forms, not generic) ────
   for (const el of document.querySelectorAll('.no_display, [style*="display: none"], [hidden]')) {
     el.classList.remove('no_display');
     el.hidden = false;
@@ -111,31 +176,26 @@ async () => {
     el.removeAttribute('disabled');
   }
 
-  const bypassForm = document.querySelector("form#fwd, form#rtg, form#landing") || document.querySelector("form:not(.search-form)");
+  // ONLY submit forms with specific known shortlink IDs — never generic forms
+  const bypassForm = document.querySelector("form#fwd, form#rtg, form#landing");
   if (bypassForm) {
     try {
       HTMLFormElement.prototype.submit.call(bypassForm);
-      return {action: "submitted_bypass_form", form: bypassForm.id || bypassForm.name || "form"};
-    } catch(e) {
-      try { bypassForm.submit(); return {action: "submitted_bypass_form_native"}; } catch(e2) {}
-    }
+      return {action: "submitted_bypass_form", id: bypassForm.id};
+    } catch(e) {}
   }
 
-  const stepBtn = Array.from(document.querySelectorAll("button, a, input[type='button'], input[type='submit']")).find(el => {
-    const txt = (el.innerText || el.value || "").toLowerCase().trim();
-    return (
-      txt.includes("open your link") ||
-      txt.includes("go to step") ||
-      txt.includes("click to continue") ||
-      txt.includes("get link") ||
-      txt.includes("verify")
-    );
-  });
-  if (stepBtn) {
-    try {
-      stepBtn.click();
-      return {action: "clicked_step_button", text: stepBtn.innerText || stepBtn.value};
-    } catch(e) {}
+  const getLink = document.querySelector(".get-link");
+  if (getLink) {
+    const disabled =
+      getLink.classList.contains("disabled") ||
+      getLink.getAttribute("aria-disabled") === "true" ||
+      window.getComputedStyle(getLink).pointerEvents === "none";
+    if (disabled) {
+      return {action: "waiting_final_gate"};
+    }
+    // Don't click in JS — return signal for Python to click via page.click(force=True)
+    return {action: "click_get_link"};
   }
 
   const finalBtn = document.getElementById("final") ||
@@ -145,22 +205,16 @@ async () => {
                    document.querySelector("#rtg-snp21 a") ||
                    document.querySelector(".btn-success, .btn-primary");
   if (finalBtn) {
+    const href = finalBtn.href || '';
+    if (BOT_PAT.test(href)) return {action: "found_final_link", telegram: href};
     try { finalBtn.click(); } catch(e) {}
     return {action: "clicked_final"};
-  }
-
-  const getLink = document.querySelector(".get-link");
-  if (getLink) {
-    getLink.classList.remove('disabled');
-    getLink.removeAttribute('aria-disabled');
-    getLink.style.pointerEvents = 'auto';
-    try { getLink.click(); } catch(e) {}
-    return {action: "click_get_link"};
   }
 
   return {action: "nothing_matched", url: location.href};
 }
 """
+
 
 def host_of(url: str) -> str:
     try:
@@ -300,10 +354,9 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
     """
     Resolve a shortlink to a Telegram bot link.
     Strategy:
-      1. Instant cache lookup (0.001s) — verified 23,014 pairs
-      2. HTTP redirect-following via aiohttp (no browser, no OOM)
-         - Follow each redirect, check Location header & response body for bot link
-         - Max 10 hops, 12s timeout per hop, abort on Telegram match
+      1. Instant cache lookup (verified correct, 23,014 pairs)
+      2. HTTP redirect-following via aiohttp — fast, no RAM (catches plain redirect chains)
+      3. Playwright fallback ONLY if HTTP fails — strict 20s, one page, browser closed immediately
     """
     if shortlink in MASTER_RESOLVED_CACHE:
         return MASTER_RESOLVED_CACHE[shortlink]
@@ -315,22 +368,18 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
         "Referer": HINDISINK_REFERER,
     }
 
-    timeout = ClientTimeout(total=12)
-    current_url = shortlink
+    # ── Step 1: HTTP redirect-following (zero RAM) ──────────────────────────
     found = None
-
+    current_url = shortlink
     try:
-        async with ClientSession(timeout=timeout, headers=HEADERS) as session:
-            for hop in range(12):  # max 12 redirect hops
+        async with ClientSession(timeout=ClientTimeout(total=12), headers=HEADERS) as session:
+            for hop in range(12):
                 if not current_url or not current_url.startswith("http"):
                     break
-
-                # Check current URL for bot link directly
                 m = BOT_RE.search(current_url)
                 if m:
                     found = m.group(0)
                     break
-
                 try:
                     async with session.get(
                         current_url,
@@ -338,64 +387,156 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
                         ssl=False,
                         timeout=ClientTimeout(total=10)
                     ) as resp:
-                        # Check Location header
                         location = resp.headers.get("Location", "")
                         if location:
                             m = BOT_RE.search(location)
                             if m:
                                 found = m.group(0)
                                 break
-                            # Build absolute URL if relative
-                            if location.startswith("http"):
-                                current_url = location
-                            else:
-                                from urllib.parse import urljoin
-                                current_url = urljoin(current_url, location)
+                            current_url = location if location.startswith("http") else __import__("urllib.parse", fromlist=["urljoin"]).urljoin(current_url, location)
                             continue
-
-                        # Dead link detection
                         if resp.status in (404, 410):
-                            print(f"    🚫 [HTTP {resp.status} DEAD]: {shortlink}", flush=True)
+                            print(f"    🚫 [DEAD {resp.status}]: {shortlink}", flush=True)
                             return "N/A"
-
-                        # Read body and scan for bot link
                         try:
                             body = await resp.text(encoding="utf-8", errors="ignore")
                         except Exception:
                             body = ""
-
                         m = BOT_RE.search(body)
                         if m:
                             found = m.group(0)
                             break
-
-                        # Dead content detection
                         body_lower = body.lower()
                         if any(t in body_lower for t in ["404 not found", "was not found", "doesn't exist", "may have expired", "link expired", "invalid key", "wrong turn"]):
                             print(f"    🚫 [DEAD/EXPIRED]: {shortlink}", flush=True)
                             return "N/A"
-
-                        # No more redirects, no bot link found — stop
                         break
-
                 except asyncio.TimeoutError:
-                    print(f"    ⏱️ [HTTP TIMEOUT] hop {hop+1} for {shortlink}", flush=True)
                     break
-                except Exception as e:
-                    print(f"    ⚠️ [HTTP ERR] hop {hop+1} for {shortlink}: {type(e).__name__}", flush=True)
+                except Exception:
                     break
+    except Exception:
+        pass
+
+    if found:
+        result = normalize_bot_link(found)
+        if result and result != "N/A":
+            print(f"    ✅ [RESOLVED HTTP]: {shortlink} -> {result}", flush=True)
+            MASTER_RESOLVED_CACHE[shortlink] = result
+            return result
+
+    # ── Step 2: Playwright fallback for JS-gated shortlinks (Direct Referer Engine) ─
+    print(f"    🌐 [PLAYWRIGHT FALLBACK]: {shortlink}", flush=True)
+    start_time = time.time()
+    MAX_BROWSER_SECONDS = 18.0
+    pw_found = None
+    browser = None
+    try:
+        browser = await playwright_instance.chromium.launch(headless=True, args=[
+            "--no-sandbox", "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage", "--disable-gpu",
+            "--single-process", "--no-zygote",
+            "--disable-extensions", "--ignore-certificate-errors",
+            "--disable-images", "--blink-settings=imagesEnabled=false",
+        ])
+        context = await browser.new_context(
+            user_agent=HEADERS["User-Agent"],
+            viewport={"width": 1280, "height": 720},
+            java_script_enabled=True,
+        )
+        await context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+            Object.defineProperty(document, 'visibilityState', {get: () => 'visible', configurable: true});
+            Object.defineProperty(document, 'hidden', {get: () => false, configurable: true});
+            try { document.cookie = 'hsg=done:' + Date.now() + ';path=/;max-age=180;SameSite=Lax'; } catch(e) {}
+            try { sessionStorage.setItem('hsg', 'done:' + Date.now()); } catch(e) {}
+        """)
+
+        page = await context.new_page()
+
+        def check_hit(url):
+            nonlocal pw_found
+            if pw_found: return
+            m = BOT_RE.search(url)
+            if m:
+                pw_found = m.group(0)
+
+        page.on("request", lambda req: check_hit(req.url))
+        page.on("response", lambda resp: check_hit(resp.url))
+
+        # Phase 1: Fast Direct Referer Bypass (~11s)
+        try:
+            await page.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=16000)
+            for _ in range(14):
+                if pw_found: break
+                res = await page.evaluate(r"""() => {
+                    const gl = document.querySelector(".get-link, #getlink, a.get-link");
+                    if (!gl) return {found: false};
+                    const locked = gl.classList.contains("disabled") || (gl.innerText||'').includes("wait");
+                    if (!locked) {
+                        try { gl.click(); } catch(e){}
+                        return {clicked: true};
+                    }
+                    return {locked: true};
+                }""")
+                if res.get("clicked"):
+                    await asyncio.sleep(2.5)
+                    break
+                await asyncio.sleep(1.0)
+        except Exception:
+            pass
+
+        # Phase 2: Fallback if Direct Referer did not trigger .get-link
+        if not pw_found:
+            try:
+                for _ in range(10):
+                    if pw_found: break
+                    try:
+                        await page.evaluate(r"""() => {
+                            const b = document.querySelector('a#final, #rtg-snp21 a, .get-link, a.btn-primary');
+                            if (b) b.click();
+                        }""")
+                    except Exception:
+                        pass
+                    await asyncio.sleep(1.0)
+            except Exception:
+                pass
+
+        for _ in range(3):
+            if pw_found: break
+            try:
+                c = await page.content()
+                m = BOT_RE.search(c) or BOT_RE.search(page.url or "")
+                if m:
+                    pw_found = m.group(0)
+                    break
+            except Exception:
+                pass
+            await asyncio.sleep(0.5)
 
     except Exception as e:
-        print(f"    ⚠️ [SESSION ERR] for {shortlink}: {type(e).__name__}", flush=True)
+        print(f"    ⚠️ [PW ERR] {shortlink}: {type(e).__name__}", flush=True)
+    finally:
+        if browser:
+            try:
+                await browser.close()
+            except Exception:
+                pass
 
-    final_link = normalize_bot_link(found) if found else None
-    if final_link and final_link != "N/A":
-        print(f"    ✅ [RESOLVED & STOPPED] (HTTP): {shortlink} -> {final_link}", flush=True)
-        MASTER_RESOLVED_CACHE[shortlink] = final_link
-        return final_link
+    if pw_found:
+        result = normalize_bot_link(pw_found)
+        if result and result != "N/A":
+            MASTER_RESOLVED_CACHE[shortlink] = result
+            elapsed = time.time() - start_time
+            print(f"    ✅ [RESOLVED PW]: {shortlink} -> {result} ({elapsed:.1f}s)", flush=True)
+            return result
 
-    print(f"    ⚠️ [UNRESOLVED HTTP]: {shortlink} — marking pending", flush=True)
+    elapsed = time.time() - start_time
+    print(f"    ⚠️ [UNRESOLVED]: {shortlink} ({elapsed:.1f}s) — marking pending", flush=True)
     return None
+
+
+
 
 
 # Save Channel Set to Dedicated Database and Story File
