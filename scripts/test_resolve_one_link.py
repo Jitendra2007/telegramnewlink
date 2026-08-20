@@ -10,7 +10,6 @@ from playwright.async_api import async_playwright
 
 
 def default_shortlink():
-    main.load_resolved_cache()
     for shortlink in main.MASTER_RESOLVED_CACHE:
         if main.normalize_shortlink(shortlink) != "N/A":
             return shortlink
@@ -32,6 +31,7 @@ def parse_args():
 
 
 def main_cli():
+    main.load_resolved_cache()
     args = parse_args()
     shortlink = args.shortlink or default_shortlink()
     bot_link = asyncio.run(resolve(shortlink, use_cache=not args.no_cache))
