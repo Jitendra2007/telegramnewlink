@@ -17,8 +17,10 @@ sys.stdout.reconfigure(encoding='utf-8')
 # Configuration from Environment Variables
 API_ID = int(os.environ.get("API_ID", "36198115"))
 API_HASH = os.environ.get("API_HASH", "ce040e05f933e3e0a811f186c3d5d3bb")
-SESSION_STR_MAIN = os.environ.get("TELEGRAM_STRING_SESSION", "1BVtsOJoBu79FGJDwT08NrlugEVjBbtOhq1Efnp2XxTJZJgwW_QZnhDnAW_gCxrdnf6p63BgH0VCRsGwBMe7DYoEoDIaq0WztDhZvYZ0YVZKwsvnafV5gGY53ouuGeEzDI9hVjgSjcSWKXJAx5bdT3SVKsNyNOqxivxr5VMP4s94YaCdZCV9RMM5qKIBlvFmFRqF9cilVU17bbsxGGkOsxYKy4dE5kv3tRsmSBipaMH4f1MXFgdN5C82kyknlFEm8ORSbnCp81_ms0Ye43Tnghuw2l-i9SKKeuNUQWZv8jSlEOMRfPKeqymbWci9fD50QyiwQLkw3d0dx6jxACG01g9ZzTYD7FYY=")
-SESSION_STR_SUB = os.environ.get("TELEGRAM_STRING_SESSION_SUB", "1BVtsOKABu30UGkzgJxm5hTt4bzvmO5EoUVOWdXgz5yhqmuEoLOWHZw7Zg5W6nui5zmT_Xk1UoaWPZGAWno-xzhr_41A6ieDvTtxPze2fdvyuora0eKL90zGhsNxSxsuqcuvEkbpH3YueaSiQTJRH7kZNjYANtk6-0i6ty-fgTkWaRw65LyEgKNcPGPaCR2niQsvJdcZ07Kbuo7Oaqmfw4KvPB-VaH8OmcyuB-awKviKfoAB2Ud87OSSHLf_6kM1IJ9DCHKKgQ19vSE1ZR9RjDg8CyJWg8CXJv1kKuTBDteF_K4nT_AJcOQTNI-zfYgNoOwhADM90Qm37xKqXu3IOEUnuu8-ZhRw=")
+# Account 1 (Main: Rock / +91 9848915830)
+SESSION_STR_MAIN = os.environ.get("TELEGRAM_STRING_SESSION", "1BVtsOKABu30UGkzgJxm5hTt4bzvmO5EoUVOWdXgz5yhqmuEoLOWHZw7Zg5W6nui5zmT_Xk1UoaWPZGAWno-xzhr_41A6ieDvTtxPze2fdvyuora0eKL90zGhsNxSxsuqcuvEkbpH3YueaSiQTJRH7kZNjYANtk6-0i6ty-fgTkWaRw65LyEgKNcPGPaCR2niQsvJdcZ07Kbuo7Oaqmfw4KvPB-VaH8OmcyuB-awKviKfoAB2Ud87OSSHLf_6kM1IJ9DCHKKgQ19vSE1ZR9RjDg8CyJWg8CXJv1kKuTBDteF_K4nT_AJcOQTNI-zfYgNoOwhADM90Qm37xKqXu3IOEUnuu8-ZhRw=")
+# Account 2 (Sub: Syamala / +91 9490590394)
+SESSION_STR_SUB = os.environ.get("TELEGRAM_STRING_SESSION_SUB", "1BVtsOJoBu79FGJDwT08NrlugEVjBbtOhq1Efnp2XxTJZJgwW_QZnhDnAW_gCxrdnf6p63BgH0VCRsGwBMe7DYoEoDIaq0WztDhZvYZ0YVZKwsvnafV5gGY53ouuGeEzDI9hVjgSjcSWKXJAx5bdT3SVKsNyNOqxivxr5VMP4s94YaCdZCV9RMM5qKIBlvFmFRqF9cilVU17bbsxGGkOsxYKy4dE5kv3tRsmSBipaMH4f1MXFgdN5C82kyknlFEm8ORSbnCp81_ms0Ye43Tnghuw2l-i9SKKeuNUQWZv8jSlEOMRfPKeqymbWci9fD50QyiwQLkw3d0dx6jxACG01g9ZzTYD7FYY=")
 PORT = int(os.environ.get("PORT", "8080"))
 FORWARD_TO_SAVED_MESSAGES = os.environ.get("FORWARD_TO_SAVED_MESSAGES", "true").lower() == "true"
 AUTO_RESOLVE = os.environ.get("AUTO_RESOLVE", "true").lower() == "true"
@@ -774,13 +776,13 @@ async def main():
     channel_targets = []
     seen_channel_ids = set()
 
-    # 1. Main Account (9490590394)
+    # 1. Main Account (Rock / 9848915830)
     client_main = TelegramClient(StringSession(SESSION_STR_MAIN), API_ID, API_HASH, timeout=20, auto_reconnect=True)
     await client_main.connect()
     
     if await client_main.is_user_authorized():
         me1 = await client_main.get_me()
-        print(f"✅ Connected & Authorized Account 1 (Main): {me1.first_name} (+{me1.phone})", flush=True)
+        print(f"✅ Connected & Authorized Account 1 (Main: Rock): {me1.first_name} (+{me1.phone})", flush=True)
         clients.append(client_main)
         d1 = await client_main.get_dialogs()
         for d in d1:
@@ -792,16 +794,16 @@ async def main():
                     seen_channel_ids.add(clean_id)
                     channel_targets.append((client_main, d, clean_id, cname))
     else:
-        print("⚠️ Account 1 (Main) string session not authorized!", flush=True)
+        print("⚠️ Account 1 (Main: Rock) string session not authorized!", flush=True)
 
-    # 2. Sub Account (9848915830)
+    # 2. Sub Account (Syamala / 9490590394)
     if SESSION_STR_SUB:
         try:
             client_sub = TelegramClient(StringSession(SESSION_STR_SUB), API_ID, API_HASH, timeout=20, auto_reconnect=True)
             await client_sub.connect()
             if await client_sub.is_user_authorized():
                 me2 = await client_sub.get_me()
-                print(f"✅ Connected & Authorized Account 2 (Sub): {me2.first_name} (+{me2.phone})", flush=True)
+                print(f"✅ Connected & Authorized Account 2 (Sub: Syamala): {me2.first_name} (+{me2.phone})", flush=True)
                 clients.append(client_sub)
                 d2 = await client_sub.get_dialogs()
                 for d in d2:
