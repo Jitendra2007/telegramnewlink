@@ -292,10 +292,12 @@ async def notify_user(client, text):
     except Exception:
         pass
 
-# Fast Referer-Bypass Shortlink Resolver
 async def resolve_one_shortlink(playwright_instance, shortlink):
     if shortlink in MASTER_RESOLVED_CACHE:
         return MASTER_RESOLVED_CACHE[shortlink]
+
+    start_time = time.time()
+    MAX_TIMEOUT_SECONDS = 28.0
 
     found = None
     launch_options = {
@@ -337,7 +339,8 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
         nonlocal found
         if found: return
         m = BOT_RE.search(url)
-        if m: found = m.group(0)
+        if m:
+            found = m.group(0)
 
     page.on("request", lambda req: check_hit(req.url))
     page.on("response", lambda resp: check_hit(resp.url))
@@ -348,7 +351,7 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
         pass
 
     try:
-        resp = await page.goto(shortlink, wait_until="domcontentloaded", timeout=25000)
+        resp = await page.goto(shortlink, wait_until="domcontentloaded", timeout=12000)
         if resp and resp.status in (404, 410):
             print(f"    🚫 [HTTP {resp.status} DEAD LINK]: {shortlink} has expired on provider server.", flush=True)
             await browser.close()
@@ -356,7 +359,11 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
     except Exception as e:
         print(f"    ⚠️ Resolver initial page load failed for {shortlink}: {e}", flush=True)
 
-    await asyncio.sleep(2.0)
+    if found:
+        await browser.close()
+        return normalize_bot_link(found)
+
+    await asyncio.sleep(1.0)
     try:
         body_text = await page.inner_text("body")
         if any(txt in body_text.lower() for txt in ["404 not found", "was not found", "doesn't exist", "may have expired", "link expired", "invalid key", "wrong turn", "back to home"]):
@@ -370,7 +377,7 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
         await browser.close()
         return normalize_bot_link(found)
 
-    for loop_idx in range(65):
+    while (time.time() - start_time) < MAX_TIMEOUT_SECONDS:
         if found: break
         active_page = context.pages[0] if context.pages else page
 
@@ -394,13 +401,9 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
 
         action = result.get("action") if isinstance(result, dict) else ""
         if action in ("submitted_bypass_form", "clicked_final"):
-            await asyncio.sleep(2.0)
-            try:
-                await active_page.wait_for_load_state("domcontentloaded", timeout=6000)
-            except Exception:
-                pass
+            await asyncio.sleep(1.5)
         elif action == "waiting_final_gate":
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(0.8)
         elif action == "click_get_link":
             try:
                 await active_page.evaluate("""() => {
@@ -408,12 +411,12 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
                         try { el.remove(); } catch(e) {}
                     }
                 }""")
-                await active_page.click(".get-link", timeout=5000, force=True)
+                await active_page.click(".get-link", timeout=4000, force=True)
             except Exception:
                 pass
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(0.8)
         else:
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(0.8)
 
     if not found:
         try:
@@ -436,9 +439,9 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
     final_link = normalize_bot_link(found)
     if final_link == "N/A":
         try:
-            print(f"    ⚠️ Resolver exhausted steps for {shortlink}; last URL: {page.url}", flush=True)
+            print(f"    ⚠️ Resolver timeout ({time.time() - start_time:.1f}s) for {shortlink}; last URL: {page.url}", flush=True)
         except Exception:
-            print(f"    ⚠️ Resolver exhausted steps for {shortlink}; last URL unavailable", flush=True)
+            print(f"    ⚠️ Resolver timeout ({time.time() - start_time:.1f}s) for {shortlink}", flush=True)
 
     await browser.close()
     return final_link
