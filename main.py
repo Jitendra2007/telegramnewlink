@@ -21,7 +21,7 @@ API_HASH = os.environ.get("API_HASH", "ce040e05f933e3e0a811f186c3d5d3bb")
 SESSION_STR_MAIN = os.environ.get("TELEGRAM_STRING_SESSION", "1BVtsOKABu30UGkzgJxm5hTt4bzvmO5EoUVOWdXgz5yhqmuEoLOWHZw7Zg5W6nui5zmT_Xk1UoaWPZGAWno-xzhr_41A6ieDvTtxPze2fdvyuora0eKL90zGhsNxSxsuqcuvEkbpH3YueaSiQTJRH7kZNjYANtk6-0i6ty-fgTkWaRw65LyEgKNcPGPaCR2niQsvJdcZ07Kbuo7Oaqmfw4KvPB-VaH8OmcyuB-awKviKfoAB2Ud87OSSHLf_6kM1IJ9DCHKKgQ19vSE1ZR9RjDg8CyJWg8CXJv1kKuTBDteF_K4nT_AJcOQTNI-zfYgNoOwhADM90Qm37xKqXu3IOEUnuu8-ZhRw=")
 # Account 2 (Sub: Syamala / +91 9490590394)
 SESSION_STR_SUB = os.environ.get("TELEGRAM_STRING_SESSION_SUB", "1BVtsOJoBu79FGJDwT08NrlugEVjBbtOhq1Efnp2XxTJZJgwW_QZnhDnAW_gCxrdnf6p63BgH0VCRsGwBMe7DYoEoDIaq0WztDhZvYZ0YVZKwsvnafV5gGY53ouuGeEzDI9hVjgSjcSWKXJAx5bdT3SVKsNyNOqxivxr5VMP4s94YaCdZCV9RMM5qKIBlvFmFRqF9cilVU17bbsxGGkOsxYKy4dE5kv3tRsmSBipaMH4f1MXFgdN5C82kyknlFEm8ORSbnCp81_ms0Ye43Tnghuw2l-i9SKKeuNUQWZv8jSlEOMRfPKeqymbWci9fD50QyiwQLkw3d0dx6jxACG01g9ZzTYD7FYY=")
-PORT = int(os.environ.get("PORT", "8080"))
+PORT = int(os.environ.get("PORT", "10000"))  # Render default is 10000
 FORWARD_TO_SAVED_MESSAGES = os.environ.get("FORWARD_TO_SAVED_MESSAGES", "true").lower() == "true"
 AUTO_RESOLVE = os.environ.get("AUTO_RESOLVE", "true").lower() == "true"
 FULL_HISTORICAL_SCAN = os.environ.get("FULL_HISTORICAL_SCAN", "true").lower() == "true"
@@ -787,7 +787,7 @@ async def start_http_server():
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', PORT)
     await site.start()
-    print(f"🌐 HTTP Health & API Server listening on port {PORT}", flush=True)
+    print(f"🌐 HTTP server bound to 0.0.0.0:{PORT} — Render port binding OK!", flush=True)
 
 async def main():
     print("=========================================================================================", flush=True)
