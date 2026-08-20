@@ -6,7 +6,7 @@ import re
 import sqlite3
 import sys
 from urllib.parse import urlparse
-from aiohttp import web
+from aiohttp import ClientSession, ClientTimeout, web
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 from playwright.async_api import async_playwright
@@ -21,6 +21,8 @@ PORT = int(os.environ.get("PORT", "8080"))
 FORWARD_TO_SAVED_MESSAGES = os.environ.get("FORWARD_TO_SAVED_MESSAGES", "true").lower() == "true"
 AUTO_RESOLVE = os.environ.get("AUTO_RESOLVE", "true").lower() == "true"
 FULL_HISTORICAL_SCAN = os.environ.get("FULL_HISTORICAL_SCAN", "true").lower() == "true"
+KEEPALIVE_INTERVAL_SECONDS = int(os.environ.get("KEEPALIVE_INTERVAL_SECONDS", str(13 * 60)))
+KEEPALIVE_URL = os.environ.get("KEEPALIVE_URL") or os.environ.get("RENDER_EXTERNAL_URL")
 
 DB_PATH = "live_harvest.db"
 CACHE_PATH = "master_resolved_cache.json"
@@ -289,7 +291,8 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
         )
-    except Exception:
+    except Exception as e:
+        print(f"    ⚠️ Resolver browser launch failed for {shortlink}: {e}", flush=True)
         return None
 
     context = await browser.new_context(
@@ -330,8 +333,8 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
 
     try:
         await page.goto(shortlink, wait_until="domcontentloaded", timeout=12000)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"    ⚠️ Resolver initial page load failed for {shortlink}: {e}", flush=True)
 
     if found:
         await browser.close()
@@ -376,8 +379,15 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
         except Exception:
             pass
 
+    final_link = normalize_bot_link(found)
+    if final_link == "N/A":
+        try:
+            print(f"    ⚠️ Resolver exhausted steps for {shortlink}; last URL: {page.url}", flush=True)
+        except Exception:
+            print(f"    ⚠️ Resolver exhausted steps for {shortlink}; last URL unavailable", flush=True)
+
     await browser.close()
-    return normalize_bot_link(found)
+    return final_link
 
 # Save Channel Set to Dedicated Database and Story File
 def save_channel_story_set(cid, cname, ordered_items):
@@ -659,6 +669,26 @@ async def handle_export_sql(request):
     sql_content = ",\n".join(val_lines) + ";\n"
     return web.Response(text="\n".join(lines) + sql_content, content_type="text/plain; charset=utf-8")
 
+
+async def keepalive_ping_loop():
+    if KEEPALIVE_INTERVAL_SECONDS <= 0:
+        print("🏓 Keepalive ping disabled because KEEPALIVE_INTERVAL_SECONDS is <= 0.", flush=True)
+        return
+
+    target_url = (KEEPALIVE_URL.rstrip("/") if KEEPALIVE_URL else f"http://127.0.0.1:{PORT}") + "/health"
+    timeout = ClientTimeout(total=20)
+    print(f"🏓 Keepalive ping loop active: {target_url} every {KEEPALIVE_INTERVAL_SECONDS // 60} minutes.", flush=True)
+
+    while True:
+        await asyncio.sleep(KEEPALIVE_INTERVAL_SECONDS)
+        try:
+            async with ClientSession(timeout=timeout) as session:
+                async with session.get(target_url) as response:
+                    await response.text()
+                    print(f"🏓 Keepalive ping OK: {response.status} {target_url}", flush=True)
+        except Exception as e:
+            print(f"⚠️ Keepalive ping failed for {target_url}: {e}", flush=True)
+
 async def start_http_server():
     app = web.Application()
     app.router.add_get('/', handle_root)
@@ -680,6 +710,7 @@ async def main():
     init_db()
     load_resolved_cache()
     await start_http_server()
+    asyncio.create_task(keepalive_ping_loop())
     
     client = TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH, timeout=20, auto_reconnect=True)
     await client.connect()
