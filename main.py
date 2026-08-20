@@ -348,21 +348,31 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
         pass
 
     try:
-        await page.goto(shortlink, wait_until="domcontentloaded", timeout=12000)
+        await page.goto(shortlink, wait_until="domcontentloaded", timeout=15000)
     except Exception as e:
         print(f"    ⚠️ Resolver initial page load failed for {shortlink}: {e}", flush=True)
+
+    await asyncio.sleep(1.0)
+    try:
+        body_text = await page.inner_text("body")
+        if any(txt in body_text.lower() for txt in ["404 not found", "was not found", "doesn't exist", "may have expired", "link expired", "invalid key", "wrong turn", "back to home"]):
+            print(f"    🚫 [DEAD/404 LINK]: {shortlink} has expired on provider server.", flush=True)
+            await browser.close()
+            return "N/A"
+    except Exception:
+        pass
 
     if found:
         await browser.close()
         return normalize_bot_link(found)
 
-    for _ in range(12):
+    for loop_idx in range(40):
         if found: break
-        await asyncio.sleep(0.6)
-        
+        active_page = context.pages[0] if context.pages else page
+
         try:
-            html = await page.content()
-            m = BOT_RE.search(html) or BOT_RE.search(page.url or "")
+            html = await active_page.content()
+            m = BOT_RE.search(html) or BOT_RE.search(active_page.url or "")
             if m:
                 found = m.group(0)
                 break
@@ -370,12 +380,32 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
             pass
 
         try:
-            result = await page.evaluate(FAST_STEP_JS)
-            if isinstance(result, dict) and result.get("telegram"):
-                found = result["telegram"]
-                break
+            result = await active_page.evaluate(FAST_STEP_JS)
         except Exception:
-            pass
+            result = {}
+
+        if isinstance(result, dict) and result.get("telegram"):
+            found = result["telegram"]
+            break
+
+        action = result.get("action") if isinstance(result, dict) else ""
+        if action in ("submitted_bypass_form", "clicked_final"):
+            await asyncio.sleep(1.5)
+        elif action == "waiting_final_gate":
+            await asyncio.sleep(1.0)
+        elif action == "click_get_link":
+            try:
+                await active_page.evaluate("""() => {
+                    for (const el of document.querySelectorAll('iframe, [data-vignette-loaded="true"]')) {
+                        try { el.remove(); } catch(e) {}
+                    }
+                }""")
+                await active_page.click(".get-link", timeout=5000, force=True)
+            except Exception:
+                pass
+            await asyncio.sleep(1.0)
+        else:
+            await asyncio.sleep(1.0)
 
     if not found:
         try:
