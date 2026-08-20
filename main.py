@@ -224,12 +224,23 @@ def normalize_bot_link(url):
         return f"https://t.me/{bot_name}?start={payload}"
     return "N/A"
 
+INVALID_SLUGS_RE = re.compile(
+    r'^/(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\d+$'
+    r'|^/\d{1,2}(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)$'
+    r'|^/(?:promo|index|daily|update|updates|batch|channel|join|backup|sample|test|help|admin|rules|terms|all_in_one|free_episodes)$',
+    re.IGNORECASE
+)
+
 def normalize_shortlink(url):
     if not url or url == "N/A":
         return "N/A"
     m = SHORTLINK_RE.search(url)
     if m:
-        return m.group(0).strip()
+        clean_url = m.group(0).strip()
+        path = urlparse(clean_url).path
+        if INVALID_SLUGS_RE.search(path):
+            return "N/A"
+        return clean_url
     return "N/A"
 
 def init_db():
