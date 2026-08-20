@@ -30,6 +30,7 @@ A 24/7 background Telegram userbot listener deployed to cloud hosting (Render / 
 | `FORWARD_TO_SAVED_MESSAGES` | Set `true` to forward new drops to Telegram Saved Messages |
 | `KEEPALIVE_INTERVAL_SECONDS` | Seconds between automatic health pings; defaults to `780` (13 minutes). Set `0` to disable. |
 | `KEEPALIVE_URL` | Optional public service URL to ping. If omitted, the app uses Render's `RENDER_EXTERNAL_URL` when available, otherwise local `http://127.0.0.1:$PORT/health`. |
+| `PLAYWRIGHT_CHROMIUM_EXECUTABLE` | Optional path to a system Chromium/Chrome binary when Playwright browsers are installed outside the default cache. |
 
 ---
 
@@ -37,7 +38,7 @@ A 24/7 background Telegram userbot listener deployed to cloud hosting (Render / 
 
 1. Push this repository to GitHub (`https://github.com/Jitendra2007/telegramnewlink`).
 2. In Render, click **New +** $\to$ **Web Service** $\to$ Connect `telegramnewlink`.
-3. Choose **Python** runtime with Build Command `pip install -r requirements.txt` and Start Command `python main.py`.
+3. Choose **Python** runtime with Build Command `pip install -r requirements.txt && python -m playwright install chromium` and Start Command `python main.py`.
 4. Deploy and enjoy 24/7 automated monitoring!
 
 > The service starts a background keep-alive loop after the HTTP server comes online. It pings `/health` every 13 minutes by default and logs each success/failure so Render logs show whether the site is being kept warm.

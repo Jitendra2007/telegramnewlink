@@ -2,7 +2,7 @@ services:
   - type: web
     name: telegram-link-watcher
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && python -m playwright install chromium
     startCommand: python main.py
     plan: free
     autoDeploy: true

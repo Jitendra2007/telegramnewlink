@@ -23,6 +23,7 @@ AUTO_RESOLVE = os.environ.get("AUTO_RESOLVE", "true").lower() == "true"
 FULL_HISTORICAL_SCAN = os.environ.get("FULL_HISTORICAL_SCAN", "true").lower() == "true"
 KEEPALIVE_INTERVAL_SECONDS = int(os.environ.get("KEEPALIVE_INTERVAL_SECONDS", str(13 * 60)))
 KEEPALIVE_URL = os.environ.get("KEEPALIVE_URL") or os.environ.get("RENDER_EXTERNAL_URL")
+PLAYWRIGHT_CHROMIUM_EXECUTABLE = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE")
 
 DB_PATH = "live_harvest.db"
 CACHE_PATH = "master_resolved_cache.json"
@@ -286,11 +287,15 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
         return MASTER_RESOLVED_CACHE[shortlink]
 
     found = None
+    launch_options = {
+        "headless": True,
+        "args": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+    }
+    if PLAYWRIGHT_CHROMIUM_EXECUTABLE:
+        launch_options["executable_path"] = PLAYWRIGHT_CHROMIUM_EXECUTABLE
+
     try:
-        browser = await playwright_instance.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
-        )
+        browser = await playwright_instance.chromium.launch(**launch_options)
     except Exception as e:
         print(f"    ⚠️ Resolver browser launch failed for {shortlink}: {e}", flush=True)
         return None
@@ -675,7 +680,10 @@ async def keepalive_ping_loop():
         print("🏓 Keepalive ping disabled because KEEPALIVE_INTERVAL_SECONDS is <= 0.", flush=True)
         return
 
-    target_url = (KEEPALIVE_URL.rstrip("/") if KEEPALIVE_URL else f"http://127.0.0.1:{PORT}") + "/health"
+    base_url = KEEPALIVE_URL.rstrip("/") if KEEPALIVE_URL else f"http://127.0.0.1:{PORT}"
+    if not base_url.startswith(("http://", "https://")):
+        base_url = "https://" + base_url
+    target_url = base_url + "/health"
     timeout = ClientTimeout(total=20)
     print(f"🏓 Keepalive ping loop active: {target_url} every {KEEPALIVE_INTERVAL_SECONDS // 60} minutes.", flush=True)
 
