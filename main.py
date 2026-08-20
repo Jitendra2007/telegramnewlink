@@ -4,11 +4,12 @@ import os
 import re
 import sqlite3
 import sys
-from collections import defaultdict
+from urllib.parse import urlparse
 from aiohttp import web
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 from telethon.tl.types import KeyboardButtonUrl
+from playwright.async_api import async_playwright
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -18,6 +19,7 @@ API_HASH = os.environ.get("API_HASH", "ce040e05f933e3e0a811f186c3d5d3bb")
 SESSION_STR = os.environ.get("TELEGRAM_STRING_SESSION", "1BVtsOJoBu79FGJDwT08NrlugEVjBbtOhq1Efnp2XxTJZJgwW_QZnhDnAW_gCxrdnf6p63BgH0VCRsGwBMe7DYoEoDIaq0WztDhZvYZ0YVZKwsvnafV5gGY53ouuGeEzDI9hVjgSjcSWKXJAx5bdT3SVKsNyNOqxivxr5VMP4s94YaCdZCV9RMM5qKIBlvFmFRqF9cilVU17bbsxGGkOsxYKy4dE5kv3tRsmSBipaMH4f1MXFgdN5C82kyknlFEm8ORSbnCp81_ms0Ye43Tnghuw2l-i9SKKeuNUQWZv8jSlEOMRfPKeqymbWci9fD50QyiwQLkw3d0dx6jxACG01g9ZzTYD7FYY=")
 PORT = int(os.environ.get("PORT", "8080"))
 FORWARD_TO_SAVED_MESSAGES = os.environ.get("FORWARD_TO_SAVED_MESSAGES", "true").lower() == "true"
+AUTO_RESOLVE = os.environ.get("AUTO_RESOLVE", "true").lower() == "true"
 
 DB_PATH = "live_harvest.db"
 
@@ -36,6 +38,78 @@ ABBREV_MAP = {
     's&b': "Shadow and Bone (English) •|Pocket FM|•",
     'syl': "Sylvia (English) •|Pocket FM|•"
 }
+
+FLOW_HOSTS = {"hindisink.com", "linkshortx.in", "urlshortx.io", "telegram.me"}
+
+FAST_STEP_JS = r"""
+async () => {
+  const bodyText = document.body ? document.body.innerText : "";
+  const tgText = bodyText.match(
+    /(?:https?:\/\/)?(?:telegram\.me|t\.me)\/[A-Za-z0-9_]+\?start=[A-Za-z0-9_%+\/=\-]+/i
+  );
+  if (tgText) return {action: "found_text", telegram: tgText[0]};
+
+  for (const a of document.querySelectorAll("a")) {
+    const href = a.href || "";
+    if (/(?:telegram\.me|t\.me)\/[A-Za-z0-9_]+\?start=/i.test(href)) {
+      return {action: "found_anchor", telegram: href};
+    }
+  }
+
+  for (const el of document.querySelectorAll('.no_display, [style*="display: none"], [hidden]')) {
+    el.classList.remove('no_display');
+    el.hidden = false;
+    el.style.display = 'block';
+    el.style.visibility = 'visible';
+    el.style.opacity = '1';
+  }
+  for (const el of document.querySelectorAll('button, a, input')) {
+    el.disabled = false;
+    el.removeAttribute('disabled');
+  }
+
+  const bypassForm = document.querySelector("form#fwd, form#rtg, form#landing") || document.querySelector("form:not(.search-form)");
+  if (bypassForm) {
+    try {
+      HTMLFormElement.prototype.submit.call(bypassForm);
+      return {action: "submitted_bypass_form", form: bypassForm.id || bypassForm.name || "form"};
+    } catch(e) {
+      try { bypassForm.submit(); return {action: "submitted_bypass_form_native"}; } catch(e2) {}
+    }
+  }
+
+  const finalBtn = document.getElementById("final") ||
+                   document.querySelector(".start_btn") ||
+                   document.querySelector(".continue_btn") ||
+                   document.querySelector("#rtg-snp21 button") ||
+                   document.querySelector("#rtg-snp21 a") ||
+                   document.querySelector(".btn-success, .btn-primary");
+  if (finalBtn) {
+    try { finalBtn.click(); } catch(e) {}
+    return {action: "clicked_final"};
+  }
+
+  const getLink = document.querySelector(".get-link");
+  if (getLink) {
+    const disabled =
+      getLink.classList.contains("disabled") ||
+      getLink.getAttribute("aria-disabled") === "true" ||
+      window.getComputedStyle(getLink).pointerEvents === "none";
+    if (disabled) {
+      return {action: "waiting_final_gate"};
+    }
+    return {action: "click_get_link"};
+  }
+
+  return {action: "nothing_matched", url: location.href};
+}
+"""
+
+def host_of(url: str) -> str:
+    try:
+        return (urlparse(url).netloc or "").lower()
+    except Exception:
+        return ""
 
 def clean_story_title(cname):
     if not cname:
@@ -132,13 +206,145 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Resolution Queue
+resolve_queue = asyncio.Queue()
+
 async def notify_user(client, text):
     if not FORWARD_TO_SAVED_MESSAGES or not client:
         return
     try:
-        await client.send_message("me", text)
+        await client.send_message("me", text, parse_mode="html")
     except Exception as e:
         pass
+
+async def resolve_one_shortlink(playwright_instance, shortlink):
+    found = None
+    try:
+        browser = await playwright_instance.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
+        )
+    except Exception as e:
+        print(f"  ❌ Browser launch failed: {e}", flush=True)
+        return None
+
+    context = await browser.new_context(
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        viewport={"width": 1280, "height": 720}
+    )
+    await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
+    
+    async def on_page(pop):
+        try:
+            if not context.pages or pop == context.pages[0]: return
+            for _ in range(5):
+                url = pop.url or ""
+                if url and url != "about:blank": break
+                await asyncio.sleep(0.1)
+            p_host = host_of(pop.url)
+            if not any(h in p_host for h in ["linkshortx", "urlshortx", "hindisink", "telegram"]):
+                await pop.close()
+        except Exception:
+            pass
+
+    context.on("page", lambda p: asyncio.create_task(on_page(p)))
+    page = await context.new_page()
+
+    def check_hit(url):
+        nonlocal found
+        if found: return
+        m = BOT_RE.search(url)
+        if m: found = m.group(0)
+
+    page.on("request", lambda req: check_hit(req.url))
+    page.on("response", lambda resp: check_hit(resp.url))
+
+    try:
+        await page.goto(shortlink, wait_until="commit", timeout=20000)
+    except Exception:
+        pass
+
+    await asyncio.sleep(2)
+    
+    for _ in range(50):
+        if found: break
+        try:
+            html = await page.content()
+            m = BOT_RE.search(html) or BOT_RE.search(page.url or "")
+            if m:
+                found = m.group(0)
+                break
+        except Exception:
+            pass
+
+        try:
+            result = await page.evaluate(FAST_STEP_JS)
+            action = result.get("action") if isinstance(result, dict) else ""
+            if isinstance(result, dict) and result.get("telegram"):
+                found = result["telegram"]
+                break
+            if action == "click_get_link":
+                await page.click(".get-link", timeout=5000, force=True)
+            elif action in ("submitted_bypass_form", "clicked_final"):
+                await asyncio.sleep(1.5)
+            else:
+                await asyncio.sleep(1.0)
+        except Exception:
+            await asyncio.sleep(1.0)
+
+    # Direct container check fallback
+    if not found:
+        try:
+            get_link = await page.evaluate("""
+                () => {
+                    const snp = document.querySelector('#rtg-snp21');
+                    if (snp) {
+                        const a = snp.querySelector('a[href*="t.me"], a[href*="telegram.me"]');
+                        if (a && a.href && a.href.includes('start=')) return a.href;
+                    }
+                    const links = Array.from(document.querySelectorAll('a'));
+                    const tg = links.find(a => /telegram\\.me|t\\.me/i.test(a.href) && /\\?start=/i.test(a.href));
+                    return tg ? tg.href : null;
+                }
+            """)
+            if get_link: found = get_link
+        except Exception:
+            pass
+
+    await browser.close()
+    return normalize_bot_link(found)
+
+async def resolver_worker(telegram_client):
+    if not AUTO_RESOLVE:
+        return
+    print("🚀 Background Auto-Resolver Worker Started (Headless Playwright)", flush=True)
+    async with async_playwright() as p:
+        while True:
+            row_id, cname, rng, surl = await resolve_queue.get()
+            print(f"\n🔍 [Auto-Resolver] Resolving {cname} [{rng}]: {surl} ...", flush=True)
+            try:
+                bot_url = await resolve_one_shortlink(p, surl)
+                if bot_url and bot_url != "N/A":
+                    conn = sqlite3.connect(DB_PATH)
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        UPDATE `live_harvest` 
+                        SET telegram_bot_link = ?, status = 'RESOLVED'
+                        WHERE id = ?
+                    """, (bot_url, row_id))
+                    conn.commit()
+                    conn.close()
+                    
+                    print(f"  🎉 SUCCESS: {cname} [{rng}] -> {bot_url}", flush=True)
+                    res_msg = f"🎉 <b>[RESOLVED & READY TO PLAY]</b>\n<b>{cname}</b>\n• Range: <code>{rng}</code>\n• Direct Bot Link: {bot_url}"
+                    await notify_user(telegram_client, res_msg)
+                else:
+                    print(f"  ⏳ Resolution pending/failed for {surl}", flush=True)
+            except Exception as e:
+                print(f"  ❌ Resolver error: {e}", flush=True)
+            finally:
+                resolve_queue.task_done()
+                await asyncio.sleep(2)
 
 async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl, burl):
     cname = clean_story_title(cname)
@@ -164,7 +370,6 @@ async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl
 
     superseded_list = []
 
-    # 1. 10-Ep Consolidation & Fragment Superseding Logic
     if is_10ep:
         cursor.execute("""
             SELECT id, range_label, start_ep, end_ep FROM `live_harvest`
@@ -192,7 +397,7 @@ async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl
         else:
             superseded_by = None
 
-    inserted = False
+    row_id = None
     try:
         cursor.execute("""
             INSERT INTO `live_harvest` 
@@ -204,14 +409,14 @@ async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl
                 `status` = excluded.`status`,
                 `harvested_at` = excluded.`harvested_at`
         """, (cid, cname, mid, mdate, formatted_range, s_ep, e_ep, surl, burl, status, is_10ep, superseded_by if not is_10ep else None, now_str))
+        row_id = cursor.lastrowid
         conn.commit()
-        inserted = True
     except Exception as e:
         pass
     finally:
         conn.close()
 
-    if inserted:
+    if row_id:
         target_link = burl if burl != "N/A" else surl
         type_icon = "📦 [10-EP BATCH]" if is_10ep else "🔹 [FRAGMENT]"
         log_msg = f"{type_icon} <b>{cname}</b>\n• Range: <code>{formatted_range}</code>\n• Link: {target_link}\n• Status: <b>{status}</b>"
@@ -222,6 +427,9 @@ async def process_and_store_link(client, cid, cname, mid, mdate, raw_range, surl
         print(f"[{now_str}] {type_icon} {cname} [{formatted_range}] -> {target_link} ({status})", flush=True)
         if status != "SUPERSEDED":
             await notify_user(client, log_msg)
+            # Queue for auto-resolution if pending
+            if status == "PENDING" and surl != "N/A" and AUTO_RESOLVE:
+                await resolve_queue.put((row_id, cname, formatted_range, surl))
 
 async def extract_message_links(client, message, cid, cname):
     if not message:
@@ -230,7 +438,6 @@ async def extract_message_links(client, message, cid, cname):
     mdate = message.date.isoformat() if message.date else ""
     text = message.text or ""
     
-    # 1. Inline keyboard buttons
     if message.reply_markup and hasattr(message.reply_markup, 'rows'):
         for row in message.reply_markup.rows:
             for btn in row.buttons:
@@ -244,7 +451,6 @@ async def extract_message_links(client, message, cid, cname):
                     if burl != "N/A" or surl != "N/A":
                         await process_and_store_link(client, cid, cname, mid, mdate, label, surl, burl)
 
-    # 2. Text urls
     b_m = BOT_RE.search(text)
     s_m = SHORTLINK_RE.search(text)
     if b_m or s_m:
@@ -254,7 +460,7 @@ async def extract_message_links(client, message, cid, cname):
         brange = rng_m.group(1) if rng_m else "01-10"
         await process_and_store_link(client, cid, cname, mid, mdate, brange, surl, burl)
 
-# HTTP Server Routes for Render Health Checks & API
+# HTTP Server Routes
 async def handle_root(request):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -272,12 +478,13 @@ async def handle_root(request):
 
     return web.json_response({
         "status": "online",
-        "service": "CODEX Telegram Live Link Watcher Daemon",
+        "service": "CODEX Telegram Live Link Watcher & Auto-Resolver Daemon",
         "total_captured": total,
         "unique_stories": stories,
         "active_resolved": resolved,
         "active_pending": pending,
         "superseded_fragments": superseded,
+        "auto_resolver": "active",
         "uptime": "24/7"
     })
 
@@ -325,15 +532,12 @@ async def start_http_server():
 
 async def main():
     print("=========================================================================================", flush=True)
-    print("🤖 STARTING CODEX TELEGRAM LIVE WATCHER CLOUD DAEMON (24/7 UPTIME)", flush=True)
+    print("🤖 STARTING CODEX TELEGRAM LIVE WATCHER & AUTO-RESOLVER DAEMON (24/7 UPTIME)", flush=True)
     print("=========================================================================================", flush=True)
     
     init_db()
-    
-    # 1. Start HTTP keep-alive server for Render
     await start_http_server()
     
-    # 2. Connect Telethon String Session
     client = TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH, timeout=15, auto_reconnect=True)
     await client.connect()
     
@@ -343,6 +547,9 @@ async def main():
 
     me = await client.get_me()
     print(f"✅ Connected & Authorized as: {me.first_name} (+{me.phone})", flush=True)
+    
+    # Launch background auto-resolver worker
+    asyncio.create_task(resolver_worker(client))
     
     dialogs = await client.get_dialogs()
     joined_channels = [d for d in dialogs if d.is_channel]
@@ -361,7 +568,7 @@ async def main():
         if d.id in channel_entities:
             clean_id, cname = channel_entities[d.id]
             try:
-                async for message in client.iter_messages(d.entity, limit=5):
+                async for message in client.iter_messages(d.entity, limit=3):
                     await extract_message_links(client, message, clean_id, cname)
             except Exception:
                 pass
