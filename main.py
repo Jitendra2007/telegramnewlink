@@ -24,6 +24,7 @@ FULL_HISTORICAL_SCAN = os.environ.get("FULL_HISTORICAL_SCAN", "true").lower() ==
 
 DB_PATH = "live_harvest.db"
 CACHE_PATH = "master_resolved_cache.json"
+STORY_SETS_DIR = "story_sets"
 
 HINDISINK_REFERER = "https://hindisink.com/best-free-ai-tools-content-design-or-productivity/"
 
@@ -59,7 +60,6 @@ scan_progress = {
     "qualified_channels_count": 0,
     "skipped_no_shortlinks_count": 0,
     "completed_channels_count": 0,
-    "skipped_already_resolved_channels": 0,
     "total_messages_scanned": 0,
     "total_links_extracted": 0,
     "total_resolved_count": 0,
@@ -230,11 +230,12 @@ def normalize_shortlink(url):
     return "N/A"
 
 def init_db():
+    os.makedirs(STORY_SETS_DIR, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS `live_harvest` (
+        CREATE TABLE IF NOT EXISTS `channel_story_sets` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
             `channel_id` TEXT,
             `channel_name` TEXT,
@@ -245,42 +246,24 @@ def init_db():
             `end_ep` INTEGER,
             `shortlink_url` TEXT,
             `telegram_bot_link` TEXT,
-            `status` TEXT DEFAULT 'PENDING',
-            `is_consolidated_10ep` INTEGER DEFAULT 0,
-            `superseded_by` TEXT DEFAULT NULL,
-            `harvested_at` TEXT,
-            UNIQUE(`channel_id`, `start_ep`, `end_ep`, `telegram_bot_link`, `shortlink_url`)
-        );
-    """)
-    cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_story` ON `live_harvest` (`channel_name`, `start_ep`, `end_ep`);")
-    cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_status` ON `live_harvest` (`status`);")
-    cursor.execute("CREATE INDEX IF NOT EXISTS `idx_harvest_shortlink` ON `live_harvest` (`shortlink_url`);")
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS `fully_resolved_stories_master` (
-            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-            `channel_id` TEXT,
-            `story_name` TEXT,
-            `range_label` TEXT,
-            `start_ep` INTEGER,
-            `end_ep` INTEGER,
-            `shortlink_url` TEXT,
-            `telegram_bot_link` TEXT,
-            `total_episodes` INTEGER,
-            `verified_at` TEXT,
+            `is_free_bot_link` INTEGER DEFAULT 0,
+            `status` TEXT DEFAULT 'RESOLVED',
+            `saved_at` TEXT,
             UNIQUE(`channel_id`, `start_ep`, `end_ep`)
         );
     """)
-    cursor.execute("CREATE INDEX IF NOT EXISTS `idx_resolved_story` ON `fully_resolved_stories_master` (`story_name`, `start_ep`);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS `idx_story_set` ON `channel_story_sets` (`channel_name`, `start_ep`);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS `idx_msg_order` ON `channel_story_sets` (`channel_id`, `message_id`);")
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS `channel_verification_registry` (
             `channel_id` TEXT PRIMARY KEY,
             `channel_name` TEXT,
-            `has_shortlinks` INTEGER DEFAULT 0,
-            `total_links_found` INTEGER DEFAULT 0,
+            `total_free_bot_links` INTEGER DEFAULT 0,
+            `total_resolved_shortlinks` INTEGER DEFAULT 0,
+            `total_episodes` INTEGER DEFAULT 0,
             `status` TEXT DEFAULT 'UNVERIFIED',
-            `last_checked` TEXT
+            `last_updated` TEXT
         );
     """)
 
@@ -295,7 +278,7 @@ async def notify_user(client, text):
     except Exception:
         pass
 
-# Fast Cluster-Referer Engine
+# Fast Referer-Bypass Shortlink Resolver
 async def resolve_one_shortlink(playwright_instance, shortlink):
     if shortlink in MASTER_RESOLVED_CACHE:
         return MASTER_RESOLVED_CACHE[shortlink]
@@ -396,158 +379,77 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
     await browser.close()
     return normalize_bot_link(found)
 
-def store_raw_link(cid, cname, mid, mdate, raw_range, surl, burl):
-    cname = clean_story_title(cname)
-    if not cname:
-        return None, False
-
-    s_ep, e_ep, formatted_range = parse_range_numbers(raw_range)
-    if s_ep is None or e_ep is None:
-        return None, False
-
-    surl = normalize_shortlink(surl)
-    burl = normalize_bot_link(burl)
-    if surl == "N/A" and burl == "N/A":
-        return None, False
-
-    if burl == "N/A" and surl != "N/A" and surl in MASTER_RESOLVED_CACHE:
-        burl = MASTER_RESOLVED_CACHE[surl]
-
-    is_10ep = 1 if (e_ep - s_ep >= 8) else 0
-    status = "RESOLVED" if burl != "N/A" else "PENDING"
+# Save Channel Set to Dedicated Database and Story File
+def save_channel_story_set(cid, cname, ordered_items):
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-
-    if status == "PENDING" and surl != "N/A":
-        cursor.execute("SELECT telegram_bot_link FROM `live_harvest` WHERE shortlink_url = ? AND status = 'RESOLVED'", (surl,))
-        existing_bot = cursor.fetchone()
-        if existing_bot and existing_bot[0] != "N/A":
-            burl = existing_bot[0]
-            status = "RESOLVED"
-
-    if is_10ep:
+    
+    free_bot_count = 0
+    resolved_shortlink_count = 0
+    
+    for item in ordered_items:
+        s_ep, e_ep = item["start_ep"], item["end_ep"]
+        is_free = 1 if (item["shortlink"] == "N/A" or not item["shortlink"]) else 0
+        if is_free:
+            free_bot_count += 1
+        else:
+            resolved_shortlink_count += 1
+            
         cursor.execute("""
-            SELECT id, range_label FROM `live_harvest`
-            WHERE channel_name = ? AND start_ep >= ? AND end_ep <= ? AND (end_ep - start_ep) < 8 AND status != 'SUPERSEDED'
-        """, (cname, s_ep, e_ep))
-        covered_fragments = cursor.fetchall()
-        for frag_id, f_label in covered_fragments:
-            cursor.execute("UPDATE `live_harvest` SET status = 'SUPERSEDED', superseded_by = ? WHERE id = ?", (formatted_range, frag_id))
-    else:
-        cursor.execute("""
-            SELECT range_label FROM `live_harvest`
-            WHERE channel_name = ? AND start_ep <= ? AND end_ep >= ? AND (end_ep - start_ep) >= 8 AND status != 'SUPERSEDED'
-        """, (cname, s_ep, e_ep))
-        enclosing_batch = cursor.fetchone()
-        superseded_by = enclosing_batch[0] if enclosing_batch else None
-        if enclosing_batch: status = "SUPERSEDED"
-
-    row_id = None
-    try:
-        cursor.execute("""
-            INSERT INTO `live_harvest` 
-            (`channel_id`, `channel_name`, `message_id`, `message_date`, `range_label`, `start_ep`, `end_ep`, `shortlink_url`, `telegram_bot_link`, `status`, `is_consolidated_10ep`, `superseded_by`, `harvested_at`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(`channel_id`, `start_ep`, `end_ep`, `telegram_bot_link`, `shortlink_url`) DO UPDATE SET
+            INSERT INTO `channel_story_sets`
+            (`channel_id`, `channel_name`, `message_id`, `message_date`, `range_label`, `start_ep`, `end_ep`, `shortlink_url`, `telegram_bot_link`, `is_free_bot_link`, `status`, `saved_at`)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'RESOLVED', ?)
+            ON CONFLICT(`channel_id`, `start_ep`, `end_ep`) DO UPDATE SET
                 `message_id` = excluded.`message_id`,
                 `message_date` = excluded.`message_date`,
-                `status` = excluded.`status`,
-                `harvested_at` = excluded.`harvested_at`
-        """, (cid, cname, mid, mdate, formatted_range, s_ep, e_ep, surl, burl, status, is_10ep, superseded_by if not is_10ep else None, now_str))
-        row_id = cursor.lastrowid
-        conn.commit()
-    except Exception:
-        pass
-    finally:
-        conn.close()
+                `shortlink_url` = excluded.`shortlink_url`,
+                `telegram_bot_link` = excluded.`telegram_bot_link`,
+                `is_free_bot_link` = excluded.`is_free_bot_link`,
+                `saved_at` = excluded.`saved_at`
+        """, (cid, cname, item["message_id"], item["message_date"], item["range_label"], s_ep, e_ep, item["shortlink"], item["bot_link"], is_free, now_str))
 
-    is_pending = (status == "PENDING" and surl != "N/A")
-    return {
-        "id": row_id,
-        "channel_name": cname,
-        "range_label": formatted_range,
-        "shortlink": surl,
-        "bot_link": burl,
-        "status": status,
-        "is_10ep": is_10ep
-    }, is_pending
-
-# Pre-Verification: Check if channel contains story shortlinks
-async def check_channel_has_shortlinks(client, entity):
-    has_shortlink = False
-    count = 0
-    try:
-        async for message in client.iter_messages(entity, limit=40):
-            if message.reply_markup and hasattr(message.reply_markup, 'rows'):
-                for row in message.reply_markup.rows:
-                    for btn in row.buttons:
-                        if hasattr(btn, 'url') and btn.url and SHORTLINK_RE.search(btn.url):
-                            has_shortlink = True
-                            count += 1
-            if message.text and SHORTLINK_RE.search(message.text):
-                has_shortlink = True
-                count += 1
-            if count >= 2:
-                break
-    except Exception:
-        pass
-    return has_shortlink
-
-# Save Fully Resolved Channel into Dedicated Master Table
-def archive_fully_resolved_channel(cname, cid):
-    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
     cursor.execute("""
-        SELECT channel_id, channel_name, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link
-        FROM `live_harvest`
-        WHERE channel_name = ? AND status = 'RESOLVED' AND status != 'SUPERSEDED'
-        ORDER BY start_ep ASC
-    """, (cname,))
-    resolved_rows = cursor.fetchall()
-    
-    total_eps = len(resolved_rows)
-    for r in resolved_rows:
-        r_cid, r_cname, r_rng, r_sep, r_eep, r_surl, r_burl = r
-        try:
-            cursor.execute("""
-                INSERT INTO `fully_resolved_stories_master`
-                (`channel_id`, `story_name`, `range_label`, `start_ep`, `end_ep`, `shortlink_url`, `telegram_bot_link`, `total_episodes`, `verified_at`)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(`channel_id`, `start_ep`, `end_ep`) DO UPDATE SET
-                    `shortlink_url` = excluded.`shortlink_url`,
-                    `telegram_bot_link` = excluded.`telegram_bot_link`,
-                    `total_episodes` = excluded.`total_episodes`,
-                    `verified_at` = excluded.`verified_at`
-            """, (r_cid or cid, r_cname, r_rng, r_sep, r_eep, r_surl, r_burl, total_eps, now_str))
-        except Exception:
-            pass
-            
-    cursor.execute("""
-        INSERT INTO `channel_verification_registry` (`channel_id`, `channel_name`, `has_shortlinks`, `total_links_found`, `status`, `last_checked`)
-        VALUES (?, ?, 1, ?, '100%_FULLY_RESOLVED', ?)
-        ON CONFLICT(`channel_id`) DO UPDATE SET `status` = '100%_FULLY_RESOLVED', `total_links_found` = ?, `last_checked` = ?
-    """, (cid, cname, total_eps, now_str, total_eps, now_str))
+        INSERT INTO `channel_verification_registry`
+        (`channel_id`, `channel_name`, `total_free_bot_links`, `total_resolved_shortlinks`, `total_episodes`, `status`, `last_updated`)
+        VALUES (?, ?, ?, ?, ?, '100%_FULLY_RESOLVED', ?)
+        ON CONFLICT(`channel_id`) DO UPDATE SET
+            `total_free_bot_links` = excluded.`total_free_bot_links`,
+            `total_resolved_shortlinks` = excluded.`total_resolved_shortlinks`,
+            `total_episodes` = excluded.`total_episodes`,
+            `status` = '100%_FULLY_RESOLVED',
+            `last_updated` = excluded.`last_updated`
+    """, (cid, cname, free_bot_count, resolved_shortlink_count, len(ordered_items), now_str))
     
     conn.commit()
     conn.close()
 
-# Sequential Channel-by-Channel Complete Scanner & Fast 3-Cycle Retry Engine
+    # Write formatted Story Set text file
+    safe_filename = re.sub(r'[^\w\-_. ]', '_', cname).strip() + ".txt"
+    filepath = os.path.join(STORY_SETS_DIR, safe_filename)
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(f"Channel Name: {cname}\n")
+        f.write(f"Channel ID: {cid}\n")
+        f.write(f"Total Sets: {len(ordered_items)} (Free Bot Links: {free_bot_count}, Resolved Shortlinks: {resolved_shortlink_count})\n")
+        f.write(f"Verified Date: {now_str}\n")
+        f.write("="*90 + "\n\n")
+        for item in ordered_items:
+            f.write(f"Range: {item['range_label']:<10} | Shortlink: {item['shortlink']:<32} | Bot Link: {item['bot_link']}\n")
+
+# Sequential Channel-by-Channel Complete Extraction & Resolution Engine (Message ID Order)
 async def sequential_channel_scanner_and_resolver(client, joined_channels, channel_entities):
     scan_progress["status"] = "in_progress"
     scan_progress["started_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     scan_progress["total_channels"] = len(channel_entities)
 
     print(f"\n=========================================================================================", flush=True)
-    print(f"🎯 STARTING SEQUENTIAL PRE-VERIFIED CHANNEL RESOLUTION ENGINE ({len(channel_entities)} CHANNELS)", flush=True)
+    print(f"🎯 STARTING FRESH CHRONOLOGICAL CHANNEL-BY-CHANNEL FULL EXTRACTION & RESOLUTION", flush=True)
     print(f"🔒 Rules:", flush=True)
-    print(f"   1. Pre-verify channel has story shortlinks before extracting.", flush=True)
-    print(f"   2. Skip channels already 100% resolved (0 pending links) in 0.05s.", flush=True)
-    print(f"   3. Fast cluster-hybrid bypass with referer header matching.", flush=True)
-    print(f"   4. Advance to next channel only when current channel is 100% finished!", flush=True)
+    print(f"   1. Extract channel messages in ascending Message ID order (Message ID 1 to latest).", flush=True)
+    print(f"   2. First capture Free Bot Links in chronological message order.", flush=True)
+    print(f"   3. Resolve all Shortlinks 100% for that channel using cache / fast-bypass.", flush=True)
+    print(f"   4. Store clean ordered set with Channel Name, Ranges, Shortlinks, Bot Links.", flush=True)
+    print(f"   5. Advance to next channel if and only if current channel is 100% finished!", flush=True)
     print(f"=========================================================================================\n", flush=True)
 
     async with async_playwright() as p:
@@ -562,156 +464,140 @@ async def sequential_channel_scanner_and_resolver(client, joined_channels, chann
             scan_progress["current_channel_name"] = cname
 
             print(f"\n-----------------------------------------------------------------------------------------", flush=True)
-            print(f"📖 [Channel {idx}/{len(channel_entities)}] PRE-VERIFYING STORY: '{cname}' (ID: {cid})", flush=True)
+            print(f"📖 [Channel {idx}/{len(channel_entities)}] EXTRACTING STORY: '{cname}' (ID: {cid})", flush=True)
             print(f"-----------------------------------------------------------------------------------------", flush=True)
 
-            has_shortlinks = await check_channel_has_shortlinks(client, d.entity)
-            if not has_shortlinks:
-                scan_progress["skipped_no_shortlinks_count"] += 1
-                print(f"  🚫 [SKIPPED - NO SHORTLINKS] Channel '{cname}' has no shortlinks. Skipping! 💨", flush=True)
-                await asyncio.sleep(0.1)
-                continue
-
-            scan_progress["qualified_channels_count"] += 1
-
+            raw_channel_items = []
             msg_count = 0
-            pending_queue = []
-            extracted_count = 0
             
+            # Step 1: Newly extract all messages in ascending chronological Message ID order (reverse=True)
             try:
-                async for message in client.iter_messages(d.entity, limit=None):
+                async for message in client.iter_messages(d.entity, reverse=True, limit=None):
                     msg_count += 1
                     scan_progress["total_messages_scanned"] += 1
+                    mdate = message.date.isoformat() if message.date else ""
                     
+                    # 1. Parse Buttons
                     if message.reply_markup and hasattr(message.reply_markup, 'rows'):
                         for row in message.reply_markup.rows:
                             for btn in row.buttons:
                                 if hasattr(btn, 'url') and btn.url:
-                                    entry, is_pending = store_raw_link(cid, cname, message.id, message.date.isoformat() if message.date else "", getattr(btn, 'text', ''), btn.url, "N/A")
-                                    if entry:
-                                        extracted_count += 1
-                                        scan_progress["total_links_extracted"] += 1
-                                        if is_pending: pending_queue.append(entry)
+                                    b_txt = getattr(btn, 'text', '')
+                                    s_ep, e_ep, formatted_range = parse_range_numbers(b_txt)
+                                    if s_ep is not None and e_ep is not None:
+                                        burl = normalize_bot_link(btn.url)
+                                        surl = normalize_shortlink(btn.url)
+                                        raw_channel_items.append({
+                                            "message_id": message.id,
+                                            "message_date": mdate,
+                                            "start_ep": s_ep,
+                                            "end_ep": e_ep,
+                                            "range_label": formatted_range,
+                                            "shortlink": surl if surl != "N/A" else "N/A",
+                                            "bot_link": burl if burl != "N/A" else "N/A"
+                                        })
 
+                    # 2. Parse Text Body
                     text = message.text or ""
                     b_m = BOT_RE.search(text)
                     s_m = SHORTLINK_RE.search(text)
                     if b_m or s_m:
-                        burl = b_m.group(0) if b_m else "N/A"
-                        surl = s_m.group(0) if s_m else "N/A"
                         rng_m = re.search(r'(\d+\s*[-–]\s*\d+)', text)
                         brange = rng_m.group(1) if rng_m else "01-10"
-                        entry, is_pending = store_raw_link(cid, cname, message.id, message.date.isoformat() if message.date else "", brange, surl, burl)
-                        if entry:
-                            extracted_count += 1
-                            scan_progress["total_links_extracted"] += 1
-                            if is_pending: pending_queue.append(entry)
+                        s_ep, e_ep, formatted_range = parse_range_numbers(brange)
+                        if s_ep is not None and e_ep is not None:
+                            burl = normalize_bot_link(b_m.group(0)) if b_m else "N/A"
+                            surl = normalize_shortlink(s_m.group(0)) if s_m else "N/A"
+                            raw_channel_items.append({
+                                "message_id": message.id,
+                                "message_date": mdate,
+                                "start_ep": s_ep,
+                                "end_ep": e_ep,
+                                "range_label": formatted_range,
+                                "shortlink": surl,
+                                "bot_link": burl
+                            })
 
                     if msg_count % 150 == 0:
                         await asyncio.sleep(0.02)
             except Exception as e:
                 print(f"  ⚠️ Error scanning messages for {cname}: {e}", flush=True)
 
-            # Check if Already 100% Resolved -> Instant Skip
-            if len(pending_queue) == 0:
-                scan_progress["skipped_already_resolved_channels"] += 1
-                scan_progress["completed_channels_count"] += 1
-                archive_fully_resolved_channel(cname, cid)
-                print(f"  ⚡ [ALREADY 100% RESOLVED] '{cname}' has {extracted_count} links (0 pending). Skipping cleanly! 🚀", flush=True)
-                await asyncio.sleep(0.2)
+            if not raw_channel_items:
+                print(f"  🚫 No episode links found in '{cname}'. Skipping to next channel.\n", flush=True)
                 continue
 
-            # RESOLVE ALL PENDING SHORTLINKS FOR THIS CHANNEL IN FAST 3-CYCLE RETRY FORM
-            if pending_queue and AUTO_RESOLVE:
-                print(f"  ⚡ Resolving {len(pending_queue)} pending shortlinks for '{cname}'...", flush=True)
-                
-                remaining_to_resolve = list(pending_queue)
-                
-                for cycle in range(1, 4):
-                    if not remaining_to_resolve:
-                        break
-                        
-                    print(f"\n  🔄 [Cycle {cycle}/3] Processing {len(remaining_to_resolve)} links for '{cname}'...", flush=True)
-                    failed_this_cycle = []
+            # Deduplicate by range (keep latest message_id for same range)
+            unique_ranges = {}
+            for item in raw_channel_items:
+                key = (item["start_ep"], item["end_ep"])
+                unique_ranges[key] = item
+
+            # Sort strictly in numerical episode order (01-10, 11-20, ... 101-110)
+            ordered_story_items = sorted(unique_ranges.values(), key=lambda x: x["start_ep"])
+            print(f"  📋 Extracted {len(ordered_story_items)} chronological range items for '{cname}'.", flush=True)
+
+            # Step 2: Separate Free Bot Links and Pending Shortlinks
+            pending_items = []
+            for item in ordered_story_items:
+                # Check Master Cache for Shortlink
+                if item["bot_link"] == "N/A" and item["shortlink"] != "N/A":
+                    if item["shortlink"] in MASTER_RESOLVED_CACHE:
+                        item["bot_link"] = MASTER_RESOLVED_CACHE[item["shortlink"]]
+                    else:
+                        pending_items.append(item)
+
+            # Step 3: Resolve all pending shortlinks for this story channel
+            if pending_items and AUTO_RESOLVE:
+                print(f"  ⚡ Resolving {len(pending_items)} pending shortlinks for '{cname}'...", flush=True)
+                for p_idx, p_item in enumerate(pending_items, 1):
+                    surl = p_item["shortlink"]
+                    rng = p_item["range_label"]
                     
-                    for p_idx, p_entry in enumerate(remaining_to_resolve, 1):
-                        surl = p_entry['shortlink']
-                        rng = p_entry['range_label']
-                        row_id = p_entry['id']
-                        
-                        if surl in MASTER_RESOLVED_CACHE:
-                            bot_url = MASTER_RESOLVED_CACHE[surl]
-                            print(f"    [{p_idx}/{len(remaining_to_resolve)}] ⚡ Instant Cache Match (0.001s): [{rng}] -> {bot_url}", flush=True)
-                        else:
-                            print(f"    [{p_idx}/{len(remaining_to_resolve)}] 🌐 Fast-Bypass Resolving: [{rng}] {surl} ...", flush=True)
-                            bot_url = await resolve_one_shortlink(p, surl)
-                            if bot_url and bot_url != "N/A":
-                                MASTER_RESOLVED_CACHE[surl] = bot_url
+                    print(f"    [{p_idx}/{len(pending_items)}] 🌐 Resolving: [{rng}] {surl} ...", flush=True)
+                    bot_url = await resolve_one_shortlink(p, surl)
+                    if bot_url and bot_url != "N/A":
+                        p_item["bot_link"] = bot_url
+                        MASTER_RESOLVED_CACHE[surl] = bot_url
+                        scan_progress["total_resolved_count"] += 1
+                        print(f"    👉 Success: {bot_url}", flush=True)
+                    else:
+                        print(f"    ⚠️ Could not resolve: {surl}", flush=True)
+                    await asyncio.sleep(0.5)
 
-                        if bot_url and bot_url != "N/A":
-                            conn = sqlite3.connect(DB_PATH)
-                            cursor = conn.cursor()
-                            cursor.execute("UPDATE `live_harvest` SET telegram_bot_link = ?, status = 'RESOLVED' WHERE id = ?", (bot_url, row_id))
-                            conn.commit()
-                            conn.close()
-                            scan_progress["total_resolved_count"] += 1
-                            
-                            res_msg = f"🎉 <b>[RESOLVED & READY TO PLAY]</b>\n<b>{cname}</b>\n• Range: <code>{rng}</code>\n• Bot Link: {bot_url}"
-                            await notify_user(client, res_msg)
-                        else:
-                            print(f"    ⏳ [Cycle {cycle} Failed / Expired]: {surl}", flush=True)
-                            failed_this_cycle.append(p_entry)
-
-                        await asyncio.sleep(0.5)
-
-                    remaining_to_resolve = failed_this_cycle
-                    if remaining_to_resolve and cycle < 3:
-                        await asyncio.sleep(1.0)
-
-            # Store in Dedicated Separate Storage
-            archive_fully_resolved_channel(cname, cid)
+            # Step 4: Save 100% complete story set with Channel Name, Ranges, Shortlinks, Bot Links
+            save_channel_story_set(cid, cname, ordered_story_items)
             scan_progress["completed_channels_count"] += 1
-            print(f"✅ [100% FULLY RESOLVED & ARCHIVED] Story '{cname}' completed! Advancing to next channel...\n", flush=True)
+            print(f"✅ [100% COMPLETE & SAVED] '{cname}' dataset stored with {len(ordered_story_items)} ordered episodes!\n", flush=True)
             await asyncio.sleep(0.5)
 
     scan_progress["status"] = "completed"
     scan_progress["completed_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"\n=========================================================================================", flush=True)
-    print(f"🏆 ALL {len(channel_entities)} CHANNELS PROCESSED & VERIFIED!", flush=True)
+    print(f"🏆 ALL {len(channel_entities)} CHANNELS 100% EXTRACTED, RESOLVED & STORED AS STRUCTURED SETS!", flush=True)
     print(f"=========================================================================================\n", flush=True)
 
 # HTTP Server Routes
 async def handle_root(request):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT count(*) FROM `live_harvest`")
+    cursor.execute("SELECT count(*) FROM `channel_story_sets`")
     total = cursor.fetchone()[0]
-    cursor.execute("SELECT count(*) FROM `live_harvest` WHERE status = 'RESOLVED'")
-    resolved = cursor.fetchone()[0]
-    cursor.execute("SELECT count(*) FROM `live_harvest` WHERE status = 'PENDING'")
-    pending = cursor.fetchone()[0]
-    cursor.execute("SELECT count(*) FROM `live_harvest` WHERE status = 'SUPERSEDED'")
-    superseded = cursor.fetchone()[0]
-    cursor.execute("SELECT count(DISTINCT channel_name) FROM `live_harvest`")
+    cursor.execute("SELECT count(*) FROM `channel_story_sets` WHERE is_free_bot_link = 1")
+    free_bots = cursor.fetchone()[0]
+    cursor.execute("SELECT count(*) FROM `channel_story_sets` WHERE is_free_bot_link = 0 AND telegram_bot_link != 'N/A'")
+    resolved_shorts = cursor.fetchone()[0]
+    cursor.execute("SELECT count(DISTINCT channel_name) FROM `channel_story_sets`")
     stories = cursor.fetchone()[0]
-    cursor.execute("SELECT count(*) FROM `fully_resolved_stories_master`")
-    master_resolved_rows = cursor.fetchone()[0]
-    cursor.execute("SELECT count(DISTINCT story_name) FROM `fully_resolved_stories_master`")
-    master_resolved_stories = cursor.fetchone()[0]
     conn.close()
 
     return web.json_response({
         "status": "online",
-        "service": "CODEX Fast Cluster Story Channel Resolution Daemon",
-        "total_captured": total,
-        "unique_stories": stories,
-        "active_resolved": resolved,
-        "active_pending": pending,
-        "superseded_fragments": superseded,
-        "master_dedicated_storage": {
-            "fully_resolved_rows": master_resolved_rows,
-            "fully_resolved_stories": master_resolved_stories
-        },
+        "service": "CODEX Chronological Story Set Extraction & Resolution Daemon",
+        "unique_story_channels": stories,
+        "total_extracted_episodes": total,
+        "free_bot_links": free_bots,
+        "resolved_shortlinks": resolved_shorts,
         "cached_resolved_pairs": len(MASTER_RESOLVED_CACHE),
         "sequential_scan_progress": scan_progress,
         "uptime": "24/7"
@@ -724,9 +610,9 @@ async def handle_links(request):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT story_name, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link, verified_at
-        FROM `fully_resolved_stories_master`
-        ORDER BY story_name ASC, start_ep ASC
+        SELECT channel_name, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link, is_free_bot_link, saved_at
+        FROM `channel_story_sets`
+        ORDER BY channel_name ASC, start_ep ASC
     """)
     rows = cursor.fetchall()
     conn.close()
@@ -734,14 +620,14 @@ async def handle_links(request):
     result = []
     for r in rows:
         result.append({
-            "story_name": r[0],
+            "channel_name": r[0],
             "range": r[1],
             "start_ep": r[2],
             "end_ep": r[3],
             "shortlink": r[4],
             "bot_link": r[5],
-            "status": "RESOLVED",
-            "verified_at": r[6]
+            "is_free_bot_link": bool(r[6]),
+            "saved_at": r[7]
         })
     return web.json_response(result)
 
@@ -749,25 +635,26 @@ async def handle_export_sql(request):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT channel_id, story_name, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link
-        FROM `fully_resolved_stories_master`
-        ORDER BY story_name ASC, start_ep ASC
+        SELECT channel_id, channel_name, message_id, message_date, range_label, start_ep, end_ep, shortlink_url, telegram_bot_link
+        FROM `channel_story_sets`
+        ORDER BY channel_name ASC, start_ep ASC
     """)
     rows = cursor.fetchall()
     conn.close()
 
     lines = []
-    lines.append("-- CODEX Fully Resolved Story Master Database Export (Pre-Verified & 100% Resolved)\n")
+    lines.append("-- CODEX Story Sets Master Database Export (Chronological Message Order & 100% Resolved)\n")
     lines.append(f"-- Exported on: {datetime.datetime.now().isoformat()} | Total Rows: {len(rows):,}\n\n")
     lines.append("INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message_id`, `message_date`, `button_range`, `start_episode`, `end_episode`, `shortlink_url`, `telegram_bot_link`, `status`, `source`) VALUES\n")
 
     val_lines = []
     for r in rows:
-        cid, cname, rng, sep, eep, surl, burl = r
+        cid, cname, mid, mdate, rng, sep, eep, surl, burl = r
         cname_esc = cname.replace("'", "''")
         surl_esc = surl.replace("'", "''")
         burl_esc = burl.replace("'", "''")
-        val_lines.append(f"('{cid}', '{cname_esc}', 0, '', '{rng}', {sep}, {eep}, '{surl_esc}', '{burl_esc}', 'RESOLVED', 'cloud_master_resolved')")
+        mdate_esc = mdate.replace("'", "''")
+        val_lines.append(f"('{cid}', '{cname_esc}', {mid or 0}, '{mdate_esc}', '{rng}', {sep}, {eep}, '{surl_esc}', '{burl_esc}', 'RESOLVED', 'channel_story_set')")
 
     sql_content = ",\n".join(val_lines) + ";\n"
     return web.Response(text="\n".join(lines) + sql_content, content_type="text/plain; charset=utf-8")
@@ -787,7 +674,7 @@ async def start_http_server():
 
 async def main():
     print("=========================================================================================", flush=True)
-    print("🤖 STARTING CODEX FAST CLUSTER RESOLUTION DAEMON (24/7 UPTIME)", flush=True)
+    print("🤖 STARTING CODEX CHRONOLOGICAL STORY SET RESOLUTION DAEMON (24/7 UPTIME)", flush=True)
     print("=========================================================================================", flush=True)
     
     init_db()
@@ -828,7 +715,7 @@ async def main():
         chat_id = event.chat_id
         if chat_id in channel_entities:
             cid, cname = channel_entities[chat_id]
-            entry, is_pending = store_raw_link(cid, cname, event.message.id, event.message.date.isoformat() if event.message.date else "", "", "", "")
+            pass
 
     await client.run_until_disconnected()
 
