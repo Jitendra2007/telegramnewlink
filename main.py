@@ -428,7 +428,7 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
     # ── Step 2: Playwright fallback for JS-gated shortlinks (Direct Referer Engine) ─
     print(f"    🌐 [PLAYWRIGHT FALLBACK]: {shortlink}", flush=True)
     start_time = time.time()
-    MAX_BROWSER_SECONDS = 18.0
+    MAX_BROWSER_SECONDS = 30.0
     pw_found = None
     browser = None
     try:
@@ -719,7 +719,7 @@ async def sequential_channel_scanner_and_resolver(channel_targets):
                         print(f"    ✅ [RESOLVED & STOPPED]: [{rng}] {surl} -> {bot_url}", flush=True)
                     else:
                         print(f"    ⚠️ [UNRESOLVED / SKIPPED]: [{rng}] {surl} -> N/A (Moved to next)", flush=True)
-                    await asyncio.sleep(0.3)
+                    await asyncio.sleep(2.0)
 
             # Step 4: Save 100% complete story set with Channel Name, Ranges, Shortlinks, Bot Links
             save_channel_story_set(cid, cname, ordered_story_items)
