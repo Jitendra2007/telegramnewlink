@@ -306,7 +306,21 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
     found = None
     launch_options = {
         "headless": True,
-        "args": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+        "args": [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--no-zygote",
+            "--single-process",
+            "--disable-extensions",
+            "--disable-software-rasterizer",
+            "--disable-background-networking",
+            "--disable-sync",
+            "--no-first-run",
+            "--mute-audio",
+            "--ignore-certificate-errors",
+        ],
     }
     if PLAYWRIGHT_CHROMIUM_EXECUTABLE:
         launch_options["executable_path"] = PLAYWRIGHT_CHROMIUM_EXECUTABLE
@@ -354,14 +368,27 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
     except Exception:
         pass
 
+    nav_error = False
     try:
-        resp = await page.goto(shortlink, wait_until="domcontentloaded", timeout=12000)
+        resp = await page.goto(shortlink, wait_until="domcontentloaded", timeout=14000)
         if resp and resp.status in (404, 410):
             print(f"    🚫 [HTTP {resp.status} DEAD LINK]: {shortlink} has expired on provider server.", flush=True)
             await browser.close()
             return "N/A"
     except Exception as e:
-        print(f"    ⚠️ Resolver initial page load failed for {shortlink}: {e}", flush=True)
+        nav_error = True
+        print(f"    ⚠️ Navigation note for {shortlink}: {e}", flush=True)
+
+    # After goto, check if we're stuck on original URL or chrome-error - abort immediately
+    try:
+        current_url = page.url or ""
+        if current_url.startswith("chrome-error://") or current_url == shortlink or not current_url:
+            if nav_error:
+                print(f"    🚫 [NAV FAIL]: Browser stuck on '{current_url}' for {shortlink}. Aborting.", flush=True)
+                await browser.close()
+                return None
+    except Exception:
+        pass
 
     if found:
         await browser.close()
