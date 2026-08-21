@@ -177,10 +177,10 @@ def generate_audit_sql_and_report():
 
     sql_lines = [
         f"-- =========================================================================\n",
-        f"-- CODEX CLOUD RE-VERIFIED AUDIT SQL DUMP\n",
+        f"-- CODEX MASTER AUDITED DATASET (STANDARD pocket_fm_bot_links FORMAT)\n",
         f"-- Generated at: {now_str} | Total Links Audited: {len(AUDIT_RESULTS):,}\n",
         f"-- =========================================================================\n\n",
-        "INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `button_range`, `start_episode`, `end_episode`, `shortlink_url`, `telegram_bot_link`, `status`, `source`) VALUES\n"
+        "INSERT INTO `pocket_fm_bot_links` (`telegram_channel_id`, `telegram_channel_name`, `invite_link`, `message_id`, `button_range`, `shortlink_url`, `bot_link_url`, `status`) VALUES\n"
     ]
     
     val_lines = []
@@ -190,8 +190,7 @@ def generate_audit_sql_and_report():
         cname = data.get("channel_name", "").replace("'", "''")
         cid = data.get("channel_id", "")
         rng = data.get("range_label", "")
-        sep = data.get("start_ep", 0)
-        eep = data.get("end_ep", 0)
+        mid = data.get("message_id", 0)
         
         if vstat in ("MATCH", "CACHE_VERIFIED"):
             matches += 1
@@ -207,7 +206,10 @@ def generate_audit_sql_and_report():
         if live_bot != "N/A":
             surl_esc = surl.replace("'", "''")
             burl_esc = live_bot.replace("'", "''")
-            val_lines.append(f"('{cid}', '{cname}', '{rng}', {sep}, {eep}, '{surl_esc}', '{burl_esc}', 'RESOLVED', 'cloud_verified_{vstat.lower()}')")
+            val_lines.append(f"('{cid}', '{cname}', '', {mid}, '{rng}', '{surl_esc}', '{burl_esc}', 'RESOLVED')")
+        elif vstat != "DEAD_404_EXPIRED":
+            surl_esc = surl.replace("'", "''")
+            val_lines.append(f"('{cid}', '{cname}', '', {mid}, '{rng}', '{surl_esc}', 'N/A', 'PENDING')")
 
     if val_lines:
         sql_lines.append(",\n".join(val_lines) + ";\n")
