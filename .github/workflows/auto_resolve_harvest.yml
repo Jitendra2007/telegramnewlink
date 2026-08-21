@@ -1,0 +1,61 @@
+name: CODEX Auto-Harvest & Shortlink Resolver
+
+on:
+  schedule:
+    # Run every 6 hours automatically (00:00, 06:00, 12:00, 18:00 UTC)
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    # Allows manual 1-click execution from GitHub Actions Web UI
+
+permissions:
+  contents: write
+
+jobs:
+  harvest-and-resolve:
+    name: Harvester & Resolver (7GB RAM Runner)
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🐍 Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: 📦 Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🌐 Install Playwright Chromium with System Dependencies
+        run: |
+          playwright install chromium --with-deps
+
+      - name: 🚀 Run Batch Harvester & Resolver
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          TELEGRAM_STRING_SESSION: ${{ secrets.TELEGRAM_STRING_SESSION }}
+          TELEGRAM_STRING_SESSION_SUB: ${{ secrets.TELEGRAM_STRING_SESSION_SUB }}
+        run: |
+          python github_action_harvest_resolve.py
+
+      - name: 💾 Commit and Push Updated Cache & SQL to Repository
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add master_resolved_cache.json skipped_channels_no_shortlinks.json resolved_output_master.sql story_sets/ || true
+          if git diff --staged --quiet; then
+            echo "✨ No new links or changes to commit."
+          else
+            git commit -m "chore(auto): harvest & resolve update [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
+            git push origin main
+            echo "✅ Successfully pushed newly resolved links and SQL to GitHub!"
+          fi

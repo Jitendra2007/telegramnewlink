@@ -1,0 +1,20 @@
+# ==============================================================================
+# CODEX RENDER CLOUD DEDICATED ENVIRONMENT VARIABLES
+# Paste these directly into Render Dashboard -> Service -> Environment
+# ==============================================================================
+
+API_ID=36198115
+API_HASH=ce040e05f933e3e0a811f186c3d5d3bb
+
+# ── Account 1 (Main: Rock / +91 9848915830 - ID: 6237981606) ──
+TELEGRAM_STRING_SESSION=1BVtsOHgBuxqXLRZz_r13XY7IX9xfzG2Gq3GvarGAyW2G1bARvZRl7-5MGWyWYq0vFDbMTBfrWO_r7e_KMCq02cAhYbsJYnWOH5ELPtueMC0OlLNJGLfABsE-vu2f3QkkOl3l4MS87dx8RACWLYksdIYQpIxPJSdKnuMroKcKuTwVau4qJUr6cp_P4cxeLKSIUJMnGDZnon9qhuteoKYZ2wvqlLyQhkcdPfjsX42qMn9ZbbyE3E76FxVEhnjh28mwvV1LCMrBomn9Y2GTxqAyktf94juBoPCKYFE8Y-Mi1V2hSs0rEQxb-Ii1JKgNj_OOvEZFUfBAg2AclW12wf8GWbAlMnl-UsI=
+
+# ── Account 2 (Sub: Syamala / +91 9490590394 - ID: 8534962278) ──
+TELEGRAM_STRING_SESSION_SUB=1BVtsOJoBu79FGJDwT08NrlugEVjBbtOhq1Efnp2XxTJZJgwW_QZnhDnAW_gCxrdnf6p63BgH0VCRsGwBMe7DYoEoDIaq0WztDhZvYZ0YVZKwsvnafV5gGY53ouuGeEzDI9hVjgSjcSWKXJAx5bdT3SVKsNyNOqxivxr5VMP4s94YaCdZCV9RMM5qKIBlvFmFRqF9cilVU17bbsxGGkOsxYKy4dE5kv3tRsmSBipaMH4f1MXFgdN5C82kyknlFEm8ORSbnCp81_ms0Ye43Tnghuw2l-i9SKKeuNUQWZv8jSlEOMRfPKeqymbWci9fD50QyiwQLkw3d0dx6jxACG01g9ZzTYD7FYY=
+
+# Additional Service Settings
+PORT=10000
+FORWARD_TO_SAVED_MESSAGES=true
+AUTO_RESOLVE=true
+FULL_HISTORICAL_SCAN=true
+KEEPALIVE_INTERVAL_SECONDS=600
