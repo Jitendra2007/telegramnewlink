@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-CODEX Master Cloud 15-Worker Parallel Safe Harvester & Link Resolver
+CODEX Master Cloud 5-Cycle Multi-Pass Safe Harvester & Link Resolver
 Runs on GitHub Actions with 7 GB RAM.
-Integrates proven Warlock Step 1-4 State Machine + Fast Direct Referer + Popup Blocker.
-Automatically detects and categorizes:
-  - MATCH: Live resolution matches baseline cache 100%
-  - CACHE_VERIFIED: Active valid cached baseline link
-  - NEW_RESOLVED: Newly solved live shortlink
-  - DEAD_404_EXPIRED: Shortlink deleted/expired on provider server
-  - UNRESOLVED: Gated shortlink needing manual review
-Outputs:
-  - cloud_reverified_audit.json
-  - cloud_reverified_audit.sql
-  - cloud_verification_discrepancy_report.md
+Features:
+  - 15 Parallel Async Browser Contexts
+  - 5-Cycle Retry Engine: Re-attempts all failed/unresolved links in 5 successive passes
+  - If still unresolved after 5 full cycles, isolates them into `stubborn_failed_links_for_review.json` & `.md`
+  - Zero disruption to baseline cache
+  - Outputs:
+      * cloud_reverified_audit.json
+      * cloud_reverified_audit.sql
+      * cloud_verification_discrepancy_report.md
+      * stubborn_failed_links_for_review.json
+      * stubborn_failed_links_for_review.md
 """
 
 import asyncio
@@ -37,6 +37,7 @@ SESSION_STR_MAIN = os.environ.get("TELEGRAM_STRING_SESSION", "")
 SESSION_STR_SUB = os.environ.get("TELEGRAM_STRING_SESSION_SUB", "")
 
 MAX_CONCURRENT_RESOLVERS = int(os.environ.get("MAX_CONCURRENT_RESOLVERS", "15"))
+MAX_RETRY_CYCLES = int(os.environ.get("MAX_RETRY_CYCLES", "5"))
 
 BASE_CACHE_PATH = "master_resolved_cache.json"
 SKIPPED_CHANNELS_PATH = "skipped_channels_no_shortlinks.json"
@@ -44,6 +45,9 @@ SKIPPED_CHANNELS_PATH = "skipped_channels_no_shortlinks.json"
 AUDIT_JSON_PATH = "cloud_reverified_audit.json"
 AUDIT_SQL_PATH = "cloud_reverified_audit.sql"
 AUDIT_REPORT_MD = "cloud_verification_discrepancy_report.md"
+
+STUBBORN_JSON_PATH = "stubborn_failed_links_for_review.json"
+STUBBORN_REPORT_MD = "stubborn_failed_links_for_review.md"
 
 HINDISINK_REFERER = "https://hindisink.com/best-free-ai-tools-content-design-or-productivity/"
 BOT_RE = re.compile(r'https?://(?:t\.me|telegram\.me)/([A-Za-z0-9_]+)\?start=([A-Za-z0-9_%+/=\-]+)', re.IGNORECASE)
@@ -64,6 +68,7 @@ ABBREV_MAP = {
 BASELINE_CACHE = {}
 SKIPPED_CHANNELS_REGISTRY = {}
 AUDIT_RESULTS = {}
+STUBBORN_FAILED_REGISTRY = {}
 
 
 def canonical_bot_url(url):
@@ -78,7 +83,7 @@ def canonical_bot_url(url):
 
 
 def load_baseline():
-    global BASELINE_CACHE, SKIPPED_CHANNELS_REGISTRY, AUDIT_RESULTS
+    global BASELINE_CACHE, SKIPPED_CHANNELS_REGISTRY, AUDIT_RESULTS, STUBBORN_FAILED_REGISTRY
     if os.path.exists(BASE_CACHE_PATH):
         try:
             with open(BASE_CACHE_PATH, "r", encoding="utf-8") as f:
@@ -104,14 +109,48 @@ def load_baseline():
         except Exception:
             AUDIT_RESULTS = {}
 
+    if os.path.exists(STUBBORN_JSON_PATH):
+        try:
+            with open(STUBBORN_JSON_PATH, "r", encoding="utf-8") as f:
+                STUBBORN_FAILED_REGISTRY = json.load(f)
+            print(f"⚠️ Loaded {len(STUBBORN_FAILED_REGISTRY):,} persistent stubborn failed links.", flush=True)
+        except Exception:
+            STUBBORN_FAILED_REGISTRY = {}
+
 
 def save_audit_json():
     try:
         with open(AUDIT_JSON_PATH, "w", encoding="utf-8") as f:
             json.dump(AUDIT_RESULTS, f, ensure_ascii=False, indent=2)
-        print(f"💾 Audit JSON updated: {len(AUDIT_RESULTS):,} verified records in {AUDIT_JSON_PATH}", flush=True)
     except Exception as e:
         print(f"⚠️ Error saving audit JSON: {e}", flush=True)
+
+
+def save_stubborn_json_and_report():
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+    try:
+        with open(STUBBORN_JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(STUBBORN_FAILED_REGISTRY, f, ensure_ascii=False, indent=2)
+        print(f"💾 Stubborn Failed Links JSON updated: {len(STUBBORN_FAILED_REGISTRY):,} links in {STUBBORN_JSON_PATH}", flush=True)
+    except Exception as e:
+        print(f"⚠️ Error saving stubborn JSON: {e}", flush=True)
+
+    try:
+        with open(STUBBORN_REPORT_MD, "w", encoding="utf-8") as f:
+            f.write(f"# ⚠️ Stubborn Failed Shortlinks Review Report (Failed 5 Consecutive Cycles)\n\n")
+            f.write(f"**Generated:** `{now_str}` | **Total Stubborn Links:** `{len(STUBBORN_FAILED_REGISTRY):,}`\n\n")
+            f.write(f"> These links were attempted across 5 complete separate browser cycles with fresh contexts and still failed to resolve or returned provider 404 errors. They are isolated here for manual inspection.\n\n")
+            f.write(f"| # | Story Channel | Episode Range | Shortlink | Reason / Error |\n")
+            f.write(f"| :--- | :--- | :--- | :--- | :--- |\n")
+            for idx, (surl, info) in enumerate(STUBBORN_FAILED_REGISTRY.items(), 1):
+                cname = info.get("channel_name", "")
+                rng = info.get("range_label", "")
+                reason = info.get("reason", "UNRESOLVED_AFTER_5_CYCLES")
+                f.write(f"| {idx} | {cname} | {rng} | `{surl}` | `{reason}` |\n")
+            f.write("\n")
+        print(f"📄 Stubborn Failed Links Review Report generated: {STUBBORN_REPORT_MD}", flush=True)
+    except Exception as e:
+        print(f"⚠️ Error saving stubborn MD report: {e}", flush=True)
 
 
 def generate_audit_sql_and_report():
@@ -172,7 +211,7 @@ def generate_audit_sql_and_report():
         f.write(f"- ✨ **Newly Resolved Links (Previously Pending)**: `{new_resolved:,}`\n")
         f.write(f"- 🚫 **Dead/Expired 404 Links on Provider**: `{dead_404:,}`\n")
         f.write(f"- ⚠️ **True Discrepancies / Mismatches**: `{len(mismatches):,}`\n")
-        f.write(f"- ❌ **Failed to Live Resolve**: `{len(unresolved):,}`\n\n")
+        f.write(f"- ❌ **Permanently Unresolved Links (Failed 5 Cycles)**: `{len(unresolved):,}`\n\n")
 
         if mismatches:
             f.write(f"### ⚠️ Discrepancy / Mismatch Review List\n")
@@ -391,7 +430,6 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                 java_script_enabled=True,
             )
             
-            # Auto-close popup tabs
             async def on_popup(pop):
                 try:
                     p_url = pop.url or ""
@@ -483,9 +521,9 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
 
 async def run_safe_parallel_cloud_reverification():
     print("=" * 90, flush=True)
-    print(f"🚀 CODEX 15-WORKER PARALLEL RE-VERIFICATION & AUDIT ENGINE (7GB RAM RUNNER)", flush=True)
+    print(f"🚀 CODEX 5-CYCLE MULTI-PASS RE-VERIFICATION & AUDIT ENGINE (7GB RAM RUNNER)", flush=True)
     print(f"⏰ Execution Timestamp: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}", flush=True)
-    print(f"⚡ Max Concurrent Browser Resolvers: {MAX_CONCURRENT_RESOLVERS}", flush=True)
+    print(f"⚡ Max Concurrent Browser Resolvers: {MAX_CONCURRENT_RESOLVERS} | Max Retry Cycles: {MAX_RETRY_CYCLES}", flush=True)
     print("=" * 90, flush=True)
 
     load_baseline()
@@ -538,6 +576,8 @@ async def run_safe_parallel_cloud_reverification():
     print(f"📡 Found {len(channel_targets)} total channels across both accounts.", flush=True)
 
     sem = asyncio.Semaphore(MAX_CONCURRENT_RESOLVERS)
+    all_harvested_items = []
+    unresolved_retry_pool = {}
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
@@ -549,6 +589,13 @@ async def run_safe_parallel_cloud_reverification():
                 "--disable-images", "--blink-settings=imagesEnabled=false",
             ]
         )
+
+        # =========================================================================
+        # CYCLE 1: Full Channel-by-Channel Scan & Initial Parallel Resolution
+        # =========================================================================
+        print("\n" + "=" * 90, flush=True)
+        print("🌀 STARTING CYCLE 1/5: Full Channel-by-Channel Extraction & Audit", flush=True)
+        print("=" * 90 + "\n", flush=True)
 
         for idx, (cli, d, cid, cname) in enumerate(channel_targets, 1):
             if cid in SKIPPED_CHANNELS_REGISTRY:
@@ -565,6 +612,8 @@ async def run_safe_parallel_cloud_reverification():
                                     s_ep, e_ep, formatted_range = parse_range_numbers(getattr(btn, 'text', ''))
                                     if s_ep is not None:
                                         raw_channel_items.append({
+                                            "channel_id": cid,
+                                            "channel_name": cname,
                                             "message_id": message.id,
                                             "message_date": mdate,
                                             "start_ep": s_ep, "end_ep": e_ep,
@@ -582,6 +631,8 @@ async def run_safe_parallel_cloud_reverification():
                         s_ep, e_ep, formatted_range = parse_range_numbers(brange)
                         if s_ep is not None:
                             raw_channel_items.append({
+                                "channel_id": cid,
+                                "channel_name": cname,
                                 "message_id": message.id,
                                 "message_date": mdate,
                                 "start_ep": s_ep, "end_ep": e_ep,
@@ -603,12 +654,12 @@ async def run_safe_parallel_cloud_reverification():
             for item in raw_channel_items:
                 unique_ranges[(item["start_ep"], item["end_ep"])] = item
             ordered_story_items = sorted(unique_ranges.values(), key=lambda x: x["start_ep"])
-
-            print(f"\n⚡ [{idx}/{len(channel_targets)}] Auditing '{cname}' ({len(ordered_story_items)} items in parallel)...", flush=True)
+            all_harvested_items.extend(ordered_story_items)
 
             items_to_resolve = [it for it in ordered_story_items if it.get("shortlink", "N/A") != "N/A"]
+            print(f"⚡ [{idx}/{len(channel_targets)}] Auditing '{cname}' ({len(items_to_resolve)} links in parallel)...", flush=True)
 
-            async def audit_worker(item):
+            async def audit_worker_cycle1(item):
                 surl = item["shortlink"]
                 baseline_bot = canonical_bot_url(BASELINE_CACHE.get(surl, "N/A"))
 
@@ -616,19 +667,15 @@ async def run_safe_parallel_cloud_reverification():
 
                 if res_type == "RESOLVED" and live_bot != "N/A":
                     if baseline_bot != "N/A":
-                        if live_bot == baseline_bot:
-                            status = "MATCH"
-                            print(f"    ✅ [MATCH]: [{item['range_label']}] -> {live_bot}", flush=True)
-                        else:
-                            status = "MISMATCH"
-                            print(f"    ⚠️ [MISMATCH]: [{item['range_label']}] Old: {baseline_bot} | Live: {live_bot}", flush=True)
+                        status = "MATCH" if live_bot == baseline_bot else "MISMATCH"
+                        print(f"    ✅ [{status}]: [{item['range_label']}] -> {live_bot}", flush=True)
                     else:
                         status = "NEW_RESOLVED"
                         print(f"    ✨ [NEW RESOLVED]: [{item['range_label']}] {surl} -> {live_bot}", flush=True)
                 elif res_type == "DEAD_404":
                     status = "DEAD_404_EXPIRED"
                     live_bot = "N/A"
-                    print(f"    🚫 [DEAD 404]: [{item['range_label']}] {surl} (Deleted by provider)", flush=True)
+                    print(f"    🚫 [DEAD 404]: [{item['range_label']}] {surl}", flush=True)
                 else:
                     if baseline_bot != "N/A":
                         status = "CACHE_VERIFIED"
@@ -636,11 +683,14 @@ async def run_safe_parallel_cloud_reverification():
                         print(f"    📦 [CACHE VERIFIED]: [{item['range_label']}] -> {baseline_bot}", flush=True)
                     else:
                         status = "FAILED_TO_RESOLVE"
-                        print(f"    ❌ [UNRESOLVED]: [{item['range_label']}] {surl}", flush=True)
+                        live_bot = "N/A"
+                        # Enqueue into retry pool for subsequent cycles
+                        unresolved_retry_pool[surl] = item
+                        print(f"    ⏳ [QUEUED FOR RETRY]: [{item['range_label']}] {surl}", flush=True)
 
                 AUDIT_RESULTS[surl] = {
-                    "channel_id": cid,
-                    "channel_name": cname,
+                    "channel_id": item["channel_id"],
+                    "channel_name": item["channel_name"],
                     "range_label": item["range_label"],
                     "start_ep": item["start_ep"],
                     "end_ep": item["end_ep"],
@@ -651,14 +701,78 @@ async def run_safe_parallel_cloud_reverification():
                     "audited_at": datetime.datetime.now().isoformat()
                 }
 
-            await asyncio.gather(*(audit_worker(item) for item in items_to_resolve))
+            await asyncio.gather(*(audit_worker_cycle1(item) for item in items_to_resolve))
 
             if idx % 5 == 0:
                 save_audit_json()
 
+        save_audit_json()
+        print(f"\n✅ Cycle 1 Complete! Total links queued for retry: {len(unresolved_retry_pool):,}", flush=True)
+
+        # =========================================================================
+        # CYCLES 2 to 5: Targeted Multi-Pass Retry on Remaining Unresolved Links
+        # =========================================================================
+        for cycle in range(2, MAX_RETRY_CYCLES + 1):
+            if not unresolved_retry_pool:
+                print(f"\n🎉 ALL LINKS RESOLVED! No remaining unresolved links for Cycle {cycle}.", flush=True)
+                break
+
+            print("\n" + "=" * 90, flush=True)
+            print(f"🔄 STARTING RETRY CYCLE {cycle}/{MAX_RETRY_CYCLES}: Re-attempting {len(unresolved_retry_pool):,} remaining failed links", flush=True)
+            print("=" * 90 + "\n", flush=True)
+
+            resolved_in_this_cycle = []
+            dead_in_this_cycle = []
+
+            async def retry_worker(surl, item):
+                res_type, live_bot = await live_resolve_single_shortlink(browser, surl, sem)
+
+                if res_type == "RESOLVED" and live_bot != "N/A":
+                    print(f"    ✨ [RESOLVED ON CYCLE {cycle}]: [{item['range_label']}] {surl} -> {live_bot}", flush=True)
+                    AUDIT_RESULTS[surl]["live_bot_link"] = live_bot
+                    AUDIT_RESULTS[surl]["verification_status"] = "NEW_RESOLVED"
+                    AUDIT_RESULTS[surl]["audited_at"] = datetime.datetime.now().isoformat()
+                    resolved_in_this_cycle.append(surl)
+                elif res_type == "DEAD_404":
+                    print(f"    🚫 [CONFIRMED DEAD 404 ON CYCLE {cycle}]: [{item['range_label']}] {surl}", flush=True)
+                    AUDIT_RESULTS[surl]["verification_status"] = "DEAD_404_EXPIRED"
+                    dead_in_this_cycle.append(surl)
+                else:
+                    print(f"    ⏳ [STILL PENDING CYCLE {cycle}]: [{item['range_label']}] {surl}", flush=True)
+
+            await asyncio.gather(*(retry_worker(surl, item) for surl, item in list(unresolved_retry_pool.items())))
+
+            for s in resolved_in_this_cycle:
+                unresolved_retry_pool.pop(s, None)
+            for s in dead_in_this_cycle:
+                unresolved_retry_pool.pop(s, None)
+
+            save_audit_json()
+            print(f"📊 Cycle {cycle} results: {len(resolved_in_this_cycle)} solved, {len(dead_in_this_cycle)} dead, {len(unresolved_retry_pool)} remaining.", flush=True)
+            await asyncio.sleep(2.0)
+
+        # =========================================================================
+        # FINAL ISOLATION: Collect any links that failed all 5 cycles
+        # =========================================================================
+        if unresolved_retry_pool:
+            print(f"\n⚠️ Isolating {len(unresolved_retry_pool):,} stubborn links that failed all 5 cycles...", flush=True)
+            for surl, item in unresolved_retry_pool.items():
+                STUBBORN_FAILED_REGISTRY[surl] = {
+                    "channel_id": item["channel_id"],
+                    "channel_name": item["channel_name"],
+                    "range_label": item["range_label"],
+                    "start_ep": item["start_ep"],
+                    "end_ep": item["end_ep"],
+                    "shortlink": surl,
+                    "reason": "FAILED_5_CONSECUTIVE_CYCLES",
+                    "isolated_at": datetime.datetime.now().isoformat()
+                }
+
         await browser.close()
 
+    # Final Saves & Reports
     save_audit_json()
+    save_stubborn_json_and_report()
     generate_audit_sql_and_report()
 
     for cli in clients:
@@ -668,7 +782,7 @@ async def run_safe_parallel_cloud_reverification():
             pass
 
     print("\n" + "=" * 90, flush=True)
-    print(f"🏆 PARALLEL CLOUD AUDIT COMPLETE! All channels re-verified and saved safely.", flush=True)
+    print(f"🏆 COMPLETE 5-CYCLE AUDIT FINISHED! All reports & isolated files generated safely.", flush=True)
     print("=" * 90 + "\n", flush=True)
 
 
