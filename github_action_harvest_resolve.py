@@ -725,16 +725,10 @@ async def run_safe_parallel_cloud_reverification():
                     live_bot = "N/A"
                     print(f"    🚫 [DEAD 404]: [{item['range_label']}] {surl}", flush=True)
                 else:
-                    if baseline_bot != "N/A":
-                        status = "CACHE_VERIFIED"
-                        live_bot = baseline_bot
-                        print(f"    📦 [CACHE VERIFIED]: [{item['range_label']}] -> {baseline_bot}", flush=True)
-                    else:
-                        status = "FAILED_TO_RESOLVE"
-                        live_bot = "N/A"
-                        # Enqueue into retry pool for subsequent cycles
-                        unresolved_retry_pool[surl] = item
-                        print(f"    ⏳ [QUEUED FOR RETRY]: [{item['range_label']}] {surl}", flush=True)
+                    status = "QUEUED_FOR_RETRY"
+                    live_bot = "N/A"
+                    unresolved_retry_pool[surl] = item
+                    print(f"    ⏳ [QUEUED FOR RETRY]: [{item['range_label']}] {surl}", flush=True)
 
                 AUDIT_RESULTS[surl] = {
                     "channel_id": item["channel_id"],
@@ -805,6 +799,8 @@ async def run_safe_parallel_cloud_reverification():
         if unresolved_retry_pool:
             print(f"\n⚠️ Isolating {len(unresolved_retry_pool):,} stubborn links that failed all 5 cycles...", flush=True)
             for surl, item in unresolved_retry_pool.items():
+                if surl in AUDIT_RESULTS:
+                    AUDIT_RESULTS[surl]["verification_status"] = "FAILED_TO_RESOLVE"
                 STUBBORN_FAILED_REGISTRY[surl] = {
                     "channel_id": item["channel_id"],
                     "channel_name": item["channel_name"],
