@@ -393,14 +393,48 @@ async () => {
 
 async def live_resolve_single_shortlink(browser, shortlink, sem):
     async with sem:
+        UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
         HEADERS = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "User-Agent": UA,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
             "Referer": HINDISINK_REFERER,
         }
 
         short_id = shortlink.rsplit("/", 1)[-1][:12]
+
+        # Domains we ALLOW to load — everything else gets blocked at route level
+        ALLOWED_DOMAINS = ["linkshortx.in", "urlshortx.io", "hindisink.com",
+                           "telegram.me", "t.me", "telegram.org"]
+
+        # Ad/tracker domains to block (these cause ERR_ABORTED and frame detach)
+        BLOCKED_PATTERNS = [
+            "googlesyndication", "googleadservices", "doubleclick.net",
+            "adservice", "pagead", "adsense", "facebook.com/tr",
+            "analytics", "tracker", "taboola", "outbrain", "popads",
+            "propellerads", "hilltopads", "exoclick", "juicyads",
+            "trafficjunky", "clickadu", "adsterra", "monetag", "profitablegatecpm",
+            "surfrads", "pushprofit", "onclicka", "clickaine"]
+
+        async def route_handler(route):
+            """Block ad/tracker requests to prevent frame detach crashes."""
+            url = route.request.url.lower()
+            # Block known ad domains
+            if any(blocked in url for blocked in BLOCKED_PATTERNS):
+                await route.abort()
+                return
+            # Block requests to random unknown domains (only allow our shortlink + telegram)
+            from urllib.parse import urlparse
+            try:
+                host = urlparse(url).hostname or ""
+                if host and not any(d in host for d in ALLOWED_DOMAINS):
+                    # Block third-party requests (ads, trackers)
+                    if route.request.resource_type in ("document", "subdocument"):
+                        await route.abort()
+                        return
+            except Exception:
+                pass
+            await route.continue_()
 
         # 1. Fast HTTP Redirect Check (0.5s)
         found = None
@@ -417,7 +451,7 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                     try:
                         async with session.get(current_url, allow_redirects=False, ssl=False, timeout=ClientTimeout(total=4)) as resp:
                             if resp.status in (404, 410):
-                                print(f"      🔍 [{short_id}] HTTP {resp.status} -> DEAD", flush=True)
+                                print(f"      [{short_id}] HTTP {resp.status} -> DEAD", flush=True)
                                 return ("DEAD_404", "N/A")
                             loc = resp.headers.get("Location", "")
                             if loc:
@@ -429,46 +463,32 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                                 continue
                             body = await resp.text(encoding="utf-8", errors="ignore")
                             if any(w in body.lower() for w in ["404 not found", "wrong turn", "doesn't exist", "may have expired"]):
-                                print(f"      🔍 [{short_id}] Body contains 404 keywords -> DEAD", flush=True)
                                 return ("DEAD_404", "N/A")
                             m = BOT_RE.search(body)
                             if m:
                                 found = m.group(0)
                                 break
                             break
-                    except Exception as e:
-                        print(f"      🔍 [{short_id}] HTTP redirect error: {type(e).__name__}: {e}", flush=True)
+                    except Exception:
                         break
-        except Exception as e:
-            print(f"      🔍 [{short_id}] HTTP session error: {type(e).__name__}: {e}", flush=True)
+        except Exception:
+            pass
 
         if found:
             res = canonical_bot_url(found)
             if res != "N/A":
-                print(f"      🔍 [{short_id}] ✅ Resolved via HTTP redirect!", flush=True)
+                print(f"      [{short_id}] HTTP RESOLVED!", flush=True)
                 return ("RESOLVED", res)
 
-        # 2. Playwright Chromium with Popup Auto-Close & State Machine
+        # 2. Phase 1: Direct Referer Bypass — FRESH isolated context
         pw_found = None
         is_dead = False
-        context = None
+        context1 = None
         try:
-            context = await browser.new_context(
-                user_agent=HEADERS["User-Agent"],
-                viewport={"width": 1280, "height": 720},
-                java_script_enabled=True,
-            )
-            
-            async def on_popup(pop):
-                try:
-                    p_url = pop.url or ""
-                    if not any(h in p_url for h in ["linkshortx", "urlshortx", "hindisink", "telegram", "t.me"]):
-                        await pop.close()
-                except Exception:
-                    pass
-            context.on("page", lambda p: asyncio.create_task(on_popup(p)))
-
-            page = await context.new_page()
+            context1 = await browser.new_context(user_agent=UA, viewport={"width": 1280, "height": 720})
+            # Block ads at route level to prevent frame detach
+            await context1.route("**/*", route_handler)
+            page1 = await context1.new_page()
 
             def check_hit(url):
                 nonlocal pw_found
@@ -476,17 +496,15 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                 m = BOT_RE.search(url)
                 if m:
                     pw_found = m.group(0)
-                    print(f"      🔍 [{short_id}] 🎯 Bot link intercepted via network!", flush=True)
 
-            page.on("request", lambda req: check_hit(req.url))
-            page.on("response", lambda resp: check_hit(resp.url))
+            page1.on("request", lambda req: check_hit(req.url))
+            page1.on("response", lambda resp: check_hit(resp.url))
 
-            # Phase 1: Fast Direct Referer Loophole (Natural 10-12s Wait)
-            try:
-                await page.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=18000)
-                for tick in range(20):
-                    if pw_found: break
-                    eval_res = await page.evaluate(r"""() => {
+            await page1.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=20000)
+            for tick in range(20):
+                if pw_found: break
+                try:
+                    eval_res = await page1.evaluate(r"""() => {
                         const body = (document.body ? document.body.innerText : "").toLowerCase();
                         if (body.includes("404 not found") || body.includes("wrong turn") || body.includes("doesn't exist") || body.includes("may have expired")) {
                             return {action: "dead_404"};
@@ -505,65 +523,99 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                         is_dead = True
                         break
                     elif act == "clicked_get_link":
-                        print(f"      🔍 [{short_id}] Phase1 clicked get-link at tick {tick}", flush=True)
                         await asyncio.sleep(3.0)
                         break
-                    await asyncio.sleep(1.0)
-            except Exception as e:
-                print(f"      🔍 [{short_id}] Phase1 error: {type(e).__name__}: {str(e)[:100]}", flush=True)
+                except Exception:
+                    break
+                await asyncio.sleep(1.0)
 
-            if is_dead:
-                return ("DEAD_404", "N/A")
-
-            # Phase 2: Sequential State Machine Fallback if Phase 1 didn't catch it
-            if not pw_found:
+            # Check final content before closing
+            if not pw_found and not is_dead:
                 try:
-                    await page.goto(shortlink, wait_until="commit", timeout=15000)
-                    for tick in range(25):
-                        if pw_found: break
-                        eval_res = await page.evaluate(FAST_STEP_JS)
-                        if eval_res.get("action") == "dead_404":
-                            is_dead = True
-                            break
-                        if eval_res.get("telegram"):
-                            pw_found = eval_res["telegram"]
-                            print(f"      🔍 [{short_id}] Phase2 got telegram link at tick {tick}", flush=True)
-                            break
-                        elif eval_res.get("action") in ("clicked_get_link", "clicked_final"):
-                            print(f"      🔍 [{short_id}] Phase2 clicked button at tick {tick}", flush=True)
-                            await asyncio.sleep(3.0)
-                            break
-                        await asyncio.sleep(1.0)
-                except Exception as e:
-                    print(f"      🔍 [{short_id}] Phase2 error: {type(e).__name__}: {str(e)[:100]}", flush=True)
-
-            if is_dead:
-                return ("DEAD_404", "N/A")
-
-            if not pw_found:
-                try:
-                    c = await page.content()
-                    m = BOT_RE.search(c) or BOT_RE.search(page.url or "")
+                    c = await page1.content()
+                    m = BOT_RE.search(c) or BOT_RE.search(page1.url or "")
                     if m:
                         pw_found = m.group(0)
-                        print(f"      🔍 [{short_id}] Found bot link in final page content", flush=True)
-                except Exception as e:
-                    print(f"      🔍 [{short_id}] Final content check error: {type(e).__name__}", flush=True)
-
-        except Exception as e:
-            print(f"      ❌ [{short_id}] BROWSER CONTEXT ERROR: {type(e).__name__}: {str(e)[:150]}", flush=True)
-        finally:
-            if context:
-                try:
-                    await context.close()
                 except Exception:
                     pass
 
-        if pw_found:
-            return ("RESOLVED", canonical_bot_url(pw_found))
+        except Exception as e:
+            print(f"      [{short_id}] Phase1: {type(e).__name__}: {str(e)[:80]}", flush=True)
+        finally:
+            if context1:
+                try: await context1.close()
+                except Exception: pass
+
         if is_dead:
             return ("DEAD_404", "N/A")
-        print(f"      🔍 [{short_id}] UNRESOLVED after all phases", flush=True)
+        if pw_found:
+            res = canonical_bot_url(pw_found)
+            if res != "N/A":
+                print(f"      [{short_id}] Phase1 RESOLVED!", flush=True)
+                return ("RESOLVED", res)
+
+        # 3. Phase 2: Sequential State Machine — FRESH isolated context (not reusing dead page!)
+        pw_found2 = None
+        context2 = None
+        try:
+            context2 = await browser.new_context(user_agent=UA, viewport={"width": 1280, "height": 720})
+            await context2.route("**/*", route_handler)
+            page2 = await context2.new_page()
+
+            def check_hit2(url):
+                nonlocal pw_found2
+                if pw_found2: return
+                m = BOT_RE.search(url)
+                if m:
+                    pw_found2 = m.group(0)
+
+            page2.on("request", lambda req: check_hit2(req.url))
+            page2.on("response", lambda resp: check_hit2(resp.url))
+
+            await page2.goto(shortlink, wait_until="commit", timeout=15000)
+            for tick in range(25):
+                if pw_found2: break
+                try:
+                    eval_res = await page2.evaluate(FAST_STEP_JS)
+                    if eval_res.get("action") == "dead_404":
+                        is_dead = True
+                        break
+                    if eval_res.get("telegram"):
+                        pw_found2 = eval_res["telegram"]
+                        break
+                    elif eval_res.get("action") in ("clicked_get_link", "clicked_final"):
+                        await asyncio.sleep(3.0)
+                        break
+                except Exception:
+                    break
+                await asyncio.sleep(1.0)
+
+            # Final content check
+            if not pw_found2 and not is_dead:
+                try:
+                    c = await page2.content()
+                    m = BOT_RE.search(c) or BOT_RE.search(page2.url or "")
+                    if m:
+                        pw_found2 = m.group(0)
+                except Exception:
+                    pass
+
+        except Exception as e:
+            print(f"      [{short_id}] Phase2: {type(e).__name__}: {str(e)[:80]}", flush=True)
+        finally:
+            if context2:
+                try: await context2.close()
+                except Exception: pass
+
+        if is_dead:
+            return ("DEAD_404", "N/A")
+        if pw_found2:
+            res = canonical_bot_url(pw_found2)
+            if res != "N/A":
+                print(f"      [{short_id}] Phase2 RESOLVED!", flush=True)
+                return ("RESOLVED", res)
+
+        print(f"      [{short_id}] UNRESOLVED after all phases", flush=True)
         return ("UNRESOLVED", "N/A")
 
 
