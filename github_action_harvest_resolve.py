@@ -481,47 +481,55 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
 
             for tick in range(18):
                 if bot_target[0]: break
+                if page1.url and BOT_RE.search(page1.url):
+                    bot_target[0] = BOT_RE.search(page1.url).group(0)
+                    break
+
                 try:
                     eval_res = await page1.evaluate(r"""() => {
                         const BOT_PAT = /(?:https?:\/\/)?(?:telegram\.me|t\.me)\/[A-Za-z0-9_]+\?start=[A-Za-z0-9_%+\/=\-]+/i;
-                        const body = (document.body ? document.body.innerText : "");
-                        const m = body.match(BOT_PAT);
-                        if (m) return {telegram: m[0]};
-
                         for (const a of document.querySelectorAll("a")) {
                             if (BOT_PAT.test(a.href || "")) return {telegram: a.href};
                         }
 
-                        const bLow = body.toLowerCase();
+                        const bLow = (document.body ? document.body.innerText : "").toLowerCase();
                         if (bLow.includes("404 not found") || bLow.includes("wrong turn") || bLow.includes("doesn't exist") || bLow.includes("may have expired")) {
                             return {action: "dead_404"};
                         }
 
-                        const gl = document.querySelector(".get-link, #getlink, a.get-link, a.btn-success, #final");
+                        const gl = document.querySelector(".get-link, #getlink, a.get-link, a.btn-success");
                         if (gl) {
-                            const locked = gl.classList.contains("disabled") || gl.getAttribute("aria-disabled") === "true" || (gl.innerText||'').toLowerCase().includes("wait");
+                            const href = gl.href || gl.getAttribute("href") || "";
+                            if (BOT_PAT.test(href)) return {telegram: href};
+                            const txt = (gl.innerText || "").toLowerCase();
+                            const locked = gl.classList.contains("disabled") || txt.includes("wait");
                             if (!locked) {
                                 try { gl.click(); } catch(e){}
-                                return {action: "clicked_get_link"};
+                                return {clicked: true, href: href};
                             }
                         }
-                        return {action: "waiting"};
+                        return {waiting: true};
                     }""")
 
                     if eval_res.get("telegram"):
                         bot_target[0] = eval_res["telegram"]
                         break
+                    if eval_res.get("href") and BOT_RE.search(eval_res["href"]):
+                        bot_target[0] = BOT_RE.search(eval_res["href"]).group(0)
+                        break
                     if eval_res.get("action") == "dead_404":
                         is_dead[0] = True
                         break
-                    if eval_res.get("action") == "clicked_get_link":
-                        await asyncio.sleep(3.5)
+                    if eval_res.get("clicked"):
+                        await asyncio.sleep(2.5)
+                        if page1.url and BOT_RE.search(page1.url):
+                            bot_target[0] = BOT_RE.search(page1.url).group(0)
                         break
                 except Exception:
-                    break
+                    pass
+
                 await asyncio.sleep(1.0)
 
-            # Check pages in context for destination URL
             if not bot_target[0] and not is_dead[0]:
                 for p in context1.pages:
                     hit(p.url)
@@ -566,6 +574,10 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
 
             for tick in range(25):
                 if bot_target[0]: break
+                if page2.url and BOT_RE.search(page2.url):
+                    bot_target[0] = BOT_RE.search(page2.url).group(0)
+                    break
+
                 try:
                     eval_res = await page2.evaluate(FAST_STEP_JS)
                     if eval_res.get("telegram"):
@@ -575,10 +587,12 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                         is_dead[0] = True
                         break
                     if eval_res.get("action") in ("clicked_get_link", "clicked_final"):
-                        await asyncio.sleep(3.5)
+                        await asyncio.sleep(2.5)
+                        if page2.url and BOT_RE.search(page2.url):
+                            bot_target[0] = BOT_RE.search(page2.url).group(0)
                         break
                 except Exception:
-                    break
+                    pass
                 await asyncio.sleep(1.0)
 
             if not bot_target[0] and not is_dead[0]:
