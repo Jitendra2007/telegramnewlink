@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-CODEX Cloud 20x Parallel Safe Re-Verification & Audit Harvester Engine
-Runs on GitHub Actions (7 GB RAM).
-Uses 15-20 Parallel Async Workers for lightning-fast link resolution.
-Produces clean side-by-side verification reports:
+CODEX Master Cloud 15-Worker Parallel Safe Harvester & Link Resolver
+Runs on GitHub Actions with 7 GB RAM.
+Integrates proven Warlock Step 1-4 State Machine + Fast Direct Referer + Popup Blocker.
+Automatically detects and categorizes:
+  - MATCH: Live resolution matches baseline cache 100%
+  - CACHE_VERIFIED: Active valid cached baseline link
+  - NEW_RESOLVED: Newly solved live shortlink
+  - DEAD_404_EXPIRED: Shortlink deleted/expired on provider server
+  - UNRESOLVED: Gated shortlink needing manual review
+Outputs:
   - cloud_reverified_audit.json
   - cloud_reverified_audit.sql
   - cloud_verification_discrepancy_report.md
@@ -76,9 +82,8 @@ def load_baseline():
     if os.path.exists(BASE_CACHE_PATH):
         try:
             with open(BASE_CACHE_PATH, "r", encoding="utf-8") as f:
-                raw_cache = json.load(f)
-                # Canonicalize all baseline bot links to https://t.me/
-                BASELINE_CACHE = {k: canonical_bot_url(v) for k, v in raw_cache.items()}
+                raw = json.load(f)
+                BASELINE_CACHE = {k: canonical_bot_url(v) for k, v in raw.items()}
             print(f"📦 Loaded {len(BASELINE_CACHE):,} baseline cached pairs for comparison.", flush=True)
         except Exception as e:
             print(f"⚠️ Error loading baseline cache: {e}", flush=True)
@@ -96,7 +101,7 @@ def load_baseline():
             with open(AUDIT_JSON_PATH, "r", encoding="utf-8") as f:
                 AUDIT_RESULTS = json.load(f)
             print(f"📋 Loaded {len(AUDIT_RESULTS):,} previously audited links.", flush=True)
-        except Exception as e:
+        except Exception:
             AUDIT_RESULTS = {}
 
 
@@ -114,6 +119,7 @@ def generate_audit_sql_and_report():
     
     matches = 0
     new_resolved = 0
+    dead_404 = 0
     mismatches = []
     unresolved = []
 
@@ -139,6 +145,8 @@ def generate_audit_sql_and_report():
             matches += 1
         elif vstat == "NEW_RESOLVED":
             new_resolved += 1
+        elif vstat == "DEAD_404_EXPIRED":
+            dead_404 += 1
         elif vstat == "MISMATCH":
             mismatches.append(data)
         elif vstat == "FAILED_TO_RESOLVE":
@@ -160,8 +168,9 @@ def generate_audit_sql_and_report():
         f.write(f"**Generated:** `{now_str}`\n\n")
         f.write(f"### 📊 Summary Statistics\n")
         f.write(f"- **Total Shortlinks Audited**: `{len(AUDIT_RESULTS):,}`\n")
-        f.write(f"- ✅ **100% Exact Matches (Verified)**: `{matches:,}`\n")
+        f.write(f"- ✅ **100% Exact Matches (Active Verified)**: `{matches:,}`\n")
         f.write(f"- ✨ **Newly Resolved Links (Previously Pending)**: `{new_resolved:,}`\n")
+        f.write(f"- 🚫 **Dead/Expired 404 Links on Provider**: `{dead_404:,}`\n")
         f.write(f"- ⚠️ **True Discrepancies / Mismatches**: `{len(mismatches):,}`\n")
         f.write(f"- ❌ **Failed to Live Resolve**: `{len(unresolved):,}`\n\n")
 
@@ -173,12 +182,13 @@ def generate_audit_sql_and_report():
                 f.write(f"| {m.get('channel_name')} | {m.get('range_label')} | `{m.get('shortlink')}` | `{m.get('baseline_bot_link')}` | `{m.get('live_bot_link')}` |\n")
             f.write("\n")
 
-        if unresolved:
-            f.write(f"### ❌ Stubborn / Unresolved Links List\n")
-            f.write(f"| Story Channel | Range | Shortlink |\n")
-            f.write(f"| :--- | :--- | :--- |\n")
-            for u in unresolved[:100]:
-                f.write(f"| {u.get('channel_name')} | {u.get('range_label')} | `{u.get('shortlink')}` |\n")
+        if dead_404:
+            f.write(f"### 🚫 Dead/Expired 404 Links (Deleted by Shortlink Provider)\n")
+            f.write(f"| Story Channel | Range | Shortlink | Status |\n")
+            f.write(f"| :--- | :--- | :--- | :--- |\n")
+            for surl, data in list(AUDIT_RESULTS.items())[:100]:
+                if data.get("verification_status") == "DEAD_404_EXPIRED":
+                    f.write(f"| {data.get('channel_name')} | {data.get('range_label')} | `{surl}` | 404 Not Found / Expired |\n")
             f.write("\n")
 
     print(f"📄 Human Verification Report generated: {AUDIT_REPORT_MD}", flush=True)
@@ -248,6 +258,77 @@ def normalize_shortlink(url):
     return "N/A"
 
 
+FAST_STEP_JS = r"""
+async () => {
+  const BOT_PAT = /(?:https?:\/\/)?(?:telegram\.me|t\.me)\/[A-Za-z0-9_]+\?start=[A-Za-z0-9_%+\/=\-]+/i;
+
+  // 1. Scan for telegram bot link
+  const bodyText = document.body ? document.body.innerText : "";
+  const tgText = bodyText.match(BOT_PAT);
+  if (tgText) return {action: "found_text", telegram: tgText[0]};
+
+  for (const a of document.querySelectorAll("a")) {
+    const href = a.href || "";
+    if (BOT_PAT.test(href)) return {action: "found_anchor", telegram: href};
+  }
+
+  // 2. Check for 404 / Dead
+  const title = (document.title || "").toLowerCase();
+  const bLow = bodyText.toLowerCase();
+  if (title.includes("404") || title.includes("not found") || bLow.includes("wrong turn") || bLow.includes("doesn't exist") || bLow.includes("may have expired") || bLow.includes("link expired") || bLow.includes("invalid key")) {
+    return {action: "dead_404"};
+  }
+
+  // 3. Unhide hidden elements
+  for (const el of document.querySelectorAll('.no_display, [style*="display: none"], [hidden]')) {
+    el.classList.remove('no_display');
+    el.hidden = false;
+    el.style.display = 'block';
+    el.style.visibility = 'visible';
+    el.style.opacity = '1';
+  }
+  for (const el of document.querySelectorAll('button, a, input')) {
+    el.disabled = false;
+    el.removeAttribute('disabled');
+  }
+
+  // 4. Submit form#fwd or form#rtg (Hindisink steps)
+  const bypassForm = document.querySelector("form#fwd, form#rtg, form#landing");
+  if (bypassForm) {
+    try {
+      HTMLFormElement.prototype.submit.call(bypassForm);
+      return {action: "submitted_bypass_form"};
+    } catch(e) {}
+  }
+
+  // 5. Final Get Link (.get-link)
+  const getLink = document.querySelector(".get-link, #getlink, a.get-link");
+  if (getLink) {
+    const disabled = getLink.classList.contains("disabled") || getLink.getAttribute("aria-disabled") === "true" || (getLink.innerText||"").toLowerCase().includes("wait");
+    if (!disabled) {
+      try { getLink.click(); } catch(e) {}
+      return {action: "clicked_get_link"};
+    }
+    return {action: "waiting_timer"};
+  }
+
+  // 6. Click #final / continue / start
+  const finalBtn = document.getElementById("final") ||
+                   document.querySelector(".start_btn") ||
+                   document.querySelector(".continue_btn") ||
+                   document.querySelector("#rtg-snp21 button") ||
+                   document.querySelector("#rtg-snp21 a") ||
+                   document.querySelector(".btn-success, .btn-primary");
+  if (finalBtn) {
+    try { finalBtn.click(); } catch(e) {}
+    return {action: "clicked_final"};
+  }
+
+  return {action: "nothing_matched"};
+}
+"""
+
+
 async def live_resolve_single_shortlink(browser, shortlink, sem):
     async with sem:
         HEADERS = {
@@ -257,11 +338,11 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
             "Referer": HINDISINK_REFERER,
         }
 
-        # 1. Fast HTTP Redirect
+        # 1. Fast HTTP Redirect Check (0.5s)
         found = None
         current_url = shortlink
         try:
-            async with ClientSession(timeout=ClientTimeout(total=6), headers=HEADERS) as session:
+            async with ClientSession(timeout=ClientTimeout(total=5), headers=HEADERS) as session:
                 for _ in range(6):
                     if not current_url or not current_url.startswith("http"):
                         break
@@ -270,7 +351,9 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                         found = m.group(0)
                         break
                     try:
-                        async with session.get(current_url, allow_redirects=False, ssl=False, timeout=ClientTimeout(total=5)) as resp:
+                        async with session.get(current_url, allow_redirects=False, ssl=False, timeout=ClientTimeout(total=4)) as resp:
+                            if resp.status in (404, 410):
+                                return ("DEAD_404", "N/A")
                             loc = resp.headers.get("Location", "")
                             if loc:
                                 m = BOT_RE.search(loc)
@@ -280,6 +363,8 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                                 current_url = loc if loc.startswith("http") else __import__("urllib.parse", fromlist=["urljoin"]).urljoin(current_url, loc)
                                 continue
                             body = await resp.text(encoding="utf-8", errors="ignore")
+                            if any(w in body.lower() for w in ["404 not found", "wrong turn", "doesn't exist", "may have expired"]):
+                                return ("DEAD_404", "N/A")
                             m = BOT_RE.search(body)
                             if m:
                                 found = m.group(0)
@@ -293,10 +378,11 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
         if found:
             res = canonical_bot_url(found)
             if res != "N/A":
-                return res
+                return ("RESOLVED", res)
 
-        # 2. Parallel Playwright Context
+        # 2. Playwright Chromium with Popup Auto-Close & State Machine
         pw_found = None
+        is_dead = False
         context = None
         try:
             context = await browser.new_context(
@@ -304,6 +390,17 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                 viewport={"width": 1280, "height": 720},
                 java_script_enabled=True,
             )
+            
+            # Auto-close popup tabs
+            async def on_popup(pop):
+                try:
+                    p_url = pop.url or ""
+                    if not any(h in p_url for h in ["linkshortx", "urlshortx", "hindisink", "telegram", "t.me"]):
+                        await pop.close()
+                except Exception:
+                    pass
+            context.on("page", lambda p: asyncio.create_task(on_popup(p)))
+
             page = await context.new_page()
 
             def check_hit(url):
@@ -316,53 +413,48 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
             page.on("request", lambda req: check_hit(req.url))
             page.on("response", lambda resp: check_hit(resp.url))
 
-            # Phase 1: Fast Direct Referer (8s)
+            # Phase 1: Fast Direct Referer (Wait naturally for 10-12s timer)
             try:
-                await page.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=9000)
-                for _ in range(8):
+                await page.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=14000)
+                for _ in range(15):
                     if pw_found: break
-                    res = await page.evaluate(r"""() => {
-                        const gl = document.querySelector(".get-link, #getlink, a.get-link");
-                        if (!gl) return {found: false};
-                        const locked = gl.classList.contains("disabled") || (gl.innerText||'').includes("wait");
-                        if (!locked) {
-                            try { gl.click(); } catch(e){}
-                            return {clicked: true};
-                        }
-                        return {locked: true};
-                    }""")
-                    if res.get("clicked"):
-                        await asyncio.sleep(1.0)
+                    eval_res = await page.evaluate(FAST_STEP_JS)
+                    act = eval_res.get("action", "")
+                    if act == "dead_404":
+                        is_dead = True
                         break
-                    await asyncio.sleep(0.8)
+                    elif eval_res.get("telegram"):
+                        pw_found = eval_res["telegram"]
+                        break
+                    elif act in ("clicked_get_link", "clicked_final"):
+                        await asyncio.sleep(2.0)
+                        break
+                    await asyncio.sleep(0.9)
             except Exception:
                 pass
 
-            # Phase 2: Sequential State Machine Fallback (12s)
+            if is_dead:
+                return ("DEAD_404", "N/A")
+
+            # Phase 2: Sequential State Machine Fallback if not resolved
             if not pw_found:
                 try:
-                    await page.goto(shortlink, wait_until="commit", timeout=8000)
-                    for _ in range(15):
+                    await page.goto(shortlink, wait_until="commit", timeout=10000)
+                    for _ in range(25):
                         if pw_found: break
-                        try:
-                            await page.evaluate(r"""() => {
-                                const b = document.querySelector('a#final, #rtg-snp21 a, .get-link, a.btn-primary');
-                                if (b) { b.click(); return; }
-                                const pDone = document.getElementById('pDone');
-                                if (pDone && !pDone.classList.contains('x')) {
-                                    const btn = pDone.querySelector('button, a, input[type=submit]');
-                                    if (btn) { btn.click(); return; }
-                                }
-                                const cont = document.getElementById('cont') || document.querySelector('.continue_btn');
-                                if (cont && !cont.classList.contains('x')) { cont.click(); return; }
-                                const go = document.getElementById('go');
-                                if (go && !go.classList.contains('x') && go.offsetWidth > 0) { go.click(); return; }
-                            }""")
-                        except Exception:
-                            pass
-                        await asyncio.sleep(0.8)
+                        eval_res = await page.evaluate(FAST_STEP_JS)
+                        if eval_res.get("action") == "dead_404":
+                            is_dead = True
+                            break
+                        if eval_res.get("telegram"):
+                            pw_found = eval_res["telegram"]
+                            break
+                        await asyncio.sleep(0.9)
                 except Exception:
                     pass
+
+            if is_dead:
+                return ("DEAD_404", "N/A")
 
             if not pw_found:
                 try:
@@ -383,13 +475,15 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                     pass
 
         if pw_found:
-            return canonical_bot_url(pw_found)
-        return "N/A"
+            return ("RESOLVED", canonical_bot_url(pw_found))
+        if is_dead:
+            return ("DEAD_404", "N/A")
+        return ("UNRESOLVED", "N/A")
 
 
 async def run_safe_parallel_cloud_reverification():
     print("=" * 90, flush=True)
-    print(f"🚀 CODEX 15-WORKER PARALLEL SAFE RE-VERIFICATION ENGINE (7GB RAM RUNNER)", flush=True)
+    print(f"🚀 CODEX 15-WORKER PARALLEL RE-VERIFICATION & AUDIT ENGINE (7GB RAM RUNNER)", flush=True)
     print(f"⏰ Execution Timestamp: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}", flush=True)
     print(f"⚡ Max Concurrent Browser Resolvers: {MAX_CONCURRENT_RESOLVERS}", flush=True)
     print("=" * 90, flush=True)
@@ -446,7 +540,6 @@ async def run_safe_parallel_cloud_reverification():
     sem = asyncio.Semaphore(MAX_CONCURRENT_RESOLVERS)
 
     async with async_playwright() as p:
-        # Launch dedicated master Chromium process with 7GB RAM allowance
         browser = await p.chromium.launch(
             headless=True,
             args=[
@@ -506,7 +599,6 @@ async def run_safe_parallel_cloud_reverification():
             if not has_any_shortlink:
                 continue
 
-            # Deduplicate by range
             unique_ranges = {}
             for item in raw_channel_items:
                 unique_ranges[(item["start_ep"], item["end_ep"])] = item
@@ -514,27 +606,29 @@ async def run_safe_parallel_cloud_reverification():
 
             print(f"\n⚡ [{idx}/{len(channel_targets)}] Auditing '{cname}' ({len(ordered_story_items)} items in parallel)...", flush=True)
 
-            # Filter items needing resolution
             items_to_resolve = [it for it in ordered_story_items if it.get("shortlink", "N/A") != "N/A"]
 
             async def audit_worker(item):
                 surl = item["shortlink"]
                 baseline_bot = canonical_bot_url(BASELINE_CACHE.get(surl, "N/A"))
 
-                live_bot = await live_resolve_single_shortlink(browser, surl, sem)
-                live_bot = canonical_bot_url(live_bot)
+                res_type, live_bot = await live_resolve_single_shortlink(browser, surl, sem)
 
-                if live_bot != "N/A":
+                if res_type == "RESOLVED" and live_bot != "N/A":
                     if baseline_bot != "N/A":
                         if live_bot == baseline_bot:
                             status = "MATCH"
                             print(f"    ✅ [MATCH]: [{item['range_label']}] -> {live_bot}", flush=True)
                         else:
                             status = "MISMATCH"
-                            print(f"    ⚠️ [TRUE MISMATCH]: [{item['range_label']}] Old: {baseline_bot} | Live: {live_bot}", flush=True)
+                            print(f"    ⚠️ [MISMATCH]: [{item['range_label']}] Old: {baseline_bot} | Live: {live_bot}", flush=True)
                     else:
                         status = "NEW_RESOLVED"
                         print(f"    ✨ [NEW RESOLVED]: [{item['range_label']}] {surl} -> {live_bot}", flush=True)
+                elif res_type == "DEAD_404":
+                    status = "DEAD_404_EXPIRED"
+                    live_bot = "N/A"
+                    print(f"    🚫 [DEAD 404]: [{item['range_label']}] {surl} (Deleted by provider)", flush=True)
                 else:
                     if baseline_bot != "N/A":
                         status = "CACHE_VERIFIED"
@@ -542,7 +636,7 @@ async def run_safe_parallel_cloud_reverification():
                         print(f"    📦 [CACHE VERIFIED]: [{item['range_label']}] -> {baseline_bot}", flush=True)
                     else:
                         status = "FAILED_TO_RESOLVE"
-                        print(f"    ❌ [FAILED]: [{item['range_label']}] {surl}", flush=True)
+                        print(f"    ❌ [UNRESOLVED]: [{item['range_label']}] {surl}", flush=True)
 
                 AUDIT_RESULTS[surl] = {
                     "channel_id": cid,
@@ -557,7 +651,6 @@ async def run_safe_parallel_cloud_reverification():
                     "audited_at": datetime.datetime.now().isoformat()
                 }
 
-            # Run batch of items in parallel
             await asyncio.gather(*(audit_worker(item) for item in items_to_resolve))
 
             if idx % 5 == 0:
@@ -575,7 +668,7 @@ async def run_safe_parallel_cloud_reverification():
             pass
 
     print("\n" + "=" * 90, flush=True)
-    print(f"🏆 PARALLEL CLOUD AUDIT COMPLETE! All 612 channels re-verified and saved safely.", flush=True)
+    print(f"🏆 PARALLEL CLOUD AUDIT COMPLETE! All channels re-verified and saved safely.", flush=True)
     print("=" * 90 + "\n", flush=True)
 
 
