@@ -25,6 +25,8 @@ PORT = int(os.environ.get("PORT", "10000"))  # Render default is 10000
 FORWARD_TO_SAVED_MESSAGES = os.environ.get("FORWARD_TO_SAVED_MESSAGES", "true").lower() == "true"
 AUTO_RESOLVE = os.environ.get("AUTO_RESOLVE", "true").lower() == "true"
 FULL_HISTORICAL_SCAN = os.environ.get("FULL_HISTORICAL_SCAN", "true").lower() == "true"
+FORCE_REVERIFY = os.environ.get("FORCE_REVERIFY", "true").lower() == "true"
+RESOLVER_COOLDOWN_SECONDS = int(os.environ.get("RESOLVER_COOLDOWN_SECONDS", "60"))
 KEEPALIVE_INTERVAL_SECONDS = int(os.environ.get("KEEPALIVE_INTERVAL_SECONDS", str(10 * 60)))
 KEEPALIVE_URL = os.environ.get("KEEPALIVE_URL") or os.environ.get("RENDER_EXTERNAL_URL")
 PLAYWRIGHT_CHROMIUM_EXECUTABLE = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE")
@@ -350,15 +352,15 @@ async def notify_user(client, text):
     except Exception:
         pass
 
-async def resolve_one_shortlink(playwright_instance, shortlink):
+async def resolve_one_shortlink(playwright_instance, shortlink, force_live=False):
     """
     Resolve a shortlink to a Telegram bot link.
     Strategy:
-      1. Instant cache lookup (verified correct, 23,014 pairs)
+      1. Instant cache lookup (verified correct, 23,014 pairs) — SKIPPED when force_live=True
       2. HTTP redirect-following via aiohttp — fast, no RAM (catches plain redirect chains)
       3. Playwright fallback ONLY if HTTP fails — strict 20s, one page, browser closed immediately
     """
-    if shortlink in MASTER_RESOLVED_CACHE:
+    if not force_live and shortlink in MASTER_RESOLVED_CACHE:
         return MASTER_RESOLVED_CACHE[shortlink]
 
     HEADERS = {
@@ -617,9 +619,13 @@ async def sequential_channel_scanner_and_resolver(channel_targets):
     print(f"🔒 Rules:", flush=True)
     print(f"   1. Extract channel messages in ascending Message ID order (Message ID 1 to latest).", flush=True)
     print(f"   2. First capture Free Bot Links in chronological message order.", flush=True)
-    print(f"   3. Resolve all Shortlinks 100% for that channel using cache / fast-bypass.", flush=True)
-    print(f"   4. Store clean ordered set with Channel Name, Ranges, Shortlinks, Bot Links.", flush=True)
-    print(f"   5. Advance to next channel if and only if current channel is 100% finished!", flush=True)
+    if FORCE_REVERIFY:
+        print(f"   3. ⚠️ FORCE_REVERIFY=ON — ALL links resolved LIVE (cache bypassed).", flush=True)
+        print(f"   4. ⏱️ {RESOLVER_COOLDOWN_SECONDS}s cooldown between each resolution (browser fully closed).", flush=True)
+    else:
+        print(f"   3. Resolve all Shortlinks 100% for that channel using cache / fast-bypass.", flush=True)
+    print(f"   5. Store clean ordered set with Channel Name, Ranges, Shortlinks, Bot Links.", flush=True)
+    print(f"   6. Advance to next channel if and only if current channel is 100% finished!", flush=True)
     print(f"=========================================================================================\n", flush=True)
 
     async with async_playwright() as p:
@@ -704,32 +710,41 @@ async def sequential_channel_scanner_and_resolver(channel_targets):
             # Step 2: Separate Free Bot Links and Pending Shortlinks
             pending_items = []
             for item in ordered_story_items:
-                # Check Master Cache for Shortlink
                 if item["bot_link"] == "N/A" and item["shortlink"] != "N/A":
-                    if item["shortlink"] in MASTER_RESOLVED_CACHE:
+                    if FORCE_REVERIFY:
+                        # Force-reverify mode: ALL shortlinks go to live resolution
+                        pending_items.append(item)
+                    elif item["shortlink"] in MASTER_RESOLVED_CACHE:
                         cached_bot = MASTER_RESOLVED_CACHE[item["shortlink"]]
                         item["bot_link"] = cached_bot
                         print(f"    ✨ [RESOLVED FROM CACHE]: [{item['range_label']}] {item['shortlink']} -> {cached_bot}", flush=True)
                     else:
                         pending_items.append(item)
 
-            # Step 3: Resolve all pending shortlinks for this story channel
+            # Step 3: Resolve all pending/reverify shortlinks for this story channel
             if pending_items and AUTO_RESOLVE:
-                print(f"  ⚡ Resolving {len(pending_items)} pending live shortlinks for '{cname}'...", flush=True)
+                mode_label = "FORCE-REVERIFY" if FORCE_REVERIFY else "pending"
+                print(f"  ⚡ Resolving {len(pending_items)} {mode_label} shortlinks for '{cname}'...", flush=True)
                 for p_idx, p_item in enumerate(pending_items, 1):
                     surl = p_item["shortlink"]
                     rng = p_item["range_label"]
                     
                     print(f"    [{p_idx}/{len(pending_items)}] 🌐 Resolving: [{rng}] {surl} ...", flush=True)
-                    bot_url = await resolve_one_shortlink(p, surl)
+                    bot_url = await resolve_one_shortlink(p, surl, force_live=FORCE_REVERIFY)
                     if bot_url and bot_url != "N/A":
                         p_item["bot_link"] = bot_url
                         MASTER_RESOLVED_CACHE[surl] = bot_url
                         scan_progress["total_resolved_count"] += 1
-                        print(f"    ✅ [RESOLVED & STOPPED]: [{rng}] {surl} -> {bot_url}", flush=True)
+                        print(f"    ✅ [RESOLVED & VERIFIED]: [{rng}] {surl} -> {bot_url}", flush=True)
                     else:
                         print(f"    ⚠️ [UNRESOLVED / SKIPPED]: [{rng}] {surl} -> N/A (Moved to next)", flush=True)
-                    await asyncio.sleep(2.0)
+                    
+                    # Cooldown: wait between resolutions to let Chromium fully release
+                    if RESOLVER_COOLDOWN_SECONDS > 0:
+                        print(f"    ⏱️ Cooldown: waiting {RESOLVER_COOLDOWN_SECONDS}s before next link...", flush=True)
+                        await asyncio.sleep(RESOLVER_COOLDOWN_SECONDS)
+                    else:
+                        await asyncio.sleep(2.0)
 
             # Step 4: Save 100% complete story set with Channel Name, Ranges, Shortlinks, Bot Links
             save_channel_story_set(cid, cname, ordered_story_items)
@@ -737,10 +752,18 @@ async def sequential_channel_scanner_and_resolver(channel_targets):
             print(f"✅ [100% COMPLETE & SAVED] '{cname}' dataset stored with {len(ordered_story_items)} ordered episodes!\n", flush=True)
             await asyncio.sleep(0.5)
 
+    # Save cache to disk after full scan completes
+    try:
+        with open(CACHE_PATH, "w", encoding="utf-8") as f:
+            json.dump(MASTER_RESOLVED_CACHE, f, ensure_ascii=False, indent=2)
+        print(f"💾 Cache saved: {len(MASTER_RESOLVED_CACHE):,} pairs written to {CACHE_PATH}", flush=True)
+    except Exception as e:
+        print(f"⚠️ Failed to save cache: {e}", flush=True)
+
     scan_progress["status"] = "completed"
     scan_progress["completed_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"\n=========================================================================================", flush=True)
-    print(f"🏆 ALL {len(channel_entities)} CHANNELS 100% EXTRACTED, RESOLVED & STORED AS STRUCTURED SETS!", flush=True)
+    print(f"🏆 ALL {len(channel_targets)} CHANNELS 100% EXTRACTED, RESOLVED & STORED AS STRUCTURED SETS!", flush=True)
     print(f"=========================================================================================\n", flush=True)
 
 # HTTP Server Routes
