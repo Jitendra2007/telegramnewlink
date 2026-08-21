@@ -25,8 +25,8 @@ PORT = int(os.environ.get("PORT", "10000"))  # Render default is 10000
 FORWARD_TO_SAVED_MESSAGES = os.environ.get("FORWARD_TO_SAVED_MESSAGES", "true").lower() == "true"
 AUTO_RESOLVE = os.environ.get("AUTO_RESOLVE", "true").lower() == "true"
 FULL_HISTORICAL_SCAN = os.environ.get("FULL_HISTORICAL_SCAN", "true").lower() == "true"
-FORCE_REVERIFY = os.environ.get("FORCE_REVERIFY", "true").lower() == "true"
-RESOLVER_COOLDOWN_SECONDS = int(os.environ.get("RESOLVER_COOLDOWN_SECONDS", "60"))
+FORCE_REVERIFY = os.environ.get("FORCE_REVERIFY", "false").lower() == "true"
+RESOLVER_COOLDOWN_SECONDS = int(os.environ.get("RESOLVER_COOLDOWN_SECONDS", "10"))
 KEEPALIVE_INTERVAL_SECONDS = int(os.environ.get("KEEPALIVE_INTERVAL_SECONDS", str(10 * 60)))
 KEEPALIVE_URL = os.environ.get("KEEPALIVE_URL") or os.environ.get("RENDER_EXTERNAL_URL")
 PLAYWRIGHT_CHROMIUM_EXECUTABLE = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE")
@@ -843,6 +843,103 @@ async def sequential_channel_scanner_and_resolver(channel_targets):
     print(f"\n=========================================================================================", flush=True)
     print(f"🏆 ALL {len(channel_targets)} CHANNELS 100% EXTRACTED, RESOLVED & STORED AS STRUCTURED SETS!", flush=True)
     print(f"=========================================================================================\n", flush=True)
+
+    # ══════════════════════════════════════════════════════════════════════════════
+    # CONTINUOUS RE-SCAN LOOP: Check all channels every 12 hours for new links
+    # ══════════════════════════════════════════════════════════════════════════════
+    RESCAN_INTERVAL_HOURS = int(os.environ.get("RESCAN_INTERVAL_HOURS", "12"))
+    rescan_count = 0
+    while True:
+        print(f"\n🔄 Next re-scan in {RESCAN_INTERVAL_HOURS} hours. Sleeping until then...", flush=True)
+        await asyncio.sleep(RESCAN_INTERVAL_HOURS * 3600)
+        rescan_count += 1
+        print(f"\n{'='*90}", flush=True)
+        print(f"🔄 RE-SCAN #{rescan_count} STARTED — Checking all channels for NEW links...", flush=True)
+        print(f"{'='*90}\n", flush=True)
+
+        scan_progress["status"] = f"rescan_{rescan_count}"
+        scan_progress["started_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        new_links_found = 0
+
+        async with async_playwright() as p_rescan:
+            for idx, (cli, d, cid, cname) in enumerate(channel_targets, 1):
+                # Skip channels already confirmed as having no shortlinks
+                if cid in SKIPPED_CHANNELS_REGISTRY:
+                    continue
+
+                try:
+                    # Only scan recent messages (last 50 per channel) for efficiency
+                    recent_items = []
+                    async for message in cli.iter_messages(d.entity, limit=50):
+                        if message.reply_markup and hasattr(message.reply_markup, 'rows'):
+                            for row in message.reply_markup.rows:
+                                for btn in row.buttons:
+                                    if hasattr(btn, 'url') and btn.url:
+                                        b_txt = getattr(btn, 'text', '')
+                                        s_ep, e_ep, formatted_range = parse_range_numbers(b_txt)
+                                        if s_ep is not None:
+                                            surl = normalize_shortlink(btn.url)
+                                            burl = normalize_bot_link(btn.url)
+                                            if surl != "N/A" and surl not in MASTER_RESOLVED_CACHE:
+                                                recent_items.append({
+                                                    "message_id": message.id,
+                                                    "message_date": message.date.isoformat() if message.date else "",
+                                                    "start_ep": s_ep, "end_ep": e_ep,
+                                                    "range_label": formatted_range,
+                                                    "shortlink": surl, "bot_link": burl
+                                                })
+
+                        text = message.text or ""
+                        s_m = SHORTLINK_RE.search(text)
+                        if s_m:
+                            surl = normalize_shortlink(s_m.group(0))
+                            if surl != "N/A" and surl not in MASTER_RESOLVED_CACHE:
+                                rng_m = re.search(r'(\d+\s*[-–]\s*\d+)', text)
+                                brange = rng_m.group(1) if rng_m else "01-10"
+                                s_ep, e_ep, formatted_range = parse_range_numbers(brange)
+                                if s_ep is not None:
+                                    b_m = BOT_RE.search(text)
+                                    burl = normalize_bot_link(b_m.group(0)) if b_m else "N/A"
+                                    recent_items.append({
+                                        "message_id": message.id,
+                                        "message_date": message.date.isoformat() if message.date else "",
+                                        "start_ep": s_ep, "end_ep": e_ep,
+                                        "range_label": formatted_range,
+                                        "shortlink": surl, "bot_link": burl
+                                    })
+
+                    if recent_items:
+                        print(f"  🆕 [{cname}] Found {len(recent_items)} NEW unresolved links!", flush=True)
+                        for ri in recent_items:
+                            if ri["bot_link"] == "N/A" and ri["shortlink"] != "N/A":
+                                bot_url = await resolve_one_shortlink(p_rescan, ri["shortlink"])
+                                if bot_url and bot_url != "N/A":
+                                    ri["bot_link"] = bot_url
+                                    MASTER_RESOLVED_CACHE[ri["shortlink"]] = bot_url
+                                    new_links_found += 1
+                                    print(f"    ✅ [NEW RESOLVED]: [{ri['range_label']}] {ri['shortlink']} -> {bot_url}", flush=True)
+                                await asyncio.sleep(RESOLVER_COOLDOWN_SECONDS)
+
+                        # Save the new items
+                        if any(r["bot_link"] != "N/A" for r in recent_items):
+                            append_resolved_to_sql_file(cid, cname, [r for r in recent_items if r["bot_link"] != "N/A"])
+
+                except Exception as e:
+                    pass  # Silent skip on errors during re-scan
+
+                if idx % 50 == 0:
+                    await asyncio.sleep(1)
+
+        # Save updated cache
+        try:
+            with open(CACHE_PATH, "w", encoding="utf-8") as f:
+                json.dump(MASTER_RESOLVED_CACHE, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+
+        print(f"\n🔄 RE-SCAN #{rescan_count} COMPLETE — {new_links_found} new links resolved!", flush=True)
+        scan_progress["status"] = f"rescan_{rescan_count}_done"
+        scan_progress["completed_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # HTTP Server Routes
 async def handle_root(request):
