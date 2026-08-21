@@ -474,33 +474,43 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
             page.on("request", lambda req: check_hit(req.url))
             page.on("response", lambda resp: check_hit(resp.url))
 
-            # Phase 1: Fast Direct Referer (Wait naturally for 10-12s timer)
+            # Phase 1: Fast Direct Referer Loophole (Natural 10-12s Wait)
             try:
-                await page.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=14000)
-                for _ in range(15):
+                await page.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=18000)
+                for _ in range(20):
                     if pw_found: break
-                    eval_res = await page.evaluate(FAST_STEP_JS)
+                    eval_res = await page.evaluate(r"""() => {
+                        const body = (document.body ? document.body.innerText : "").toLowerCase();
+                        if (body.includes("404 not found") || body.includes("wrong turn") || body.includes("doesn't exist") || body.includes("may have expired")) {
+                            return {action: "dead_404"};
+                        }
+                        const gl = document.querySelector(".get-link, #getlink, a.get-link");
+                        if (!gl) return {action: "waiting"};
+                        const locked = gl.classList.contains("disabled") || gl.getAttribute("aria-disabled") === "true" || (gl.innerText||'').toLowerCase().includes("wait");
+                        if (!locked) {
+                            try { gl.click(); } catch(e){}
+                            return {action: "clicked_get_link"};
+                        }
+                        return {action: "waiting_timer"};
+                    }""")
                     act = eval_res.get("action", "")
                     if act == "dead_404":
                         is_dead = True
                         break
-                    elif eval_res.get("telegram"):
-                        pw_found = eval_res["telegram"]
+                    elif act == "clicked_get_link":
+                        await asyncio.sleep(3.0)
                         break
-                    elif act in ("clicked_get_link", "clicked_final"):
-                        await asyncio.sleep(2.0)
-                        break
-                    await asyncio.sleep(0.9)
+                    await asyncio.sleep(1.0)
             except Exception:
                 pass
 
             if is_dead:
                 return ("DEAD_404", "N/A")
 
-            # Phase 2: Sequential State Machine Fallback if not resolved
+            # Phase 2: Sequential State Machine Fallback if Phase 1 didn't catch it
             if not pw_found:
                 try:
-                    await page.goto(shortlink, wait_until="commit", timeout=10000)
+                    await page.goto(shortlink, wait_until="commit", timeout=15000)
                     for _ in range(25):
                         if pw_found: break
                         eval_res = await page.evaluate(FAST_STEP_JS)
@@ -510,7 +520,10 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                         if eval_res.get("telegram"):
                             pw_found = eval_res["telegram"]
                             break
-                        await asyncio.sleep(0.9)
+                        elif eval_res.get("action") in ("clicked_get_link", "clicked_final"):
+                            await asyncio.sleep(3.0)
+                            break
+                        await asyncio.sleep(1.0)
                 except Exception:
                     pass
 
