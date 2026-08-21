@@ -625,6 +625,7 @@ async def run_safe_parallel_cloud_reverification():
             print(f"📖 [{idx}/{len(channel_targets)}] Scanning: '{cname}' (ID: {cid})...", flush=True)
             raw_channel_items = []
             msg_count = 0
+            scan_error = False
             try:
                 async for message in cli.iter_messages(d.entity, reverse=True, limit=None):
                     msg_count += 1
@@ -665,7 +666,11 @@ async def run_safe_parallel_cloud_reverification():
                                 "bot_link": canonical_bot_url(b_m.group(0)) if b_m else "N/A"
                             })
             except Exception as e:
+                scan_error = True
                 print(f"⚠️ Error scanning channel {cname}: {e}", flush=True)
+
+            if scan_error:
+                continue
 
             if not raw_channel_items:
                 print(f"  🚫 No episode links found in '{cname}' ({msg_count} msgs scanned). Skipping.", flush=True)
