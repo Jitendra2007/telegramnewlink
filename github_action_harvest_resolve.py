@@ -403,39 +403,6 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
 
         short_id = shortlink.rsplit("/", 1)[-1][:12]
 
-        # Domains we ALLOW to load — everything else gets blocked at route level
-        ALLOWED_DOMAINS = ["linkshortx.in", "urlshortx.io", "hindisink.com",
-                           "telegram.me", "t.me", "telegram.org"]
-
-        # Ad/tracker domains to block (these cause ERR_ABORTED and frame detach)
-        BLOCKED_PATTERNS = [
-            "googlesyndication", "googleadservices", "doubleclick.net",
-            "adservice", "pagead", "adsense", "facebook.com/tr",
-            "analytics", "tracker", "taboola", "outbrain", "popads",
-            "propellerads", "hilltopads", "exoclick", "juicyads",
-            "trafficjunky", "clickadu", "adsterra", "monetag", "profitablegatecpm",
-            "surfrads", "pushprofit", "onclicka", "clickaine"]
-
-        async def route_handler(route):
-            """Block ad/tracker requests to prevent frame detach crashes."""
-            url = route.request.url.lower()
-            # Block known ad domains
-            if any(blocked in url for blocked in BLOCKED_PATTERNS):
-                await route.abort()
-                return
-            # Block requests to random unknown domains (only allow our shortlink + telegram)
-            from urllib.parse import urlparse
-            try:
-                host = urlparse(url).hostname or ""
-                if host and not any(d in host for d in ALLOWED_DOMAINS):
-                    # Block third-party requests (ads, trackers)
-                    if route.request.resource_type in ("document", "subdocument"):
-                        await route.abort()
-                        return
-            except Exception:
-                pass
-            await route.continue_()
-
         # 1. Fast HTTP Redirect Check (0.5s)
         found = None
         current_url = shortlink
@@ -451,7 +418,6 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                     try:
                         async with session.get(current_url, allow_redirects=False, ssl=False, timeout=ClientTimeout(total=4)) as resp:
                             if resp.status in (404, 410):
-                                print(f"      [{short_id}] HTTP {resp.status} -> DEAD", flush=True)
                                 return ("DEAD_404", "N/A")
                             loc = resp.headers.get("Location", "")
                             if loc:
@@ -477,142 +443,166 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
         if found:
             res = canonical_bot_url(found)
             if res != "N/A":
-                print(f"      [{short_id}] HTTP RESOLVED!", flush=True)
+                print(f"      [{short_id}] HTTP RESOLVED: {res}", flush=True)
                 return ("RESOLVED", res)
 
-        # 2. Phase 1: Direct Referer Bypass — FRESH isolated context
-        pw_found = None
-        is_dead = False
+        # 2. Playwright Resolution with Multi-Page / Popup Network Interception
+        bot_target = [None]
+        is_dead = [False]
+
+        def hit(u):
+            if not u: return
+            m = BOT_RE.search(u)
+            if m and not bot_target[0]:
+                bot_target[0] = m.group(0)
+
+        # Phase 1: Fast Direct Referer Bypass (10-15s)
         context1 = None
         try:
-            context1 = await browser.new_context(user_agent=UA, viewport={"width": 1280, "height": 720})
-            # Block ads at route level to prevent frame detach
-            await context1.route("**/*", route_handler)
+            context1 = await browser.new_context(
+                user_agent=UA,
+                viewport={"width": 1280, "height": 720},
+                java_script_enabled=True
+            )
+
+            def attach_page_listeners(p):
+                p.on("request", lambda req: hit(req.url))
+                p.on("response", lambda resp: hit(resp.url))
+                p.on("framenavigated", lambda frame: hit(frame.url))
+
+            context1.on("page", lambda p: attach_page_listeners(p))
             page1 = await context1.new_page()
+            attach_page_listeners(page1)
 
-            def check_hit(url):
-                nonlocal pw_found
-                if pw_found: return
-                m = BOT_RE.search(url)
-                if m:
-                    pw_found = m.group(0)
+            try:
+                await page1.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=18000)
+            except Exception:
+                pass
 
-            page1.on("request", lambda req: check_hit(req.url))
-            page1.on("response", lambda resp: check_hit(resp.url))
-
-            await page1.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=20000)
-            for tick in range(20):
-                if pw_found: break
+            for tick in range(18):
+                if bot_target[0]: break
                 try:
                     eval_res = await page1.evaluate(r"""() => {
-                        const body = (document.body ? document.body.innerText : "").toLowerCase();
-                        if (body.includes("404 not found") || body.includes("wrong turn") || body.includes("doesn't exist") || body.includes("may have expired")) {
+                        const BOT_PAT = /(?:https?:\/\/)?(?:telegram\.me|t\.me)\/[A-Za-z0-9_]+\?start=[A-Za-z0-9_%+\/=\-]+/i;
+                        const body = (document.body ? document.body.innerText : "");
+                        const m = body.match(BOT_PAT);
+                        if (m) return {telegram: m[0]};
+
+                        for (const a of document.querySelectorAll("a")) {
+                            if (BOT_PAT.test(a.href || "")) return {telegram: a.href};
+                        }
+
+                        const bLow = body.toLowerCase();
+                        if (bLow.includes("404 not found") || bLow.includes("wrong turn") || bLow.includes("doesn't exist") || bLow.includes("may have expired")) {
                             return {action: "dead_404"};
                         }
-                        const gl = document.querySelector(".get-link, #getlink, a.get-link");
-                        if (!gl) return {action: "waiting"};
-                        const locked = gl.classList.contains("disabled") || gl.getAttribute("aria-disabled") === "true" || (gl.innerText||'').toLowerCase().includes("wait");
-                        if (!locked) {
-                            try { gl.click(); } catch(e){}
-                            return {action: "clicked_get_link"};
+
+                        const gl = document.querySelector(".get-link, #getlink, a.get-link, a.btn-success, #final");
+                        if (gl) {
+                            const locked = gl.classList.contains("disabled") || gl.getAttribute("aria-disabled") === "true" || (gl.innerText||'').toLowerCase().includes("wait");
+                            if (!locked) {
+                                try { gl.click(); } catch(e){}
+                                return {action: "clicked_get_link"};
+                            }
                         }
-                        return {action: "waiting_timer"};
+                        return {action: "waiting"};
                     }""")
-                    act = eval_res.get("action", "")
-                    if act == "dead_404":
-                        is_dead = True
+
+                    if eval_res.get("telegram"):
+                        bot_target[0] = eval_res["telegram"]
                         break
-                    elif act == "clicked_get_link":
-                        await asyncio.sleep(3.0)
+                    if eval_res.get("action") == "dead_404":
+                        is_dead[0] = True
+                        break
+                    if eval_res.get("action") == "clicked_get_link":
+                        await asyncio.sleep(3.5)
                         break
                 except Exception:
                     break
                 await asyncio.sleep(1.0)
 
-            # Check final content before closing
-            if not pw_found and not is_dead:
-                try:
-                    c = await page1.content()
-                    m = BOT_RE.search(c) or BOT_RE.search(page1.url or "")
-                    if m:
-                        pw_found = m.group(0)
-                except Exception:
-                    pass
+            # Check pages in context for destination URL
+            if not bot_target[0] and not is_dead[0]:
+                for p in context1.pages:
+                    hit(p.url)
+                    try:
+                        c = await p.content()
+                        hit(c)
+                    except Exception:
+                        pass
 
         except Exception as e:
-            print(f"      [{short_id}] Phase1: {type(e).__name__}: {str(e)[:80]}", flush=True)
+            print(f"      [{short_id}] Phase1 ex: {type(e).__name__}: {str(e)[:60]}", flush=True)
         finally:
             if context1:
                 try: await context1.close()
                 except Exception: pass
 
-        if is_dead:
+        if is_dead[0]:
             return ("DEAD_404", "N/A")
-        if pw_found:
-            res = canonical_bot_url(pw_found)
+        if bot_target[0]:
+            res = canonical_bot_url(bot_target[0])
             if res != "N/A":
-                print(f"      [{short_id}] Phase1 RESOLVED!", flush=True)
+                print(f"      [{short_id}] Phase1 RESOLVED -> {res}", flush=True)
                 return ("RESOLVED", res)
 
-        # 3. Phase 2: Sequential State Machine — FRESH isolated context (not reusing dead page!)
-        pw_found2 = None
+        # Phase 2: Sequential State Machine Fallback (Fresh Context)
         context2 = None
         try:
-            context2 = await browser.new_context(user_agent=UA, viewport={"width": 1280, "height": 720})
-            await context2.route("**/*", route_handler)
+            context2 = await browser.new_context(
+                user_agent=UA,
+                viewport={"width": 1280, "height": 720},
+                java_script_enabled=True
+            )
+
+            context2.on("page", lambda p: attach_page_listeners(p))
             page2 = await context2.new_page()
+            attach_page_listeners(page2)
 
-            def check_hit2(url):
-                nonlocal pw_found2
-                if pw_found2: return
-                m = BOT_RE.search(url)
-                if m:
-                    pw_found2 = m.group(0)
+            try:
+                await page2.goto(shortlink, wait_until="commit", timeout=15000)
+            except Exception:
+                pass
 
-            page2.on("request", lambda req: check_hit2(req.url))
-            page2.on("response", lambda resp: check_hit2(resp.url))
-
-            await page2.goto(shortlink, wait_until="commit", timeout=15000)
             for tick in range(25):
-                if pw_found2: break
+                if bot_target[0]: break
                 try:
                     eval_res = await page2.evaluate(FAST_STEP_JS)
-                    if eval_res.get("action") == "dead_404":
-                        is_dead = True
-                        break
                     if eval_res.get("telegram"):
-                        pw_found2 = eval_res["telegram"]
+                        bot_target[0] = eval_res["telegram"]
                         break
-                    elif eval_res.get("action") in ("clicked_get_link", "clicked_final"):
-                        await asyncio.sleep(3.0)
+                    if eval_res.get("action") == "dead_404":
+                        is_dead[0] = True
+                        break
+                    if eval_res.get("action") in ("clicked_get_link", "clicked_final"):
+                        await asyncio.sleep(3.5)
                         break
                 except Exception:
                     break
                 await asyncio.sleep(1.0)
 
-            # Final content check
-            if not pw_found2 and not is_dead:
-                try:
-                    c = await page2.content()
-                    m = BOT_RE.search(c) or BOT_RE.search(page2.url or "")
-                    if m:
-                        pw_found2 = m.group(0)
-                except Exception:
-                    pass
+            if not bot_target[0] and not is_dead[0]:
+                for p in context2.pages:
+                    hit(p.url)
+                    try:
+                        c = await p.content()
+                        hit(c)
+                    except Exception:
+                        pass
 
         except Exception as e:
-            print(f"      [{short_id}] Phase2: {type(e).__name__}: {str(e)[:80]}", flush=True)
+            print(f"      [{short_id}] Phase2 ex: {type(e).__name__}: {str(e)[:60]}", flush=True)
         finally:
             if context2:
                 try: await context2.close()
                 except Exception: pass
 
-        if is_dead:
+        if is_dead[0]:
             return ("DEAD_404", "N/A")
-        if pw_found2:
-            res = canonical_bot_url(pw_found2)
+        if bot_target[0]:
+            res = canonical_bot_url(bot_target[0])
             if res != "N/A":
-                print(f"      [{short_id}] Phase2 RESOLVED!", flush=True)
+                print(f"      [{short_id}] Phase2 RESOLVED -> {res}", flush=True)
                 return ("RESOLVED", res)
 
         print(f"      [{short_id}] UNRESOLVED after all phases", flush=True)
