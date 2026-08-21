@@ -101,6 +101,19 @@ def load_baseline():
         except Exception as e:
             print(f"⚠️ Error loading skip registry: {e}", flush=True)
 
+
+def save_skipped_channel(cid, cname, reason="no_shortlinks"):
+    SKIPPED_CHANNELS_REGISTRY[cid] = {
+        "channel_name": cname,
+        "reason": reason,
+        "skipped_at": datetime.datetime.now().isoformat()
+    }
+    try:
+        with open(SKIPPED_CHANNELS_PATH, "w", encoding="utf-8") as f:
+            json.dump(SKIPPED_CHANNELS_REGISTRY, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"⚠️ Failed to save skip list: {e}", flush=True)
+
     if os.path.exists(AUDIT_JSON_PATH):
         try:
             with open(AUDIT_JSON_PATH, "r", encoding="utf-8") as f:
@@ -601,9 +614,12 @@ async def run_safe_parallel_cloud_reverification():
             if cid in SKIPPED_CHANNELS_REGISTRY:
                 continue
 
+            print(f"📖 [{idx}/{len(channel_targets)}] Scanning: '{cname}' (ID: {cid})...", flush=True)
             raw_channel_items = []
+            msg_count = 0
             try:
                 async for message in cli.iter_messages(d.entity, reverse=True, limit=None):
+                    msg_count += 1
                     mdate = message.date.isoformat() if message.date else ""
                     if message.reply_markup and hasattr(message.reply_markup, 'rows'):
                         for row in message.reply_markup.rows:
@@ -644,10 +660,14 @@ async def run_safe_parallel_cloud_reverification():
                 print(f"⚠️ Error scanning channel {cname}: {e}", flush=True)
 
             if not raw_channel_items:
+                print(f"  🚫 No episode links found in '{cname}' ({msg_count} msgs scanned). Skipping.", flush=True)
+                save_skipped_channel(cid, cname, reason="no_links_found")
                 continue
 
             has_any_shortlink = any(i["shortlink"] != "N/A" and i["shortlink"] for i in raw_channel_items)
             if not has_any_shortlink:
+                print(f"  🚫 Only free bot links in '{cname}' (0 shortlinks). Skipping.", flush=True)
+                save_skipped_channel(cid, cname, reason="only_free_bot_links")
                 continue
 
             unique_ranges = {}
