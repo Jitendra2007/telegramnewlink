@@ -302,10 +302,18 @@ def normalize_shortlink(url):
         return "N/A"
     m = SHORTLINK_RE.search(url)
     if m:
-        clean_url = m.group(0).strip()
-        path = urlparse(clean_url).path
+        raw_url = m.group(0).strip()
+        parsed = urlparse(raw_url)
+        domain = parsed.netloc.lower()
+        scheme = parsed.scheme.lower() or "https"
+        # Strip markdown formatting artifacts, asterisks, trailing underscores, and brackets
+        path = parsed.path.rstrip('_*)]>.,/~ ')
+        if not path or path == "/":
+            return "N/A"
         if INVALID_SLUGS_RE.search(path):
             return "N/A"
+        # Exact slug case preserved, domain normalized
+        clean_url = f"{scheme}://{domain}{path}"
         return clean_url
     return "N/A"
 
