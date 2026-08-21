@@ -36,7 +36,7 @@ API_HASH = os.environ.get("API_HASH", "ce040e05f933e3e0a811f186c3d5d3bb")
 SESSION_STR_MAIN = os.environ.get("TELEGRAM_STRING_SESSION", "")
 SESSION_STR_SUB = os.environ.get("TELEGRAM_STRING_SESSION_SUB", "")
 
-MAX_CONCURRENT_RESOLVERS = int(os.environ.get("MAX_CONCURRENT_RESOLVERS", "15"))
+MAX_CONCURRENT_RESOLVERS = int(os.environ.get("MAX_CONCURRENT_RESOLVERS", "5"))
 MAX_RETRY_CYCLES = int(os.environ.get("MAX_RETRY_CYCLES", "5"))
 
 BASE_CACHE_PATH = "master_resolved_cache.json"
@@ -400,6 +400,8 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
             "Referer": HINDISINK_REFERER,
         }
 
+        short_id = shortlink.rsplit("/", 1)[-1][:12]
+
         # 1. Fast HTTP Redirect Check (0.5s)
         found = None
         current_url = shortlink
@@ -415,6 +417,7 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                     try:
                         async with session.get(current_url, allow_redirects=False, ssl=False, timeout=ClientTimeout(total=4)) as resp:
                             if resp.status in (404, 410):
+                                print(f"      🔍 [{short_id}] HTTP {resp.status} -> DEAD", flush=True)
                                 return ("DEAD_404", "N/A")
                             loc = resp.headers.get("Location", "")
                             if loc:
@@ -426,20 +429,23 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                                 continue
                             body = await resp.text(encoding="utf-8", errors="ignore")
                             if any(w in body.lower() for w in ["404 not found", "wrong turn", "doesn't exist", "may have expired"]):
+                                print(f"      🔍 [{short_id}] Body contains 404 keywords -> DEAD", flush=True)
                                 return ("DEAD_404", "N/A")
                             m = BOT_RE.search(body)
                             if m:
                                 found = m.group(0)
                                 break
                             break
-                    except Exception:
+                    except Exception as e:
+                        print(f"      🔍 [{short_id}] HTTP redirect error: {type(e).__name__}: {e}", flush=True)
                         break
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"      🔍 [{short_id}] HTTP session error: {type(e).__name__}: {e}", flush=True)
 
         if found:
             res = canonical_bot_url(found)
             if res != "N/A":
+                print(f"      🔍 [{short_id}] ✅ Resolved via HTTP redirect!", flush=True)
                 return ("RESOLVED", res)
 
         # 2. Playwright Chromium with Popup Auto-Close & State Machine
@@ -470,6 +476,7 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                 m = BOT_RE.search(url)
                 if m:
                     pw_found = m.group(0)
+                    print(f"      🔍 [{short_id}] 🎯 Bot link intercepted via network!", flush=True)
 
             page.on("request", lambda req: check_hit(req.url))
             page.on("response", lambda resp: check_hit(resp.url))
@@ -477,7 +484,7 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
             # Phase 1: Fast Direct Referer Loophole (Natural 10-12s Wait)
             try:
                 await page.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=18000)
-                for _ in range(20):
+                for tick in range(20):
                     if pw_found: break
                     eval_res = await page.evaluate(r"""() => {
                         const body = (document.body ? document.body.innerText : "").toLowerCase();
@@ -498,11 +505,12 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                         is_dead = True
                         break
                     elif act == "clicked_get_link":
+                        print(f"      🔍 [{short_id}] Phase1 clicked get-link at tick {tick}", flush=True)
                         await asyncio.sleep(3.0)
                         break
                     await asyncio.sleep(1.0)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"      🔍 [{short_id}] Phase1 error: {type(e).__name__}: {str(e)[:100]}", flush=True)
 
             if is_dead:
                 return ("DEAD_404", "N/A")
@@ -511,7 +519,7 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
             if not pw_found:
                 try:
                     await page.goto(shortlink, wait_until="commit", timeout=15000)
-                    for _ in range(25):
+                    for tick in range(25):
                         if pw_found: break
                         eval_res = await page.evaluate(FAST_STEP_JS)
                         if eval_res.get("action") == "dead_404":
@@ -519,13 +527,15 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                             break
                         if eval_res.get("telegram"):
                             pw_found = eval_res["telegram"]
+                            print(f"      🔍 [{short_id}] Phase2 got telegram link at tick {tick}", flush=True)
                             break
                         elif eval_res.get("action") in ("clicked_get_link", "clicked_final"):
+                            print(f"      🔍 [{short_id}] Phase2 clicked button at tick {tick}", flush=True)
                             await asyncio.sleep(3.0)
                             break
                         await asyncio.sleep(1.0)
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"      🔍 [{short_id}] Phase2 error: {type(e).__name__}: {str(e)[:100]}", flush=True)
 
             if is_dead:
                 return ("DEAD_404", "N/A")
@@ -536,11 +546,12 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                     m = BOT_RE.search(c) or BOT_RE.search(page.url or "")
                     if m:
                         pw_found = m.group(0)
-                except Exception:
-                    pass
+                        print(f"      🔍 [{short_id}] Found bot link in final page content", flush=True)
+                except Exception as e:
+                    print(f"      🔍 [{short_id}] Final content check error: {type(e).__name__}", flush=True)
 
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"      ❌ [{short_id}] BROWSER CONTEXT ERROR: {type(e).__name__}: {str(e)[:150]}", flush=True)
         finally:
             if context:
                 try:
@@ -552,6 +563,7 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
             return ("RESOLVED", canonical_bot_url(pw_found))
         if is_dead:
             return ("DEAD_404", "N/A")
+        print(f"      🔍 [{short_id}] UNRESOLVED after all phases", flush=True)
         return ("UNRESOLVED", "N/A")
 
 
@@ -744,6 +756,12 @@ async def run_safe_parallel_cloud_reverification():
                 }
 
             await asyncio.gather(*(audit_worker_cycle1(item) for item in items_to_resolve))
+
+            # Progress stats after each channel
+            resolved_count = sum(1 for v in AUDIT_RESULTS.values() if v.get("verification_status") in ("MATCH", "MISMATCH", "NEW_RESOLVED"))
+            queued_count = len(unresolved_retry_pool)
+            dead_count = sum(1 for v in AUDIT_RESULTS.values() if v.get("verification_status") == "DEAD_404_EXPIRED")
+            print(f"    📊 Running totals: {resolved_count} resolved | {queued_count} queued | {dead_count} dead | {len(AUDIT_RESULTS)} total audited", flush=True)
 
             if idx % 5 == 0:
                 save_audit_json()
