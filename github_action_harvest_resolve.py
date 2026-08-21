@@ -639,11 +639,18 @@ async def run_safe_parallel_cloud_reverification():
         )
 
         # =========================================================================
-        # CYCLE 1: Full Channel-by-Channel Scan & Initial Parallel Resolution
+        # SEQUENTIAL CHANNEL-BY-CHANNEL RESOLUTION (Queue-Based Workers)
+        # Pattern: Proven from universal_fast_cluster_resolver.py
+        # Rule: ONE channel at a time. Fully resolve ALL its links before next.
         # =========================================================================
         print("\n" + "=" * 90, flush=True)
-        print("🌀 STARTING CYCLE 1/5: Full Channel-by-Channel Extraction & Audit", flush=True)
+        print("🌀 SEQUENTIAL CHANNEL-BY-CHANNEL FULL RESOLUTION ENGINE", flush=True)
+        print(f"⚡ {MAX_CONCURRENT_RESOLVERS} queue-based workers per channel (one channel at a time)", flush=True)
         print("=" * 90 + "\n", flush=True)
+
+        total_resolved_global = 0
+        total_dead_global = 0
+        total_queued_global = 0
 
         for idx, (cli, d, cid, cname) in enumerate(channel_targets, 1):
             if cid in SKIPPED_CHANNELS_REGISTRY:
@@ -717,105 +724,151 @@ async def run_safe_parallel_cloud_reverification():
             all_harvested_items.extend(ordered_story_items)
 
             items_to_resolve = [it for it in ordered_story_items if it.get("shortlink", "N/A") != "N/A"]
-            print(f"⚡ [{idx}/{len(channel_targets)}] Auditing '{cname}' ({len(items_to_resolve)} links in parallel)...", flush=True)
+            if not items_to_resolve:
+                print(f"  🚫 No shortlinks to resolve in '{cname}'. Skipping.", flush=True)
+                continue
 
-            async def audit_worker_cycle1(item):
-                surl = item["shortlink"]
-                baseline_bot = canonical_bot_url(BASELINE_CACHE.get(surl, "N/A"))
+            # =====================================================================
+            # QUEUE-BASED WORKER RESOLUTION FOR THIS CHANNEL
+            # Process all shortlinks for this channel with queue workers.
+            # Up to 3 retry passes per channel before moving on.
+            # =====================================================================
+            print(f"⚡ [{idx}/{len(channel_targets)}] Resolving '{cname}': {len(items_to_resolve)} shortlinks with {MAX_CONCURRENT_RESOLVERS} workers...", flush=True)
 
-                res_type, live_bot = await live_resolve_single_shortlink(browser, surl, sem)
+            channel_resolved = 0
+            channel_dead = 0
+            channel_failed = 0
 
-                if res_type == "RESOLVED" and live_bot != "N/A":
-                    if baseline_bot != "N/A":
-                        status = "MATCH" if live_bot == baseline_bot else "MISMATCH"
-                        print(f"    ✅ [{status}]: [{item['range_label']}] -> {live_bot}", flush=True)
+            # Build queue for this channel
+            resolve_queue = asyncio.Queue()
+            for it in items_to_resolve:
+                resolve_queue.put_nowait(it)
+
+            async def channel_worker(worker_id):
+                nonlocal channel_resolved, channel_dead, channel_failed
+                while not resolve_queue.empty():
+                    try:
+                        item = resolve_queue.get_nowait()
+                    except asyncio.QueueEmpty:
+                        break
+
+                    surl = item["shortlink"]
+                    baseline_bot = canonical_bot_url(BASELINE_CACHE.get(surl, "N/A"))
+                    t0 = time.time()
+
+                    res_type, live_bot = await live_resolve_single_shortlink(browser, surl, sem)
+                    elapsed = time.time() - t0
+
+                    if res_type == "RESOLVED" and live_bot != "N/A":
+                        if baseline_bot != "N/A":
+                            status = "MATCH" if live_bot == baseline_bot else "MISMATCH"
+                            print(f"    [W{worker_id}] ✅ [{status}] [{item['range_label']}] -> {live_bot} ({elapsed:.1f}s)", flush=True)
+                        else:
+                            status = "NEW_RESOLVED"
+                            print(f"    [W{worker_id}] ✨ [NEW] [{item['range_label']}] -> {live_bot} ({elapsed:.1f}s)", flush=True)
+                        channel_resolved += 1
+                    elif res_type == "DEAD_404":
+                        status = "DEAD_404_EXPIRED"
+                        live_bot = "N/A"
+                        print(f"    [W{worker_id}] 🚫 [DEAD] [{item['range_label']}] {surl} ({elapsed:.1f}s)", flush=True)
+                        channel_dead += 1
                     else:
-                        status = "NEW_RESOLVED"
-                        print(f"    ✨ [NEW RESOLVED]: [{item['range_label']}] {surl} -> {live_bot}", flush=True)
-                elif res_type == "DEAD_404":
-                    status = "DEAD_404_EXPIRED"
-                    live_bot = "N/A"
-                    print(f"    🚫 [DEAD 404]: [{item['range_label']}] {surl}", flush=True)
-                else:
-                    status = "QUEUED_FOR_RETRY"
-                    live_bot = "N/A"
-                    unresolved_retry_pool[surl] = item
-                    print(f"    ⏳ [QUEUED FOR RETRY]: [{item['range_label']}] {surl}", flush=True)
+                        status = "QUEUED_FOR_RETRY"
+                        live_bot = "N/A"
+                        unresolved_retry_pool[surl] = item
+                        print(f"    [W{worker_id}] ⏳ [FAILED] [{item['range_label']}] {surl} ({elapsed:.1f}s)", flush=True)
+                        channel_failed += 1
 
-                AUDIT_RESULTS[surl] = {
-                    "channel_id": item["channel_id"],
-                    "channel_name": item["channel_name"],
-                    "range_label": item["range_label"],
-                    "start_ep": item["start_ep"],
-                    "end_ep": item["end_ep"],
-                    "shortlink": surl,
-                    "baseline_bot_link": baseline_bot,
-                    "live_bot_link": live_bot,
-                    "verification_status": status,
-                    "audited_at": datetime.datetime.now().isoformat()
-                }
+                    AUDIT_RESULTS[surl] = {
+                        "channel_id": item["channel_id"],
+                        "channel_name": item["channel_name"],
+                        "range_label": item["range_label"],
+                        "start_ep": item["start_ep"],
+                        "end_ep": item["end_ep"],
+                        "shortlink": surl,
+                        "baseline_bot_link": baseline_bot,
+                        "live_bot_link": live_bot,
+                        "verification_status": status,
+                        "audited_at": datetime.datetime.now().isoformat()
+                    }
 
-            await asyncio.gather(*(audit_worker_cycle1(item) for item in items_to_resolve))
+                    resolve_queue.task_done()
 
-            # Progress stats after each channel
-            resolved_count = sum(1 for v in AUDIT_RESULTS.values() if v.get("verification_status") in ("MATCH", "MISMATCH", "NEW_RESOLVED"))
-            queued_count = len(unresolved_retry_pool)
-            dead_count = sum(1 for v in AUDIT_RESULTS.values() if v.get("verification_status") == "DEAD_404_EXPIRED")
-            print(f"    📊 Running totals: {resolved_count} resolved | {queued_count} queued | {dead_count} dead | {len(AUDIT_RESULTS)} total audited", flush=True)
+            # Launch workers and wait for all items to complete
+            workers = [asyncio.create_task(channel_worker(i + 1)) for i in range(MAX_CONCURRENT_RESOLVERS)]
+            await resolve_queue.join()
+            for w in workers:
+                w.cancel()
 
-            if idx % 5 == 0:
-                save_audit_json()
+            # Channel-level retry: re-attempt any failed links for this channel (up to 2 more passes)
+            channel_retry_items = {s: it for s, it in unresolved_retry_pool.items() if it.get("channel_id") == cid}
+            for retry_pass in range(1, 3):
+                if not channel_retry_items:
+                    break
+                print(f"    🔄 Retry pass {retry_pass}/2 for '{cname}': {len(channel_retry_items)} links...", flush=True)
+                retry_queue = asyncio.Queue()
+                for it in channel_retry_items.values():
+                    retry_queue.put_nowait(it)
 
-        save_audit_json()
-        print(f"\n✅ Cycle 1 Complete! Total links queued for retry: {len(unresolved_retry_pool):,}", flush=True)
+                retry_resolved = []
+                retry_dead = []
 
-        # =========================================================================
-        # CYCLES 2 to 5: Targeted Multi-Pass Retry on Remaining Unresolved Links
-        # =========================================================================
-        for cycle in range(2, MAX_RETRY_CYCLES + 1):
-            if not unresolved_retry_pool:
-                print(f"\n🎉 ALL LINKS RESOLVED! No remaining unresolved links for Cycle {cycle}.", flush=True)
-                break
+                async def retry_worker(worker_id):
+                    while not retry_queue.empty():
+                        try:
+                            item = retry_queue.get_nowait()
+                        except asyncio.QueueEmpty:
+                            break
+                        surl = item["shortlink"]
+                        t0 = time.time()
+                        res_type, live_bot = await live_resolve_single_shortlink(browser, surl, sem)
+                        elapsed = time.time() - t0
 
-            print("\n" + "=" * 90, flush=True)
-            print(f"🔄 STARTING RETRY CYCLE {cycle}/{MAX_RETRY_CYCLES}: Re-attempting {len(unresolved_retry_pool):,} remaining failed links", flush=True)
-            print("=" * 90 + "\n", flush=True)
+                        if res_type == "RESOLVED" and live_bot != "N/A":
+                            print(f"    [W{worker_id}] ✨ [RETRY SOLVED] [{item['range_label']}] -> {live_bot} ({elapsed:.1f}s)", flush=True)
+                            AUDIT_RESULTS[surl]["live_bot_link"] = live_bot
+                            AUDIT_RESULTS[surl]["verification_status"] = "NEW_RESOLVED"
+                            AUDIT_RESULTS[surl]["audited_at"] = datetime.datetime.now().isoformat()
+                            retry_resolved.append(surl)
+                        elif res_type == "DEAD_404":
+                            print(f"    [W{worker_id}] 🚫 [RETRY DEAD] [{item['range_label']}] {surl} ({elapsed:.1f}s)", flush=True)
+                            AUDIT_RESULTS[surl]["verification_status"] = "DEAD_404_EXPIRED"
+                            retry_dead.append(surl)
+                        else:
+                            print(f"    [W{worker_id}] ⏳ [RETRY FAIL] [{item['range_label']}] {surl} ({elapsed:.1f}s)", flush=True)
 
-            resolved_in_this_cycle = []
-            dead_in_this_cycle = []
+                        retry_queue.task_done()
 
-            async def retry_worker(surl, item):
-                res_type, live_bot = await live_resolve_single_shortlink(browser, surl, sem)
+                r_workers = [asyncio.create_task(retry_worker(i + 1)) for i in range(MAX_CONCURRENT_RESOLVERS)]
+                await retry_queue.join()
+                for w in r_workers:
+                    w.cancel()
 
-                if res_type == "RESOLVED" and live_bot != "N/A":
-                    print(f"    ✨ [RESOLVED ON CYCLE {cycle}]: [{item['range_label']}] {surl} -> {live_bot}", flush=True)
-                    AUDIT_RESULTS[surl]["live_bot_link"] = live_bot
-                    AUDIT_RESULTS[surl]["verification_status"] = "NEW_RESOLVED"
-                    AUDIT_RESULTS[surl]["audited_at"] = datetime.datetime.now().isoformat()
-                    resolved_in_this_cycle.append(surl)
-                elif res_type == "DEAD_404":
-                    print(f"    🚫 [CONFIRMED DEAD 404 ON CYCLE {cycle}]: [{item['range_label']}] {surl}", flush=True)
-                    AUDIT_RESULTS[surl]["verification_status"] = "DEAD_404_EXPIRED"
-                    dead_in_this_cycle.append(surl)
-                else:
-                    print(f"    ⏳ [STILL PENDING CYCLE {cycle}]: [{item['range_label']}] {surl}", flush=True)
+                for s in retry_resolved:
+                    unresolved_retry_pool.pop(s, None)
+                    channel_retry_items.pop(s, None)
+                    channel_resolved += 1
+                    channel_failed -= 1
+                for s in retry_dead:
+                    unresolved_retry_pool.pop(s, None)
+                    channel_retry_items.pop(s, None)
+                    channel_dead += 1
+                    channel_failed -= 1
 
-            await asyncio.gather(*(retry_worker(surl, item) for surl, item in list(unresolved_retry_pool.items())))
+            total_resolved_global += channel_resolved
+            total_dead_global += channel_dead
+            total_queued_global += channel_failed
 
-            for s in resolved_in_this_cycle:
-                unresolved_retry_pool.pop(s, None)
-            for s in dead_in_this_cycle:
-                unresolved_retry_pool.pop(s, None)
+            print(f"    ✅ Channel '{cname}' DONE: {channel_resolved} resolved | {channel_dead} dead | {channel_failed} still failed", flush=True)
+            print(f"    📊 Global progress: {total_resolved_global} resolved | {total_dead_global} dead | {total_queued_global} failed | {len(AUDIT_RESULTS)} total", flush=True)
 
             save_audit_json()
-            print(f"📊 Cycle {cycle} results: {len(resolved_in_this_cycle)} solved, {len(dead_in_this_cycle)} dead, {len(unresolved_retry_pool)} remaining.", flush=True)
-            await asyncio.sleep(2.0)
 
         # =========================================================================
-        # FINAL ISOLATION: Collect any links that failed all 5 cycles
+        # FINAL ISOLATION: Collect any links that failed across all channels
         # =========================================================================
         if unresolved_retry_pool:
-            print(f"\n⚠️ Isolating {len(unresolved_retry_pool):,} stubborn links that failed all 5 cycles...", flush=True)
+            print(f"\n⚠️ Isolating {len(unresolved_retry_pool):,} stubborn links that failed all retries...", flush=True)
             for surl, item in unresolved_retry_pool.items():
                 if surl in AUDIT_RESULTS:
                     AUDIT_RESULTS[surl]["verification_status"] = "FAILED_TO_RESOLVE"
@@ -826,7 +879,7 @@ async def run_safe_parallel_cloud_reverification():
                     "start_ep": item["start_ep"],
                     "end_ep": item["end_ep"],
                     "shortlink": surl,
-                    "reason": "FAILED_5_CONSECUTIVE_CYCLES",
+                    "reason": "FAILED_ALL_RETRIES",
                     "isolated_at": datetime.datetime.now().isoformat()
                 }
 
@@ -844,7 +897,8 @@ async def run_safe_parallel_cloud_reverification():
             pass
 
     print("\n" + "=" * 90, flush=True)
-    print(f"🏆 COMPLETE 5-CYCLE AUDIT FINISHED! All reports & isolated files generated safely.", flush=True)
+    print(f"🏆 SEQUENTIAL CHANNEL-BY-CHANNEL RESOLUTION COMPLETE!", flush=True)
+    print(f"📊 Final: {total_resolved_global} resolved | {total_dead_global} dead | {total_queued_global} failed", flush=True)
     print("=" * 90 + "\n", flush=True)
 
 
