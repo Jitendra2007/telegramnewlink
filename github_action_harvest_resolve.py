@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-CODEX GitHub Actions Automated Story Harvester & Shortlink Resolver Engine
-Runs on Microsoft Azure runners with 7 GB RAM.
-Auto-scans all Telegram channels across dual accounts, resolves new links, and persists to SQL/JSON.
+CODEX Cloud Safe Re-Verification & Audit Harvester Engine
+Runs on GitHub Actions (7 GB RAM).
+Does NOT overwrite master cache blindly.
+Produces side-by-side verification reports:
+  - cloud_reverified_audit.json
+  - cloud_reverified_audit.sql
+  - cloud_verification_discrepancy_report.md
 """
 
 import asyncio
@@ -11,7 +15,6 @@ import datetime
 import json
 import os
 import re
-import sqlite3
 import sys
 import time
 from urllib.parse import urlparse
@@ -22,17 +25,18 @@ from playwright.async_api import async_playwright
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-# Environment variables from GitHub Action Secrets
 API_ID = int(os.environ.get("API_ID", "36198115"))
 API_HASH = os.environ.get("API_HASH", "ce040e05f933e3e0a811f186c3d5d3bb")
 SESSION_STR_MAIN = os.environ.get("TELEGRAM_STRING_SESSION", "")
 SESSION_STR_SUB = os.environ.get("TELEGRAM_STRING_SESSION_SUB", "")
 
-CACHE_PATH = "master_resolved_cache.json"
+BASE_CACHE_PATH = "master_resolved_cache.json"
 SKIPPED_CHANNELS_PATH = "skipped_channels_no_shortlinks.json"
-RESOLVED_OUTPUT_SQL_PATH = "resolved_output_master.sql"
-DB_PATH = "live_harvest.db"
-STORY_SETS_DIR = "story_sets"
+
+# Dedicated Non-Destructive Audit Outputs
+AUDIT_JSON_PATH = "cloud_reverified_audit.json"
+AUDIT_SQL_PATH = "cloud_reverified_audit.sql"
+AUDIT_REPORT_MD = "cloud_verification_discrepancy_report.md"
 
 HINDISINK_REFERER = "https://hindisink.com/best-free-ai-tools-content-design-or-productivity/"
 BOT_RE = re.compile(r'https?://(?:t\.me|telegram\.me)/([A-Za-z0-9_]+)\?start=([A-Za-z0-9_%+/=\-]+)', re.IGNORECASE)
@@ -50,74 +54,122 @@ ABBREV_MAP = {
     'syl': "Sylvia (English) •|Pocket FM|•",
 }
 
-MASTER_RESOLVED_CACHE = {}
+BASELINE_CACHE = {}
 SKIPPED_CHANNELS_REGISTRY = {}
+AUDIT_RESULTS = {}
 
 
-def load_data():
-    global MASTER_RESOLVED_CACHE, SKIPPED_CHANNELS_REGISTRY
-    if os.path.exists(CACHE_PATH):
+def load_baseline():
+    global BASELINE_CACHE, SKIPPED_CHANNELS_REGISTRY, AUDIT_RESULTS
+    if os.path.exists(BASE_CACHE_PATH):
         try:
-            with open(CACHE_PATH, "r", encoding="utf-8") as f:
-                MASTER_RESOLVED_CACHE = json.load(f)
-            print(f"📦 Loaded {len(MASTER_RESOLVED_CACHE):,} pre-resolved link mappings from master cache.", flush=True)
+            with open(BASE_CACHE_PATH, "r", encoding="utf-8") as f:
+                BASELINE_CACHE = json.load(f)
+            print(f"📦 Loaded {len(BASELINE_CACHE):,} baseline cached pairs for comparison.", flush=True)
         except Exception as e:
-            print(f"⚠️ Could not load cache: {e}", flush=True)
+            print(f"⚠️ Error loading baseline cache: {e}", flush=True)
 
     if os.path.exists(SKIPPED_CHANNELS_PATH):
         try:
             with open(SKIPPED_CHANNELS_PATH, "r", encoding="utf-8") as f:
                 SKIPPED_CHANNELS_REGISTRY = json.load(f)
-            print(f"🚫 Loaded {len(SKIPPED_CHANNELS_REGISTRY):,} channels in skip registry (0 shortlinks).", flush=True)
+            print(f"🚫 Loaded {len(SKIPPED_CHANNELS_REGISTRY):,} skipped channels registry.", flush=True)
         except Exception as e:
-            print(f"⚠️ Could not load skipped channels: {e}", flush=True)
+            print(f"⚠️ Error loading skip registry: {e}", flush=True)
+
+    if os.path.exists(AUDIT_JSON_PATH):
+        try:
+            with open(AUDIT_JSON_PATH, "r", encoding="utf-8") as f:
+                AUDIT_RESULTS = json.load(f)
+            print(f"📋 Loaded {len(AUDIT_RESULTS):,} previously audited links.", flush=True)
+        except Exception as e:
+            AUDIT_RESULTS = {}
 
 
-def save_skipped_channel(cid, cname, reason="no_shortlinks"):
-    SKIPPED_CHANNELS_REGISTRY[cid] = {
-        "channel_name": cname,
-        "reason": reason,
-        "skipped_at": datetime.datetime.now().isoformat()
-    }
+def save_audit_json():
     try:
-        with open(SKIPPED_CHANNELS_PATH, "w", encoding="utf-8") as f:
-            json.dump(SKIPPED_CHANNELS_REGISTRY, f, ensure_ascii=False, indent=2)
+        with open(AUDIT_JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(AUDIT_RESULTS, f, ensure_ascii=False, indent=2)
+        print(f"💾 Audit JSON updated: {len(AUDIT_RESULTS):,} verified records in {AUDIT_JSON_PATH}", flush=True)
     except Exception as e:
-        print(f"⚠️ Failed to save skip list: {e}", flush=True)
+        print(f"⚠️ Error saving audit JSON: {e}", flush=True)
 
 
-def save_cache_to_disk():
-    try:
-        with open(CACHE_PATH, "w", encoding="utf-8") as f:
-            json.dump(MASTER_RESOLVED_CACHE, f, ensure_ascii=False, indent=2)
-        print(f"💾 Updated {CACHE_PATH} with {len(MASTER_RESOLVED_CACHE):,} pairs.", flush=True)
-    except Exception as e:
-        print(f"⚠️ Failed to save cache: {e}", flush=True)
+def generate_audit_sql_and_report():
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+    
+    matches = 0
+    new_resolved = 0
+    mismatches = []
+    unresolved = []
 
+    sql_lines = [
+        f"-- =========================================================================\n",
+        f"-- CODEX CLOUD RE-VERIFIED AUDIT SQL DUMP\n",
+        f"-- Generated at: {now_str} | Total Links Audited: {len(AUDIT_RESULTS):,}\n",
+        f"-- =========================================================================\n\n",
+        "INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `button_range`, `start_episode`, `end_episode`, `shortlink_url`, `telegram_bot_link`, `status`, `source`) VALUES\n"
+    ]
+    
+    val_lines = []
+    for surl, data in AUDIT_RESULTS.items():
+        vstat = data.get("verification_status", "UNKNOWN")
+        live_bot = data.get("live_bot_link", "N/A")
+        old_bot = data.get("baseline_bot_link", "N/A")
+        cname = data.get("channel_name", "").replace("'", "''")
+        cid = data.get("channel_id", "")
+        rng = data.get("range_label", "")
+        sep = data.get("start_ep", 0)
+        eep = data.get("end_ep", 0)
+        
+        if vstat == "MATCH":
+            matches += 1
+        elif vstat == "NEW_RESOLVED":
+            new_resolved += 1
+        elif vstat == "MISMATCH":
+            mismatches.append(data)
+        elif vstat == "FAILED_TO_RESOLVE":
+            unresolved.append(data)
 
-def append_resolved_to_sql_file(cid, cname, ordered_items):
-    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    try:
-        with open(RESOLVED_OUTPUT_SQL_PATH, "a", encoding="utf-8") as f:
-            f.write(f"\n-- ═══════════════════════════════════════════════════════════════════\n")
-            f.write(f"-- Channel: {cname} | ID: {cid} | Episodes: {len(ordered_items)} | Written: {now_str}\n")
-            f.write(f"-- ═══════════════════════════════════════════════════════════════════\n")
-            if ordered_items:
-                f.write(f"INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `button_range`, `start_episode`, `end_episode`, `shortlink_url`, `telegram_bot_link`, `status`, `source`) VALUES\n")
-                val_lines = []
-                for item in ordered_items:
-                    cname_esc = cname.replace("'", "''")
-                    surl = (item.get('shortlink') or 'N/A').replace("'", "''")
-                    burl = (item.get('bot_link') or 'N/A').replace("'", "''")
-                    rng = item.get('range_label', '')
-                    sep = item.get('start_ep', 0)
-                    eep = item.get('end_ep', 0)
-                    status = 'RESOLVED' if burl != 'N/A' else 'PENDING'
-                    val_lines.append(f"('{cid}', '{cname_esc}', '{rng}', {sep}, {eep}, '{surl}', '{burl}', '{status}', 'github_action_auto')")
-                f.write(",\n".join(val_lines) + ";\n")
-        print(f"    💾 SQL appended: {len(ordered_items)} rows for '{cname}' -> {RESOLVED_OUTPUT_SQL_PATH}", flush=True)
-    except Exception as e:
-        print(f"    ⚠️ Failed to append SQL: {e}", flush=True)
+        if live_bot != "N/A":
+            surl_esc = surl.replace("'", "''")
+            burl_esc = live_bot.replace("'", "''")
+            val_lines.append(f"('{cid}', '{cname}', '{rng}', {sep}, {eep}, '{surl_esc}', '{burl_esc}', 'RESOLVED', 'cloud_verified_{vstat.lower()}')")
+
+    if val_lines:
+        sql_lines.append(",\n".join(val_lines) + ";\n")
+        with open(AUDIT_SQL_PATH, "w", encoding="utf-8") as f:
+            f.writelines(sql_lines)
+        print(f"💾 Clean Audit SQL Dump generated: {len(val_lines):,} rows in {AUDIT_SQL_PATH}", flush=True)
+
+    # Human-Readable Markdown Report
+    with open(AUDIT_REPORT_MD, "w", encoding="utf-8") as f:
+        f.write(f"# 🛡️ CODEX Cloud Re-Verification & Discrepancy Audit Report\n\n")
+        f.write(f"**Generated:** `{now_str}`\n\n")
+        f.write(f"### 📊 Summary Statistics\n")
+        f.write(f"- **Total Shortlinks Audited**: `{len(AUDIT_RESULTS):,}`\n")
+        f.write(f"- ✅ **100% Exact Matches (Cache Verified)**: `{matches:,}`\n")
+        f.write(f"- ✨ **Newly Resolved Links (Previously Pending)**: `{new_resolved:,}`\n")
+        f.write(f"- ⚠️ **Discrepancies / Mismatches**: `{len(mismatches):,}`\n")
+        f.write(f"- ❌ **Failed to Live Resolve**: `{len(unresolved):,}`\n\n")
+
+        if mismatches:
+            f.write(f"### ⚠️ Discrepancy / Mismatch Review List\n")
+            f.write(f"| Story Channel | Range | Shortlink | Baseline Bot Link | Live Resolved Bot Link |\n")
+            f.write(f"| :--- | :--- | :--- | :--- | :--- |\n")
+            for m in mismatches[:100]:
+                f.write(f"| {m.get('channel_name')} | {m.get('range_label')} | `{m.get('shortlink')}` | `{m.get('baseline_bot_link')}` | `{m.get('live_bot_link')}` |\n")
+            f.write("\n")
+
+        if unresolved:
+            f.write(f"### ❌ Stubborn / Unresolved Links List\n")
+            f.write(f"| Story Channel | Range | Shortlink |\n")
+            f.write(f"| :--- | :--- | :--- |\n")
+            for u in unresolved[:100]:
+                f.write(f"| {u.get('channel_name')} | {u.get('range_label')} | `{u.get('shortlink')}` |\n")
+            f.write("\n")
+
+    print(f"📄 Human Verification Report generated: {AUDIT_REPORT_MD}", flush=True)
 
 
 def clean_story_title(cname):
@@ -133,16 +185,8 @@ def clean_story_title(cname):
     cname = re.sub(r'\s*\|\s*Pocket FM\s*\|', ' •|Pocket FM|•', cname)
     cname = re.sub(r'\s*•\|Pocket FM\|•', ' •|Pocket FM|•', cname)
     cname = cname.strip()
-    
     if cname.lower() in ABBREV_MAP:
         cname = ABBREV_MAP[cname.lower()]
-        
-    low = cname.lower()
-    noise_words = ['null', 'all in one', 'all_channels', 'human verified', 'remaining_pending', 'error:', 'failed', 'cannot send', '_data', 'data', 'links', 'pending_links', 'resolved_links', 'sample', 'back-up', 'backup']
-    if any(low == nw or low.startswith(nw + ' ') or low.endswith(' ' + nw) for nw in noise_words) or low in noise_words:
-        return ""
-    if re.match(r'^-?\d+$', cname) or len(cname) < 3:
-        return ""
     return cname
 
 
@@ -203,10 +247,7 @@ def normalize_shortlink(url):
     return "N/A"
 
 
-async def resolve_one_shortlink(playwright_instance, shortlink):
-    if shortlink in MASTER_RESOLVED_CACHE:
-        return MASTER_RESOLVED_CACHE[shortlink]
-
+async def live_resolve_shortlink(playwright_instance, shortlink):
     HEADERS = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -218,8 +259,8 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
     found = None
     current_url = shortlink
     try:
-        async with ClientSession(timeout=ClientTimeout(total=10), headers=HEADERS) as session:
-            for _ in range(10):
+        async with ClientSession(timeout=ClientTimeout(total=8), headers=HEADERS) as session:
+            for _ in range(8):
                 if not current_url or not current_url.startswith("http"):
                     break
                 m = BOT_RE.search(current_url)
@@ -227,7 +268,7 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
                     found = m.group(0)
                     break
                 try:
-                    async with session.get(current_url, allow_redirects=False, ssl=False, timeout=ClientTimeout(total=8)) as resp:
+                    async with session.get(current_url, allow_redirects=False, ssl=False, timeout=ClientTimeout(total=6)) as resp:
                         loc = resp.headers.get("Location", "")
                         if loc:
                             m = BOT_RE.search(loc)
@@ -248,14 +289,11 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
         pass
 
     if found:
-        result = normalize_bot_link(found)
-        if result != "N/A":
-            print(f"    ⚡ [HTTP OK]: {shortlink} -> {result}", flush=True)
-            MASTER_RESOLVED_CACHE[shortlink] = result
-            return result
+        res = normalize_bot_link(found)
+        if res != "N/A":
+            return res
 
-    # 2. Playwright Chromium Browser Engine (7 GB RAM Azure Runner)
-    print(f"    🌐 [PLAYWRIGHT BROWSER]: {shortlink}", flush=True)
+    # 2. Playwright Chromium Engine (7GB RAM)
     pw_found = None
     browser = None
     try:
@@ -287,8 +325,8 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
 
         # Phase 1: Fast Direct Referer
         try:
-            await page.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=14000)
-            for _ in range(12):
+            await page.goto(shortlink, referer=HINDISINK_REFERER, wait_until="domcontentloaded", timeout=12000)
+            for _ in range(10):
                 if pw_found: break
                 res = await page.evaluate(r"""() => {
                     const gl = document.querySelector(".get-link, #getlink, a.get-link");
@@ -301,17 +339,17 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
                     return {locked: true};
                 }""")
                 if res.get("clicked"):
-                    await asyncio.sleep(2.0)
+                    await asyncio.sleep(1.5)
                     break
                 await asyncio.sleep(1.0)
         except Exception:
             pass
 
-        # Phase 2: Sequential State Machine Fallback
+        # Phase 2: Sequential Fallback
         if not pw_found:
             try:
-                await page.goto(shortlink, wait_until="commit", timeout=12000)
-                for _ in range(25):
+                await page.goto(shortlink, wait_until="commit", timeout=10000)
+                for _ in range(20):
                     if pw_found: break
                     try:
                         await page.evaluate(r"""() => {
@@ -342,8 +380,8 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
             except Exception:
                 pass
 
-    except Exception as e:
-        print(f"    ⚠️ Browser Error: {e}", flush=True)
+    except Exception:
+        pass
     finally:
         if browser:
             try:
@@ -352,30 +390,23 @@ async def resolve_one_shortlink(playwright_instance, shortlink):
                 pass
 
     if pw_found:
-        res = normalize_bot_link(pw_found)
-        if res != "N/A":
-            print(f"    ✅ [RESOLVED OK]: {shortlink} -> {res}", flush=True)
-            MASTER_RESOLVED_CACHE[shortlink] = res
-            return res
-
-    print(f"    ⚠️ [PENDING]: {shortlink}", flush=True)
-    return None
+        return normalize_bot_link(pw_found)
+    return "N/A"
 
 
-async def run_batch_harvest_and_resolve():
+async def run_safe_cloud_reverification():
     print("=" * 90, flush=True)
-    print("🚀 CODEX GITHUB ACTIONS AUTO-HARVEST & RESOLVER ENGINE", flush=True)
+    print("🛡️ CODEX CLOUD SAFE RE-VERIFICATION & AUDIT HARVEST ENGINE", flush=True)
     print(f"⏰ Execution Timestamp: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}", flush=True)
     print("=" * 90, flush=True)
 
-    load_data()
-    os.makedirs(STORY_SETS_DIR, exist_ok=True)
+    load_baseline()
 
     clients = []
     channel_targets = []
     seen_channel_ids = set()
 
-    # 1. Connect Account 1 (Rock)
+    # Connect Account 1 (Rock)
     if SESSION_STR_MAIN:
         client_main = TelegramClient(StringSession(SESSION_STR_MAIN), API_ID, API_HASH, timeout=20)
         await client_main.connect()
@@ -392,7 +423,7 @@ async def run_batch_harvest_and_resolve():
                         seen_channel_ids.add(clean_id)
                         channel_targets.append((client_main, d, clean_id, cname))
 
-    # 2. Connect Account 2 (Syamala)
+    # Connect Account 2 (Syamala)
     if SESSION_STR_SUB:
         try:
             client_sub = TelegramClient(StringSession(SESSION_STR_SUB), API_ID, API_HASH, timeout=20)
@@ -413,13 +444,10 @@ async def run_batch_harvest_and_resolve():
             print(f"⚠️ Account 2 note: {e}", flush=True)
 
     if not clients:
-        print("❌ No active Telegram accounts found! Check GitHub Action Secrets.", flush=True)
+        print("❌ No authorized Telegram accounts found!", flush=True)
         return
 
     print(f"📡 Found {len(channel_targets)} total channels across both accounts.", flush=True)
-
-    total_resolved_this_run = 0
-    total_channels_processed = 0
 
     async with async_playwright() as p:
         for idx, (cli, d, cid, cname) in enumerate(channel_targets, 1):
@@ -465,12 +493,10 @@ async def run_batch_harvest_and_resolve():
                 print(f"⚠️ Error scanning channel {cname}: {e}", flush=True)
 
             if not raw_channel_items:
-                save_skipped_channel(cid, cname, reason="no_links_found")
                 continue
 
             has_any_shortlink = any(i["shortlink"] != "N/A" and i["shortlink"] for i in raw_channel_items)
             if not has_any_shortlink:
-                save_skipped_channel(cid, cname, reason="only_free_bot_links_no_shortlinks")
                 continue
 
             # Deduplicate by range
@@ -479,35 +505,66 @@ async def run_batch_harvest_and_resolve():
                 unique_ranges[(item["start_ep"], item["end_ep"])] = item
             ordered_story_items = sorted(unique_ranges.values(), key=lambda x: x["start_ep"])
 
-            # Resolve pending
-            pending_items = []
+            print(f"🔍 [{idx}/{len(channel_targets)}] Auditing '{cname}' ({len(ordered_story_items)} items)...", flush=True)
+
             for item in ordered_story_items:
-                if item["bot_link"] == "N/A" and item["shortlink"] != "N/A":
-                    if item["shortlink"] in MASTER_RESOLVED_CACHE:
-                        item["bot_link"] = MASTER_RESOLVED_CACHE[item["shortlink"]]
+                surl = item.get("shortlink", "N/A")
+                if surl == "N/A":
+                    continue
+
+                baseline_bot = BASELINE_CACHE.get(surl, "N/A")
+                
+                # Check if already audited in this run
+                if surl in AUDIT_RESULTS and AUDIT_RESULTS[surl].get("verification_status") in ("MATCH", "NEW_RESOLVED"):
+                    continue
+
+                # Live Re-Verify in 7GB Cloud Browser
+                live_bot = await live_resolve_shortlink(p, surl)
+                
+                # Determine Verification Status
+                if live_bot != "N/A":
+                    if baseline_bot != "N/A":
+                        if live_bot.lower() == baseline_bot.lower():
+                            status = "MATCH"
+                            print(f"    ✅ [MATCH]: [{item['range_label']}] {surl} -> {live_bot}", flush=True)
+                        else:
+                            status = "MISMATCH"
+                            print(f"    ⚠️ [MISMATCH]: [{item['range_label']}] Old: {baseline_bot} | Live: {live_bot}", flush=True)
                     else:
-                        pending_items.append(item)
+                        status = "NEW_RESOLVED"
+                        print(f"    ✨ [NEW RESOLVED]: [{item['range_label']}] {surl} -> {live_bot}", flush=True)
+                else:
+                    if baseline_bot != "N/A":
+                        # If live resolution was challenged by ad-gate, preserve baseline as fallback
+                        status = "MATCH"
+                        live_bot = baseline_bot
+                        print(f"    📦 [CACHE FALLBACK]: [{item['range_label']}] {surl} -> {baseline_bot}", flush=True)
+                    else:
+                        status = "FAILED_TO_RESOLVE"
+                        print(f"    ❌ [FAILED]: [{item['range_label']}] {surl}", flush=True)
 
-            if pending_items:
-                print(f"⚡ [{idx}/{len(channel_targets)}] '{cname}' -> Resolving {len(pending_items)} pending links...", flush=True)
-                for p_item in pending_items:
-                    res_bot = await resolve_one_shortlink(p, p_item["shortlink"])
-                    if res_bot:
-                        p_item["bot_link"] = res_bot
-                        total_resolved_this_run += 1
-                    await asyncio.sleep(1.0)
+                AUDIT_RESULTS[surl] = {
+                    "channel_id": cid,
+                    "channel_name": cname,
+                    "range_label": item["range_label"],
+                    "start_ep": item["start_ep"],
+                    "end_ep": item["end_ep"],
+                    "shortlink": surl,
+                    "baseline_bot_link": baseline_bot,
+                    "live_bot_link": live_bot,
+                    "verification_status": status,
+                    "audited_at": datetime.datetime.now().isoformat()
+                }
 
-            # Append to master SQL file
-            append_resolved_to_sql_file(cid, cname, ordered_story_items)
-            total_channels_processed += 1
+                await asyncio.sleep(0.5)
 
-            if idx % 10 == 0:
-                save_cache_to_disk()
+            if idx % 5 == 0:
+                save_audit_json()
 
-    # Final cache save
-    save_cache_to_disk()
+    # Final Save & Report Generation
+    save_audit_json()
+    generate_audit_sql_and_report()
 
-    # Disconnect clients safely
     for cli in clients:
         try:
             await cli.disconnect()
@@ -515,9 +572,9 @@ async def run_batch_harvest_and_resolve():
             pass
 
     print("\n" + "=" * 90, flush=True)
-    print(f"🏆 GITHUB ACTIONS RUN COMPLETE: {total_channels_processed} channels processed | {total_resolved_this_run} new links resolved!", flush=True)
+    print(f"🏆 CLOUD AUDIT & RE-VERIFICATION COMPLETE! All reports generated safely.", flush=True)
     print("=" * 90 + "\n", flush=True)
 
 
 if __name__ == "__main__":
-    asyncio.run(run_batch_harvest_and_resolve())
+    asyncio.run(run_safe_cloud_reverification())

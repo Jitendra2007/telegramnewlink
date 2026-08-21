@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   harvest-and-resolve:
-    name: Harvester & Resolver (7GB RAM Runner)
+    name: Safe Harvester & Audit Engine (7GB RAM Runner)
     runs-on: ubuntu-latest
     timeout-minutes: 360
 
@@ -38,7 +38,7 @@ jobs:
         run: |
           playwright install chromium --with-deps
 
-      - name: 🚀 Run Batch Harvester & Resolver
+      - name: 🚀 Run Safe Batch Harvester & Re-Verification Audit
         env:
           API_ID: ${{ secrets.API_ID }}
           API_HASH: ${{ secrets.API_HASH }}
@@ -47,15 +47,15 @@ jobs:
         run: |
           python github_action_harvest_resolve.py
 
-      - name: 💾 Commit and Push Updated Cache & SQL to Repository
+      - name: 💾 Commit and Push Audit Reports & SQL to Repository
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add master_resolved_cache.json skipped_channels_no_shortlinks.json resolved_output_master.sql story_sets/ || true
+          git add cloud_reverified_audit.json cloud_reverified_audit.sql cloud_verification_discrepancy_report.md skipped_channels_no_shortlinks.json master_resolved_cache.json || true
           if git diff --staged --quiet; then
-            echo "✨ No new links or changes to commit."
+            echo "✨ No new audit results or changes to commit."
           else
-            git commit -m "chore(auto): harvest & resolve update [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
+            git commit -m "chore(audit): update cloud verification & discrepancy report [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
             git push origin main
-            echo "✅ Successfully pushed newly resolved links and SQL to GitHub!"
+            echo "✅ Successfully pushed audit reports & verified SQL to GitHub!"
           fi
