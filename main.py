@@ -34,6 +34,11 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"
 DB_PATH = "live_harvest.db"
 CACHE_PATH = "master_resolved_cache.json"
 STORY_SETS_DIR = "story_sets"
+SKIPPED_CHANNELS_PATH = "skipped_channels_no_shortlinks.json"
+RESOLVED_OUTPUT_SQL_PATH = "resolved_output_master.sql"
+
+# Persistent registry of channels confirmed to have zero shortlinks (survives restarts)
+SKIPPED_CHANNELS_REGISTRY = {}
 
 HINDISINK_REFERER = "https://hindisink.com/best-free-ai-tools-content-design-or-productivity/"
 
@@ -85,6 +90,56 @@ def load_resolved_cache():
             print(f"📦 Loaded {len(MASTER_RESOLVED_CACHE):,} pre-resolved link mappings from master cache.", flush=True)
         except Exception as e:
             print(f"⚠️ Could not load cache: {e}", flush=True)
+
+def load_skipped_channels():
+    """Load the persistent registry of channels with zero shortlinks."""
+    global SKIPPED_CHANNELS_REGISTRY
+    if os.path.exists(SKIPPED_CHANNELS_PATH):
+        try:
+            with open(SKIPPED_CHANNELS_PATH, "r", encoding="utf-8") as f:
+                SKIPPED_CHANNELS_REGISTRY = json.load(f)
+            print(f"🚫 Loaded {len(SKIPPED_CHANNELS_REGISTRY):,} channels marked as NO-SHORTLINKS (will skip).", flush=True)
+        except Exception as e:
+            print(f"⚠️ Could not load skipped channels: {e}", flush=True)
+
+def save_skipped_channel(cid, cname, reason="no_shortlinks"):
+    """Persist a channel to the skip list so it survives restarts."""
+    SKIPPED_CHANNELS_REGISTRY[cid] = {
+        "channel_name": cname,
+        "reason": reason,
+        "skipped_at": datetime.datetime.now().isoformat()
+    }
+    try:
+        with open(SKIPPED_CHANNELS_PATH, "w", encoding="utf-8") as f:
+            json.dump(SKIPPED_CHANNELS_REGISTRY, f, ensure_ascii=False, indent=2)
+        print(f"    💾 Persisted skip: '{cname}' ({cid}) -> {SKIPPED_CHANNELS_PATH}", flush=True)
+    except Exception as e:
+        print(f"    ⚠️ Failed to persist skip: {e}", flush=True)
+
+def append_resolved_to_sql_file(cid, cname, ordered_items):
+    """Append resolved channel data to the persistent SQL output file (survives restarts)."""
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        with open(RESOLVED_OUTPUT_SQL_PATH, "a", encoding="utf-8") as f:
+            f.write(f"\n-- ═══════════════════════════════════════════════════════════════════\n")
+            f.write(f"-- Channel: {cname} | ID: {cid} | Episodes: {len(ordered_items)} | Written: {now_str}\n")
+            f.write(f"-- ═══════════════════════════════════════════════════════════════════\n")
+            if ordered_items:
+                f.write(f"INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `button_range`, `start_episode`, `end_episode`, `shortlink_url`, `telegram_bot_link`, `status`, `source`) VALUES\n")
+                val_lines = []
+                for item in ordered_items:
+                    cname_esc = cname.replace("'", "''")
+                    surl = (item.get('shortlink') or 'N/A').replace("'", "''")
+                    burl = (item.get('bot_link') or 'N/A').replace("'", "''")
+                    rng = item.get('range_label', '')
+                    sep = item.get('start_ep', 0)
+                    eep = item.get('end_ep', 0)
+                    status = 'RESOLVED' if burl != 'N/A' else 'PENDING'
+                    val_lines.append(f"('{cid}', '{cname_esc}', '{rng}', {sep}, {eep}, '{surl}', '{burl}', '{status}', 'render_reverify')")
+                f.write(",\n".join(val_lines) + ";\n")
+        print(f"    💾 SQL appended: {len(ordered_items)} rows for '{cname}' -> {RESOLVED_OUTPUT_SQL_PATH}", flush=True)
+    except Exception as e:
+        print(f"    ⚠️ Failed to append SQL: {e}", flush=True)
 
 FAST_STEP_JS = r"""
 async () => {
@@ -633,6 +688,13 @@ async def sequential_channel_scanner_and_resolver(channel_targets):
             scan_progress["current_channel_index"] = idx
             scan_progress["current_channel_name"] = cname
 
+            # ── SKIP CHECK: Is this channel already confirmed as no-shortlinks? ──
+            if cid in SKIPPED_CHANNELS_REGISTRY:
+                reason = SKIPPED_CHANNELS_REGISTRY[cid].get('reason', 'no_shortlinks')
+                print(f"\n  ⏩ [SKIPPING] '{cname}' (ID: {cid}) — already marked: {reason}", flush=True)
+                scan_progress["skipped_no_shortlinks_count"] += 1
+                continue
+
             print(f"\n-----------------------------------------------------------------------------------------", flush=True)
             print(f"📖 [Channel {idx}/{len(channel_targets)}] EXTRACTING STORY: '{cname}' (ID: {cid})", flush=True)
             print(f"-----------------------------------------------------------------------------------------", flush=True)
@@ -694,7 +756,21 @@ async def sequential_channel_scanner_and_resolver(channel_targets):
                 print(f"  ⚠️ Error scanning messages for {cname}: {e}", flush=True)
 
             if not raw_channel_items:
-                print(f"  🚫 No episode links found in '{cname}'. Skipping to next channel.\n", flush=True)
+                print(f"  🚫 No episode links found in '{cname}'. Marking as NO-SHORTLINKS and skipping.\n", flush=True)
+                save_skipped_channel(cid, cname, reason="no_links_at_all")
+                scan_progress["skipped_no_shortlinks_count"] += 1
+                continue
+
+            # ── CHECK: Does this channel have ANY shortlinks? ──
+            has_any_shortlink = any(
+                item["shortlink"] != "N/A" and item["shortlink"]
+                for item in raw_channel_items
+            )
+            if not has_any_shortlink:
+                # Channel has ONLY bot links (free episodes), zero shortlinks — we don't need it
+                print(f"  🚫 '{cname}' has {len(raw_channel_items)} items but ZERO shortlinks. Marking as NO-SHORTLINKS.\n", flush=True)
+                save_skipped_channel(cid, cname, reason="only_bot_links_no_shortlinks")
+                scan_progress["skipped_no_shortlinks_count"] += 1
                 continue
 
             # Deduplicate by range (keep latest message_id for same range)
@@ -748,6 +824,8 @@ async def sequential_channel_scanner_and_resolver(channel_targets):
 
             # Step 4: Save 100% complete story set with Channel Name, Ranges, Shortlinks, Bot Links
             save_channel_story_set(cid, cname, ordered_story_items)
+            # Step 5: Append to persistent SQL output file (survives restarts)
+            append_resolved_to_sql_file(cid, cname, ordered_story_items)
             scan_progress["completed_channels_count"] += 1
             print(f"✅ [100% COMPLETE & SAVED] '{cname}' dataset stored with {len(ordered_story_items)} ordered episodes!\n", flush=True)
             await asyncio.sleep(0.5)
@@ -891,6 +969,7 @@ async def main():
     
     init_db()
     load_resolved_cache()
+    load_skipped_channels()
     await start_http_server()
     asyncio.create_task(keepalive_ping_loop())
     
