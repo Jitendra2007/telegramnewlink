@@ -716,6 +716,13 @@ async def run_safe_parallel_cloud_reverification():
             raw_channel_items = []
             msg_count = 0
             scan_error = False
+
+            if not cli.is_connected():
+                try:
+                    await cli.connect()
+                except Exception:
+                    pass
+
             try:
                 async for message in cli.iter_messages(d.entity, reverse=True, limit=None):
                     msg_count += 1
