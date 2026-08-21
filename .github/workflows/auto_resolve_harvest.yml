@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: telegram-harvest-resolver
+  cancel-in-progress: true
+
 jobs:
   harvest-and-resolve:
     name: 5-Cycle Safe Harvester & Audit Engine (7GB RAM Runner)

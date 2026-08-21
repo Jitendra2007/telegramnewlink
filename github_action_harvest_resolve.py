@@ -638,20 +638,23 @@ async def run_safe_parallel_cloud_reverification():
 
     # Connect Account 1 (Rock)
     if SESSION_STR_MAIN:
-        client_main = TelegramClient(StringSession(SESSION_STR_MAIN), API_ID, API_HASH, timeout=20)
-        await client_main.connect()
-        if await client_main.is_user_authorized():
-            me1 = await client_main.get_me()
-            print(f"✅ Account 1 Connected: {me1.first_name} (+{me1.phone})", flush=True)
-            clients.append(client_main)
-            d1 = await client_main.get_dialogs()
-            for d in d1:
-                if d.is_channel:
-                    clean_id = re.sub(r'^-?100', '', str(d.id)).lstrip('-')
-                    cname = clean_story_title(d.title)
-                    if cname and clean_id not in seen_channel_ids:
-                        seen_channel_ids.add(clean_id)
-                        channel_targets.append((client_main, d, clean_id, cname))
+        try:
+            client_main = TelegramClient(StringSession(SESSION_STR_MAIN), API_ID, API_HASH, timeout=20)
+            await client_main.connect()
+            if await client_main.is_user_authorized():
+                me1 = await client_main.get_me()
+                print(f"✅ Account 1 Connected: {me1.first_name} (+{me1.phone})", flush=True)
+                clients.append(client_main)
+                d1 = await client_main.get_dialogs()
+                for d in d1:
+                    if d.is_channel:
+                        clean_id = re.sub(r'^-?100', '', str(d.id)).lstrip('-')
+                        cname = clean_story_title(d.title)
+                        if cname and clean_id not in seen_channel_ids:
+                            seen_channel_ids.add(clean_id)
+                            channel_targets.append((client_main, d, clean_id, cname))
+        except Exception as e:
+            print(f"⚠️ Account 1 connection note: {e}", flush=True)
 
     # Connect Account 2 (Syamala)
     if SESSION_STR_SUB:
