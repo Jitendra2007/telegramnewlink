@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 17:46:29 UTC
--- Total Records: 9087
+-- Generated on: 2026-08-22 17:47:05 UTC
+-- Total Records: 9103
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -5978,6 +5978,22 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1004415010206', 'Sigil of the Seven (English) •|Pocket FM|•', 23, '2026-07-06T14:24:43+00:00', '521-525', 'https://linkshortx.in/9udbL', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwMjA2MjUyNDkxNzQyMzI2OC0xMDIwNjY1MzMyMjQ2NTMxNDA', 'RESOLVED'),
 ('-1004415010206', 'Sigil of the Seven (English) •|Pocket FM|•', 25, '2026-07-14T16:08:47+00:00', '536-540', 'https://linkshortx.in/kBd2xPXG', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwMjk5NDQ1NjM0ODM2ODUwOC0xMDI5OTg0NjQ2NTU1OTgzODA', 'RESOLVED'),
 ('-1004415010206', 'Sigil of the Seven (English) •|Pocket FM|•', 28, '2026-07-24T08:54:22+00:00', '549-554', 'https://linkshortx.in/fbUAIK', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwNDgwOTIxNzQ0NjY5MzA1Ni0xMDQ4MTQyMjc4MzA3MzAzOTY', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 3, '2026-04-14T08:46:04+00:00', '01-10', 'N/A', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTc4NDY4NjI2NDg1NTg5MjA4LTc4NDc3NjQ1MTc2ODU2NDIw', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 3, '2026-04-14T08:46:04+00:00', '11-20', 'N/A', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTc4NDc4NjQ3MjUzNjYzODg4LTc4NDg3NjY1OTQ0OTMxMTAw', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 3, '2026-04-14T08:46:04+00:00', '21-30', 'https://linkshortx.in/WaDz3BB', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTc4NDg4NjY4MDIxNzM4NTY4LTc4NDk3Njg2NzEzMDA1Nzgw', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 3, '2026-04-14T08:46:04+00:00', '31-40', 'https://urlshortx.io/w2pN11', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTc4NDk4Njg4Nzg5ODEzMjQ4LTc4NTA3NzA3NDgxMDgwNDYw', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 3, '2026-04-14T08:46:04+00:00', '41-50', 'https://linkshortx.in/Ywohw', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTc4NTA4NzA5NTU3ODg3OTI4LTc4NTE3NzI4MjQ5MTU1MTQw', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 3, '2026-04-14T08:46:04+00:00', '51-60', 'https://linkshortx.in/d5F8L8', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTc4NTE4NzMwMzI1OTYyNjA4LTc4NTI3NzQ5MDE3MjI5ODIw', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 3, '2026-04-14T08:46:04+00:00', '61-70', 'https://linkshortx.in/hv1zL', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI1NDg5ODc4NTk5MTQ4ODE3MDcyMjI3MzA1MDQzOTc0ODMzMTU0OSI=', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 3, '2026-04-14T08:46:04+00:00', '71-80', 'https://urlshortx.io/fgjoDD', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE5OTE0Njc3MjQ3NTM3NzYxNTEwNzE3Mjc1ODQzNjU3ODcxNjU3MyI=', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 3, '2026-04-14T08:46:04+00:00', '81-90', 'https://linkshortx.in/GRvDIK7', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjExMzM4MTIzOTM5NzQxOTkwMDUxMzYzMzEwNjI1MzQ4NDUyNzIwNSI=', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 3, '2026-04-14T08:46:04+00:00', '91-100', 'https://linkshortx.in/LojLgdX', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMzNDU1NTU1MjU2OTI4Nzk4MDA0MzU5MTI1MTc5ODE0Mzc1NzYxNCI=', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 4, '2026-04-14T08:46:04+00:00', '101-110', 'https://urlshortx.io/QEn7p', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMzOTk5Njk3ODE1NzY2MTYwODI0NjUwOTQzOTk2MTgzNDk0MTM0Ig==', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 4, '2026-04-14T08:46:04+00:00', '111-120', 'https://linkshortx.in/Fb4hWCR', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTg3NTc5NTA4ODE5MDg4MjY0LTg3NTg4NTI3NTEwMzU1NDc2', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 4, '2026-04-14T08:46:04+00:00', '121-130', 'https://urlshortx.io/CJk0I', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTg3NTg5NTI5NTg3MTYyOTQ0LTg3NTk4NTQ4Mjc4NDMwMTU2', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 4, '2026-04-14T08:46:04+00:00', '131-140', 'https://linkshortx.in/2vC1vE', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTg3NTk5NTUwMzU1MjM3NjI0LTg3NjA4NTY5MDQ2NTA0ODM2', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 4, '2026-04-14T08:46:04+00:00', '141-150', 'https://linkshortx.in/PcojWM', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTg3NjA5NTcxMTIzMzEyMzA0LTg3NjE4NTg5ODE0NTc5NTE2', 'RESOLVED'),
+('-1003560356983', 'Solo Leveling (English) •|Pocket FM|•', 4, '2026-04-14T08:46:04+00:00', '151-160', 'https://urlshortx.io/WDAEMtAN', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTg3NjE5NTkxODkxMzg2OTg0LTg3NjI4NjEwNTgyNjU0MTk2', 'RESOLVED'),
 ('-1003885565017', 'Soul Pets: White Nightmare', 3, '2026-04-20T09:04:41+00:00', '01-20', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE3NDk0MTE0NDQ1NDIwMDA1NC0xNzQ5NjAxODMxMDQxNzU1OTU', 'RESOLVED'),
 ('-1003885565017', 'Soul Pets: White Nightmare', 3, '2026-04-20T09:04:41+00:00', '21-40', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE3NDk2MTE4NTEzODM4NDgzNC0xNzQ5ODAyMjM3ODgzNjAzNzU', 'RESOLVED'),
 ('-1003885565017', 'Soul Pets: White Nightmare', 3, '2026-04-20T09:04:41+00:00', '41-60', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE3NDk4MTIyNTgyMjU2OTYxNC0xNzUwMDAyNjQ0NzI1NDUxNTU', 'RESOLVED'),
