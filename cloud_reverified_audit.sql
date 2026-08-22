@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 17:17:06 UTC
--- Total Records: 8237
+-- Generated on: 2026-08-22 17:17:43 UTC
+-- Total Records: 8252
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -7931,6 +7931,21 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1003866162803', 'Trillionaire Sterling (English) •|Pocket FM|•', 15, '2026-05-20T16:00:02+00:00', '481-490', 'https://urlshortx.io/OeGmv', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI5ODU5NjM2MjAzODU1NDY2ODM1MDc5NDA0MDkxMzA5OTkwNTEzNyI=', 'RESOLVED'),
 ('-1003866162803', 'Trillionaire Sterling (English) •|Pocket FM|•', 23, '2026-06-12T13:37:31+00:00', '491-495', 'https://linkshortx.in/hFsu', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTk4MzA5NzQ3MjczNDU1NjA4LTk4MzEzNzU1NTgwNjg1NDgw', 'RESOLVED'),
 ('-1003866162803', 'Trillionaire Sterling (English) •|Pocket FM|•', 24, '2026-07-01T07:31:27+00:00', '506-510', 'https://linkshortx.in/v0eM', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwMTMzNzAyMTMwODgxNjQzNi0xMDEzNDEwMjk2MTYwNDYzMDg', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 29, '2026-05-20T15:28:02+00:00', '01-10', 'https://linkshortx.in/mSKLd', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE2Mzk1OTMzODU4Mzk0NTQzNjM0NTE5MzAwNDIwMjQ3OTgzODEzMiI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 29, '2026-05-20T15:28:02+00:00', '11-20', 'https://urlshortx.io/sQlidi', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEwMjMzNDYwMTM1OTEzMjczMjE3NTkzODI2MTQ0NjM4OTQ2NDQzNiI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 29, '2026-05-20T15:28:02+00:00', '21-30', 'https://linkshortx.in/bg5p8', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzNDEzOTUzNTc4ODEzODkxNDQzODY0NDY2MDM1NDQyNzI5NzM0NSI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 29, '2026-05-20T15:28:02+00:00', '31-40', 'https://linkshortx.in/6eKhN', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE3OTIwODQyMTEwNzE5NTk0MzYxMTM5NTMwMzI3MDM4NDg1ODQ5NyI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 29, '2026-05-20T15:28:02+00:00', '41-50', 'https://urlshortx.io/sM8TZVTZ', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI0ODY2NTA2MzM3MjUwMDY2NzU5MzYzNTM4NDUyNDg5MTg0ODc2Ig==', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 29, '2026-05-20T15:28:02+00:00', '51-60', 'https://linkshortx.in/57UBlG', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjUyMjEyOTQwNDgzMDU4Njg1Njc5MDM1NDQxOTA5NTc4OTk2MjUzIg==', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 11, '2025-10-03T15:38:47+00:00', '51-55', 'https://linkshortx.in/SA3StQ', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEwMDkxNTQ5Mzk4MzQ3MzgzMjAwNDIwMDY4NzExOTE5NTM3NDI0MSI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 22, '2025-10-14T19:36:21+00:00', '51-59', 'https://linkshortx.in/g6eNRZYx', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEzNzQwNTI0MzExMjczMTg4ODMzNTM3MjgxMzA1OTk1MDg1NTg4MiI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 9, '2025-10-03T15:38:42+00:00', '61-64', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjExNDIwOTcyNDg2ODA2MTk5OTQ5MzAzODk1MTg2MzgyNjUwMjk5MSI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 28, '2026-01-08T06:24:08+00:00', '61-70', 'https://linkshortx.in/tEoHh', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMyMjMyMjAwMDAwMDU2ODU2Mzg5OTEyMjE3ODUzMjUwMTg3NTc4NCI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 25, '2025-10-14T19:36:22+00:00', '61-69', 'https://urlshortx.io/wpGmv2', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE1NjAyNzQwMzQyMDM2NjcxMjE5OTM0MTkxNjg3MTQ0MzY5NDkzMSI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 29, '2026-05-20T15:28:02+00:00', '61-72', 'https://linkshortx.in/nHrvP2nY', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE3MDUwNzQ4NDAxOTUyOTg3NjMwNDM5MjI4OTc0NzMzMjcyMTYzMiI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 28, '2026-01-08T06:24:08+00:00', '71-80', 'https://urlshortx.io/tI7bXi', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE2MzA0ODA0MjU2MjI3MzIwNjc2NzUwMTE5MDIwNzcyNDM2Njg4NSI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 27, '2025-11-28T13:49:48+00:00', '71-73', 'https://urlshortx.io/UKVa', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE0NTE1MjM4NjUxODI4MTkwNzg2MTU4NTU5Njk5NDEwMzAwNDIzMyI=', 'RESOLVED'),
+('-1003141184450', 'Ultimate Level 1 (Audiobook) |AudioVerseNetwork|', 24, '2025-10-14T19:36:22+00:00', '81-86', 'https://linkshortx.in/wsB06', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMwODA3MjQwNjM0OTgwNzgwNTYzNjIwNTEyODA4NDg3ODM5NzAyMyI=', 'RESOLVED'),
 ('-1003110358141', 'Weakest Beast Tamer (English)', 4, '2025-09-27T06:00:11+00:00', '01-20', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTY0MzE2NDQ3MjE4NzUxNzcwLTY0MzM1NDg0NjQ2NjU1NzQ3', 'RESOLVED'),
 ('-1003110358141', 'Weakest Beast Tamer (English)', 4, '2025-09-27T06:00:11+00:00', '21-40', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTY0MzM2NDg2NjE2NTQ1NDMwLTY0MzU1NTI0MDQ0NDQ5NDA3', 'RESOLVED'),
 ('-1003110358141', 'Weakest Beast Tamer (English)', 4, '2025-09-27T06:00:11+00:00', '41-60', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTY0MzU2NTI2MDE0MzM5MDkwLTY0Mzc1NTYzNDQyMjQzMDY3', 'RESOLVED'),
