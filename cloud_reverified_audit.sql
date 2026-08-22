@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 18:32:48 UTC
--- Total Records: 10610
+-- Generated on: 2026-08-22 18:33:12 UTC
+-- Total Records: 10616
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -5580,6 +5580,12 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1003883005237', 'Reborn as a demon', 91, '2026-04-01T18:33:37+00:00', '911-916', 'https://linkshortx.in/sYsc8a', 'https://telegram.me/AVFile_BOT?start=Z2V0LTIyMjMxMzQ2NDc0NDY2MDI4LTIyMjM2MzYzNDc4MDkzNTkz', 'RESOLVED'),
 ('-1003883005237', 'Reborn as a demon', 92, '2026-04-01T18:33:45+00:00', '917-922', 'https://UrlShortx.io/gtzL', 'https://telegram.me/AVFile_BOT?start=Z2V0LTIyMjM3MzY2ODc4ODE5MTA2LTIyMjQyMzgzODgyNDQ2Njcx', 'RESOLVED'),
 ('-1003883005237', 'Reborn as a demon', 93, '2026-04-01T18:33:52+00:00', '923-928', 'https://linkshortx.in/qmDn', 'https://telegram.me/AVFile_BOT?start=Z2V0LTIyMjQzMzg3MjgzMTcyMTg0LTIyMjQ4NDA0Mjg2Nzk5NzQ5', 'RESOLVED'),
+('-1002543407266', 'Red Rising', 19, '2026-03-01T15:40:10+00:00', '01-02', 'https://urlshortx.io/86cu5', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUxNzAyNjQ4Mjc3NTMyNDgzLTUxNzA0NjUyMjE3MzExODQ5', 'RESOLVED'),
+('-1002543407266', 'Red Rising', 18, '2026-02-28T11:54:03+00:00', '03-04', 'https://urlshortx.io/zEIBH', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3MDM5OTkyNTQxNzkyODkwNi0xNzA0MDA5Mjc0NTIxMzgxNDU', 'RESOLVED'),
+('-1002543407266', 'Red Rising', 19, '2026-03-01T15:40:10+00:00', '03-05', 'https://linkshortx.in/cvrPwENu', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUxNzA1NjU0MTg3MjAxNTMyLTUxNzA4NjYwMDk2ODcwNTgx', 'RESOLVED'),
+('-1002543407266', 'Red Rising', 18, '2026-02-28T11:54:03+00:00', '05-06', 'https://linkshortx.in/Bea685', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3MDQwMTkyOTQ4NjM0NzM4NC0xNzA0MDI5MzE1MjA1NTY2MjM', 'RESOLVED'),
+('-1002543407266', 'Red Rising', 18, '2026-02-28T11:54:03+00:00', '07-08', 'https://urlshortx.io/zG9Mv9J', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3MDQwMzkzMzU1NDc2NTg2Mi0xNzA0MDQ5MzU1ODg5NzUxMDE', 'RESOLVED'),
+('-1002543407266', 'Red Rising', 18, '2026-02-28T11:54:03+00:00', '09-10', 'https://linkshortx.in/EIlmcfE3', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3MDQwNTkzNzYyMzE4NDM0MC0xNzA0MDg5NDM3MjU4MTIwNTc', 'RESOLVED'),
 ('-1004388661946', 'Reign of the Hammer God (English) •|Pocket FM|•', 10, '2026-07-15T16:04:11+00:00', '01-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMxNzYxMTU3OTgzNjAzOTgxMjQ4MDY4ODgzNjk5MjE0MDE3ODUxMSI=', 'RESOLVED'),
 ('-1004388661946', 'Reign of the Hammer God (English) •|Pocket FM|•', 10, '2026-07-15T16:04:11+00:00', '21-40', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI3MDQwNTg0ODcxODY0ODgwNzUwMTI3MTQwOTYwODI0NjkzNzMzNSI=', 'RESOLVED'),
 ('-1004388661946', 'Reign of the Hammer God (English) •|Pocket FM|•', 10, '2026-07-15T16:04:11+00:00', '41-60', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjYzMTg5MDAyNzAwMjY4ODE1MzgwMjgzNTUxMjM2OTcxNTU0MTM5Ig==', 'RESOLVED'),
