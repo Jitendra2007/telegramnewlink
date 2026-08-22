@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 16:42:58 UTC
--- Total Records: 7280
+-- Generated on: 2026-08-22 16:43:23 UTC
+-- Total Records: 7288
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -3023,6 +3023,14 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1003705150287', 'Necromancer: Infinite Evolution (English) •|Pocket FM|•', 27, '2026-07-16T16:27:23+00:00', '891-900', 'https://linkshortx.in/3X4GFBPS', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwNDA3ODcwMzQ1NDA0ODg4NC0xMDQwODc3MjIxNDUzMTYwOTY', 'RESOLVED'),
 ('-1003705150287', 'Necromancer: Infinite Evolution (English) •|Pocket FM|•', 27, '2026-07-16T16:27:23+00:00', '901-910', 'https://urlshortx.io/nzcfqz5', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwNDA4ODcyNDIyMjEyMzU2NC0xMDQwOTc3NDI5MTMzOTA3NzY', 'RESOLVED'),
 ('-1003705150287', 'Necromancer: Infinite Evolution (English) •|Pocket FM|•', 27, '2026-07-16T16:27:23+00:00', '911-918', 'https://linkshortx.in/0l1g', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwNDA5ODc0NDk5MDE5ODI0NC0xMDQxMDY3NjE2MDQ2NTc5ODg', 'RESOLVED'),
+('-1004492956512', 'Omniscient Reader''s Viewpoint', 3, '2026-06-16T04:10:17+00:00', '01-03', 'https://linkshortx.in/iSawsC', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjQ0NTA0NjY4NDEyODQ2LTMwMjQ2NTExNDY5ODYzODcy', 'RESOLVED'),
+('-1004492956512', 'Omniscient Reader''s Viewpoint', 4, '2026-06-16T04:10:20+00:00', '01-05', 'https://linkshortx.in/LByX', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjU1NTQyMDc2MzkzNDg5LTMwMjU5NTU1Njc5Mjk1NTQx', 'RESOLVED'),
+('-1004492956512', 'Omniscient Reader''s Viewpoint', 3, '2026-06-16T04:10:17+00:00', '04-06', 'https://urlshortx.io/xd2E', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjQ3NTE0ODcwNTg5Mzg1LTMwMjQ5NTIxNjcyMDQwNDEx', 'RESOLVED'),
+('-1004492956512', 'Omniscient Reader''s Viewpoint', 4, '2026-06-16T04:10:20+00:00', '06-10', 'https://urlshortx.io/FZJsg39', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjYwNTU5MDgwMDIxMDU0LTMwMjY0NTcyNjgyOTIzMTA2', 'RESOLVED'),
+('-1004492956512', 'Omniscient Reader''s Viewpoint', 3, '2026-06-16T04:10:17+00:00', '07-09', 'https://linkshortx.in/wkCUlWz', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjUwNTI1MDcyNzY1OTI0LTMwMjUyNTMxODc0MjE2OTUw', 'RESOLVED'),
+('-1004492956512', 'Omniscient Reader''s Viewpoint', 4, '2026-06-16T04:10:20+00:00', '11-15', 'https://linkshortx.in/BJBZp6', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjY1NTc2MDgzNjQ4NjE5LTMwMjY5NTg5Njg2NTUwNjcx', 'RESOLVED'),
+('-1004492956512', 'Omniscient Reader''s Viewpoint', 4, '2026-06-16T04:10:20+00:00', '16-20', 'https://linkshortx.in/ekAVTb6T', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjcwNTkzMDg3Mjc2MTg0LTMwMjc0NjA2NjkwMTc4MjM2', 'RESOLVED'),
+('-1004492956512', 'Omniscient Reader''s Viewpoint', 4, '2026-06-16T04:10:20+00:00', '21-22', 'https://urlshortx.io/Fni3', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjc1NjEwMDkwOTAzNzQ5LTMwMjc2NjEzNDkxNjI5MjYy', 'RESOLVED'),
 ('-1004299144032', 'Path of Ascension', 4, '2026-07-30T15:22:48+00:00', '01-20', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc0NjEzNjkxNzc1MDIzOTYxLTc0NjMyNzI5MjAyOTI3OTM4', 'RESOLVED'),
 ('-1004299144032', 'Path of Ascension', 4, '2026-07-30T15:22:48+00:00', '21-40', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc0NjMzNzMxMTcyODE3NjIxLTc0NjUyNzY4NjAwNzIxNTk4', 'RESOLVED'),
 ('-1004299144032', 'Path of Ascension', 4, '2026-07-30T15:22:48+00:00', '41-60', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc0NjUzNzcwNTcwNjExMjgxLTc0NjcyODA3OTk4NTE1MjU4', 'RESOLVED'),
