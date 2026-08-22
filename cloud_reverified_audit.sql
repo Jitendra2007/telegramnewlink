@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 18:41:41 UTC
--- Total Records: 10918
+-- Generated on: 2026-08-22 18:42:25 UTC
+-- Total Records: 10936
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -7959,6 +7959,24 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1003773655191', 'Spirit Realm Walker', 13, '2026-04-14T04:29:20+00:00', '1001-1010', 'https://urlshortx.io/APbw', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NDIyODI3ODQzNzU1MTQxLTE5NDMxODU4NDUwMjg0NzU4', 'RESOLVED'),
 ('-1003773655191', 'Spirit Realm Walker', 13, '2026-04-14T04:29:20+00:00', '1011-1020', 'https://linkshortx.in/Hhcv', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NDMyODYxODUxMDEwMjcxLTE5NDQxODkyNDU3NTM5ODg4', 'RESOLVED'),
 ('-1003773655191', 'Spirit Realm Walker', 13, '2026-04-14T04:29:20+00:00', '1021-1022', 'https://urlshortx.io/NPNw9K', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NDQyODk1ODU4MjY1NDAxLTE5NDQzODk5MjU4OTkwOTE0', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 12, '2026-02-12T09:47:40+00:00', '01-10', 'https://linkshortx.in/HrU6RRO', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NzE5ODE3OTY2MDQyNTU4LTQ3NzI4ODM1Njk1MDQ5NzA1', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 9, '2026-02-12T09:44:28+00:00', '01-05', 'https://linkshortx.in/0QbPFpfx', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NTgwNTQ0MTUxMzc2NjIxLTQ3NTg0NTUyMDMwOTM1MzUz', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 9, '2026-02-12T09:44:28+00:00', '06-10', 'https://urlshortx.io/xJHiOI', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NTg1NTU0MDAwODI1MDM2LTQ3NTg5NTYxODgwMzgzNzY4', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 12, '2026-02-12T09:47:40+00:00', '11-20', 'https://urlshortx.io/aD1aNFe', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NzI5ODM3NjY0OTM5Mzg4LTQ3NzM4ODU1MzkzOTQ2NTM1', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 9, '2026-02-12T09:44:28+00:00', '11-15', 'https://linkshortx.in/QwVIp', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NTkwNTYzODUwMjczNDUxLTQ3NTk0NTcxNzI5ODMyMTgz', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 9, '2026-02-12T09:44:28+00:00', '16-20', 'https://urlshortx.io/GdU6jy', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NTk1NTczNjk5NzIxODY2LTQ3NTk5NTgxNTc5MjgwNTk4', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 12, '2026-02-12T09:47:40+00:00', '21-30', 'https://linkshortx.in/tHnS7kt', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NzM5ODU3MzYzODM2MjE4LTQ3NzQ4ODc1MDkyODQzMzY1', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 12, '2026-02-12T09:47:40+00:00', '31-40', 'https://urlshortx.io/zfdN8P', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NzQ5ODc3MDYyNzMzMDQ4LTQ3NzU4ODk0NzkxNzQwMTk1', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 12, '2026-02-12T09:47:40+00:00', '41-50', 'https://linkshortx.in/RToK9VBO', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NzU5ODk2NzYxNjI5ODc4LTQ3NzY4OTE0NDkwNjM3MDI1', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 10, '2026-02-12T09:45:11+00:00', '41-47', 'https://linkshortx.in/fWRs', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NjQxNjY0MzE0NjQ3Mjg0LTQ3NjQ4Njc4MTAzODc1MDY1', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 12, '2026-02-12T09:47:40+00:00', '51-60', 'https://urlshortx.io/0wFrej', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NzY5OTE2NDYwNTI2NzA4LTQ3Nzc4OTM0MTg5NTMzODU1', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 12, '2026-02-12T09:47:40+00:00', '61-70', 'https://linkshortx.in/pfLzPux', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3Nzc5OTM2MTU5NDIzNTM4LTQ3Nzg4OTUzODg4NDMwNjg1', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 11, '2026-02-12T09:45:53+00:00', '61-68', 'https://urlshortx.io/Pt2S', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3NzEwODAwMjM3MDM1NDExLTQ3NzE3ODE0MDI2MjYzMTky', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 4, '2025-12-28T03:40:45+00:00', '71-79', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTEyNDQxMzU2OTQ1MzMyMzQ3OS0xMjQ0MjI1ODc3NjEyMDY2MzA', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 12, '2026-02-12T09:47:40+00:00', '71-80', 'https://urlshortx.io/3u5hxV', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3Nzg5OTU1ODU4MzIwMzY4LTQ3Nzk4OTczNTg3MzI3NTE1', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 6, '2025-12-28T03:43:08+00:00', '81-87', 'https://linkshortx.in/sgqIg419', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0NzU4MzYwNjQ3MzU1Njg3Ni0xNDc1OTE2MjI3NDcyMzA3ODg', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 12, '2026-02-12T09:47:40+00:00', '81-90', 'https://linkshortx.in/FyMjJVA', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3Nzk5OTc1NTU3MjE3MTk4LTQ3ODA4OTkzMjg2MjI0MzQ1', 'RESOLVED'),
+('-1002936179643', 'Sun Eater', 12, '2026-02-12T09:47:40+00:00', '91-94', 'https://urlshortx.io/ZwkaX', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQ3ODA5OTk1MjU2MTE0MDI4LTQ3ODEzMDAxMTY1NzgzMDc3', 'RESOLVED'),
 ('-1002707884623', 'Supreme Lord (English) •|Pocket FM|•', 8, '2025-08-04T17:55:09+00:00', '01-20', 'N/A', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwMzUyMDU0NjY3MjI4OTIwOC0xMDM1Mzk1ODYxMzE2MzExMDA', 'RESOLVED'),
 ('-1002707884623', 'Supreme Lord (English) •|Pocket FM|•', 8, '2025-08-04T17:55:09+00:00', '21-40', 'N/A', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwMzU0MDU4ODIwODQzODU2OC0xMDM1NTk2Mjc2Njc3ODA0NjA', 'RESOLVED'),
 ('-1002707884623', 'Supreme Lord (English) •|Pocket FM|•', 8, '2025-08-04T17:55:09+00:00', '41-60', 'N/A', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwMzU2MDYyOTc0NDU4NzkyOC0xMDM1Nzk2NjkyMDM5Mjk4MjA', 'RESOLVED'),
