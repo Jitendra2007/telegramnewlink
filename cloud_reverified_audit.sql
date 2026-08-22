@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 20:20:50 UTC
--- Total Records: 14598
+-- Generated on: 2026-08-22 20:21:16 UTC
+-- Total Records: 14606
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -5816,6 +5816,14 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1003960715577', 'Legend of the Beastmaster (English) •|Pocket FM|•', 29, '2026-07-28T16:07:58+00:00', '631-640', 'https://linkshortx.in/jPbx', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwNTk3NDYzMjc3Mzc3ODM0MC0xMDU5ODM2NTE0NjUwNDU1NTI', 'RESOLVED'),
 ('-1003960715577', 'Legend of the Beastmaster (English) •|Pocket FM|•', 29, '2026-07-28T16:07:58+00:00', '641-650', 'https://urlshortx.io/HIYvjHQR', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwNTk4NDY1MzU0MTg1MzAyMC0xMDU5OTM2NzIyMzMxMjAyMzI', 'RESOLVED'),
 ('-1003960715577', 'Legend of the Beastmaster (English) •|Pocket FM|•', 29, '2026-07-28T16:07:58+00:00', '651-659', 'https://linkshortx.in/00xFhnf9', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwOTU5MTEyNzk3MTkzMDM1Mi0xMDk2MDAxNDY2NjMxOTc1NjQ', 'RESOLVED'),
+('-1003035619800', 'Legends of the First Empire', 21, '2025-09-28T14:01:46+00:00', '01-06', 'https://urlshortx.io/nUmLsA2i', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEyNzM4ODg0MTM5OTQyOTE0MTUzMzcyNTQ3NzUwODMxMTQyNTAwNCI=', 'RESOLVED'),
+('-1003035619800', 'Legends of the First Empire', 11, '2025-09-20T15:42:32+00:00', '01-07', 'https://linkshortx.in/s3EWRE', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjExOTYwMzM0NjUwNTY0NjQxMTU1MTgxNDE3NjE0NjMwNjUwODcyIg==', 'RESOLVED'),
+('-1003035619800', 'Legends of the First Empire', 19, '2025-09-28T14:01:45+00:00', '01-05', 'https://linkshortx.in/4U8by', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI5ODM1MjY0NDIyOTg5NjQ2OTI1NTI2ODk3OTE3OTQwMjI0ODQzNSI=', 'RESOLVED'),
+('-1003035619800', 'Legends of the First Empire', 20, '2025-09-28T14:01:46+00:00', '01-04', 'https://linkshortx.in/FP7esBbT', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIwNDg3MTU0NTYzODkyNzA4OTM4NTI3OTY3MzIwNTIwNzIwOTQ2OSI=', 'RESOLVED'),
+('-1003035619800', 'Legends of the First Empire', 19, '2025-09-28T14:01:45+00:00', '06-10', 'https://urlshortx.io/cWF6U', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI5NjIwMjc4ODMxNjE5NTQwNzgyMzIxMDE1NTc1NjQ5Nzg5MTUzNiI=', 'RESOLVED'),
+('-1003035619800', 'Legends of the First Empire', 20, '2025-09-28T14:01:46+00:00', '06-08', 'https://linkshortx.in/0UrBQe', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI5OTUwMjk3Mjg2MDAzNDYzODQ5NTM1NDI4MDg3NjIzMjQwNjQyOCI=', 'RESOLVED'),
+('-1003035619800', 'Legends of the First Empire', 21, '2025-09-28T14:01:46+00:00', '07-12', 'https://linkshortx.in/Zfd1Z', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMyMjQzNjU3MDE0MjIxNDUzNjc1NTU5NjExNjQzMjQ3NjE5NTI2MiI=', 'RESOLVED'),
+('-1003035619800', 'Legends of the First Empire', 11, '2025-09-20T15:42:32+00:00', '08-14', 'https://linkshortx.in/vdD9CCcu', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE4MjE1ODM5NjM4NDQxMDk3OTQ4MTcxODI5ODc0MTk0NTA4MTY2NSI=', 'RESOLVED'),
 ('-1003983199204', 'Level Up With the Gods', 5, '2026-06-07T03:32:40+00:00', '01-20', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTcxNjMwODI3NDEzNDM3NjcwLTcxNjQ5ODY0ODQxMzQxNjQ3', 'RESOLVED'),
 ('-1003983199204', 'Level Up With the Gods', 5, '2026-06-07T03:32:40+00:00', '21-40', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTcxNjUwODY2ODExMjMxMzMwLTcxNjY5OTA0MjM5MTM1MzA3', 'RESOLVED'),
 ('-1003983199204', 'Level Up With the Gods', 5, '2026-06-07T03:32:40+00:00', '41-60', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTcxNjcwOTA2MjA5MDI0OTkwLTcxNjg5OTQzNjM2OTI4OTY3', 'RESOLVED'),
