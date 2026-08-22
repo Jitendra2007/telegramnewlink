@@ -613,10 +613,10 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                         is_dead[0] = True
                         break
                     if eval_res.get("action") in ("clicked_get_link", "clicked_final"):
-                        await asyncio.sleep(2.5)
+                        await asyncio.sleep(1.0)
                         if page2.url and BOT_RE.search(page2.url):
                             bot_target[0] = BOT_RE.search(page2.url).group(0)
-                        break
+                            break
                 except Exception:
                     pass
                 await asyncio.sleep(1.0)
