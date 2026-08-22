@@ -36,7 +36,7 @@ API_HASH = os.environ.get("API_HASH", "ce040e05f933e3e0a811f186c3d5d3bb")
 SESSION_STR_MAIN = os.environ.get("TELEGRAM_STRING_SESSION", "")
 SESSION_STR_SUB = os.environ.get("TELEGRAM_STRING_SESSION_SUB", "")
 
-MAX_CONCURRENT_RESOLVERS = int(os.environ.get("MAX_CONCURRENT_RESOLVERS", "5"))
+MAX_CONCURRENT_RESOLVERS = int(os.environ.get("MAX_CONCURRENT_RESOLVERS", "3"))
 MAX_RETRY_CYCLES = int(os.environ.get("MAX_RETRY_CYCLES", "5"))
 
 BASE_CACHE_PATH = "master_resolved_cache.json"
@@ -510,7 +510,7 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
             except Exception:
                 pass
 
-            for tick in range(18):
+            for tick in range(28):
                 if bot_target[0]: break
                 if page1.url and BOT_RE.search(page1.url):
                     bot_target[0] = BOT_RE.search(page1.url).group(0)
@@ -526,6 +526,12 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                         const bLow = (document.body ? document.body.innerText : "").toLowerCase();
                         if (bLow.includes("404 not found") || bLow.includes("wrong turn") || bLow.includes("doesn't exist") || bLow.includes("may have expired")) {
                             return {action: "dead_404"};
+                        }
+
+                        // Auto-trigger submit buttons if present
+                        const subBtn = document.querySelector("#go-submit, button[type=submit], input[type=submit]");
+                        if (subBtn && !subBtn.disabled && subBtn.offsetParent !== null) {
+                            try { subBtn.click(); } catch(e){}
                         }
 
                         const gl = document.querySelector(".get-link, #getlink, a.get-link, a.btn-success, #btn-main, a#btn-main, .btn-primary");
