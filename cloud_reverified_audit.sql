@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 17:36:35 UTC
--- Total Records: 8789
+-- Generated on: 2026-08-22 17:37:14 UTC
+-- Total Records: 8811
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -7255,6 +7255,28 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1004350272048', 'The Last Silver Lord', 10, '2026-08-06T14:34:01+00:00', '621-630', 'https://urlshortx.io/1iyhfzb', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE4NzY1MTk0ODM5ODM5Njc2OS0xODc2NjA5NjY3MDYyNzk5MjA', 'RESOLVED'),
 ('-1004350272048', 'The Last Silver Lord', 10, '2026-08-06T14:34:01+00:00', '631-640', 'https://linkshortx.in/wQnKaKH', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE4NzY2MTk2ODc0MDQ4OTE1OS0xODc2NzA5ODcwNDgzNzIzMTA', 'RESOLVED'),
 ('-1004350272048', 'The Last Silver Lord', 10, '2026-08-06T14:34:01+00:00', '641-650', 'https://linkshortx.in/Yb58geFZ', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE4NzY3MTk4OTA4MjU4MTU0OS0xODc2ODEwMDczOTA0NjQ3MDA', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 9, '2025-12-10T17:06:23+00:00', '01-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjcxMDg0MTEwNTI2NzM0NDI3NDYzNzkxMDg3MTMyOTM1MzMyNjE0Ig==', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '01-10', 'https://linkshortx.in/eH4Ll50b', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE1ODU0NDQ5OTM0MTg3MDIyNDIxMzY2MzE0NzA4ODgxNDg2MzA3NiI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '11-20', 'https://urlshortx.io/ErVOv88S', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI4NzQ1NzA2MzYxNTE0NDk5NDg0MjA2MTcyMTY1NDQ5MTgzNTA1MyI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 9, '2025-12-10T17:06:23+00:00', '21-40', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI1MzA1ODIzMDIwMDYxNTU4ODAzODQ2OTYwOTM0NDI2NjExNjY0MCI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '21-30', 'https://linkshortx.in/9cEOG', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI2NTQxMTY1MzY5NDYzMTQ2MDE3ODcwNjE2MTU3MDgxNDg2NDYzMiI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '31-40', 'https://linkshortx.in/J2XE1i', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE4NTQ1Mjk1MDU5NDQ3MzU4MjY1MzE4NTUwMjg1NzQwNjg2OTkyIg==', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 9, '2025-12-10T17:06:23+00:00', '41-60', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE0Mzk4MzAzNDU3MDY0NjY1NzY4NDA0NzcyMDY1NDk4MTA0ODY5OSI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '41-50', 'https://urlshortx.io/spmjhMOF', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEwNzg2MjQ3OTE1MDAwMDEwMjc4ODgyMTM1MTYwMzMxNDgwODkwNyI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '51-60', 'https://linkshortx.in/TDjDKx', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEzMzU4NDA2NDYyMzQ2NDE0MDIzNTUyNjQ3ODE4MDE4OTMwMjY4NSI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 9, '2025-12-10T17:06:23+00:00', '61-80', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIxODA4MjI5NTQ2MzkwMTMzNzgxMTMxMzM1MTI3MDk0ODU0ODM2NCI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '61-70', 'https://linkshortx.in/PBZcG3Z', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjU0MjQxNzUwNjc2NjE1MzYwNDE0NDI2NTc4MzY3ODAxMzc3NjMzIg==', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '71-80', 'https://urlshortx.io/ve38n', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIyMTQxMzQ5NzAxMDIyNDI0MzAxNzI0MjYwOTY2MDExNzUyNzY2OSI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 9, '2025-12-10T17:06:23+00:00', '81-100', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEwNzE2ODU5MjYzODc0Nzc5NzkxNTc5MTkyMDYwNjQ3NTI5OTk5MSI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '81-90', 'https://linkshortx.in/STZdt', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzOTgxNDE2NTAxMzQzNTMyMDEyNDYxMjQwNzA0NjMwODYwMzc1OCI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '91-100', 'https://linkshortx.in/ag5q6', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI5ODc5ODQwMTA4MjAyMzI4MzY1NjYxMTc1NjgyNjEzMDM1MDA0MSI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '101-110', 'https://urlshortx.io/6BmAq3', 'https://telegram.me/AV_File_Sharing1_Bot?start=Ijk5NTc0MTcyODYyMDAxMjkyMTg0OTIzNDEzMzYwMTQxMDc4NDI3Ig==', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 19, '2025-12-10T17:06:33+00:00', '111-120', 'https://linkshortx.in/G6CYjz', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMxMDc5NTU3ODM1NTEzMDQxNzU4OTAxMzY2NjQ1ODA5OTEyMDI5NyI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 18, '2025-12-10T17:06:29+00:00', '121-130', 'https://linkshortx.in/qZeKV4', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMwOTEzMjY1MjEwNzM3MTE3MjE4OTQ3MDQzNDc3NDg5NzExMzEwNiI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 18, '2025-12-10T17:06:29+00:00', '131-140', 'https://linkshortx.in/9GqW', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI2MTg4MjgwNjE4ODQwMDg4NTQzNTA3NDgzNjIzNDEwMzM1OTE5MyI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 14, '2025-12-10T17:06:28+00:00', '141-150', 'https://linkshortx.in/uJuHNin', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMzOTE0OTc1MjA2NDI2MzkyODQxODAwOTE3NjAxNTEyMjM2NzAzMiI=', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 12, '2025-12-10T17:06:23+00:00', '151-160', 'https://linkshortx.in/U3HH9', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjQzNDkyNTQ2MDI5NzYwNzg5MjE0MTYyMjMzMDM1NDUyMDkyNjkxIg==', 'RESOLVED'),
+('-1003417978161', 'The Legend of Randidly Ghosthound', 12, '2025-12-10T17:06:23+00:00', '161-170', 'https://linkshortx.in/4dJnv', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI4Mjk4NDQzMTQ3MjA1MzI1MzY5ODgxODQ0NDA4Njk0NDQxODc0MyI=', 'RESOLVED'),
 ('-1003902350222', 'The Outcast''s Rise (English) •|Pocket FM|•', 10, '2026-04-27T14:37:45+00:00', '01-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEyNTA1Nzc1MDg2NjQ5NzQyMzU2MzUzMzU2NDc3OTY5MTcyMTY5NyI=', 'RESOLVED'),
 ('-1003902350222', 'The Outcast''s Rise (English) •|Pocket FM|•', 10, '2026-04-27T14:37:45+00:00', '21-40', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=Ijc5MTM1MTQ5ODkyNTY5NDM4MTAyNDYwOTc5MjIzMjgyOTEwMTEwIg==', 'RESOLVED'),
 ('-1003902350222', 'The Outcast''s Rise (English) •|Pocket FM|•', 10, '2026-04-27T14:37:45+00:00', '41-60', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE0NDQ4MzUyMzkyNDMwOTM3MzU3MzQ0MzM0NTM0ODI3NjU3ODIwOCI=', 'RESOLVED'),
