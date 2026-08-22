@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 18:21:51 UTC
--- Total Records: 10251
+-- Generated on: 2026-08-22 18:22:24 UTC
+-- Total Records: 10262
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -4173,6 +4173,17 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1003777761088', 'Loving Nathaniel Hawthorne: The Billionaire Playboy(English) •|Pocket FM|•', 9, '2026-04-14T13:42:19+00:00', '601-610', 'https://urlshortx.io/CE5OS', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTgwMDE3ODM3MjI5OTM0NzM2LTgwMDI2ODU1OTIxMjAxOTQ4', 'RESOLVED'),
 ('-1003777761088', 'Loving Nathaniel Hawthorne: The Billionaire Playboy(English) •|Pocket FM|•', 9, '2026-04-14T13:42:19+00:00', '611-620', 'https://linkshortx.in/FnTgFl', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTgwMDI3ODU3OTk4MDA5NDE2LTgwMDM2ODc2Njg5Mjc2NjI4', 'RESOLVED'),
 ('-1003777761088', 'Loving Nathaniel Hawthorne: The Billionaire Playboy(English) •|Pocket FM|•', 9, '2026-04-14T13:42:19+00:00', '621-626', 'https://linkshortx.in/p5GOY1v', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTgwMDM3ODc4NzY2MDg0MDk2LTgwMDQzODkxMjI2OTI4OTA0', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 27, '2026-03-19T06:12:57+00:00', '01-10', 'https://linkshortx.in/656DgbR', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMxMzQxMjAxODc4NTM2MTQ2Mzk2OTE4NzgyNDk2ODMwNjMyNDEwMCI=', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 27, '2026-03-19T06:12:57+00:00', '11-20', 'https://urlshortx.io/wBXKaF', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIxNzI1NDA3ODg3MjMzMzA2NTA1MTQwMjU5NjQ0MzYxMTkzMjAyNSI=', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 27, '2026-03-19T06:12:57+00:00', '21-30', 'https://linkshortx.in/QhvsmdMg', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI0MDY0OTkyMzgxNjY2OTcyMDA4MDU0NTgyMjM1NTAxNDg5OTEzMSI=', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 27, '2026-03-19T06:12:57+00:00', '31-40', 'https://linkshortx.in/6mvZZkJE', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjUzMzUzMzQzMDQyMjA1Mzg5NjAwMDE1NDcxMjQwMTkxNjkzNTExIg==', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 27, '2026-03-19T06:12:57+00:00', '41-50', 'https://urlshortx.io/Gb7osczv', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEyNTcwNjMzMDUyODI3NDI1NjY5MzkyODk4MjQ1MTg4ODY4OTEyOCI=', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 27, '2026-03-19T06:12:57+00:00', '51-60', 'https://linkshortx.in/gpPRwXd', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI5MjQzOTMwNjg3NDQ1MjI4OTM1MjA4MzMxNTUwOTMyNjUxNjM2MiI=', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 27, '2026-03-19T06:12:57+00:00', '61-70', 'https://linkshortx.in/6s2NaK7H', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMxNTcxNTI5OTc0NjU3MjEwNzE4Mjg3MjU5MTI4MzkwMTY5ODc4MiI=', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 8, '2025-07-20T14:15:18+00:00', '71-75', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI3MTM0NzYzNzQ1NTQ3MjA2MTE5Mzk5Nzg2ODE3NTQ5NjIyNjc4MiI=', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 27, '2026-03-19T06:12:57+00:00', '71-80', 'https://urlshortx.io/LAdd', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI0NDUxOTMxNzQ2NzI2ODM4MDA3Mjc0MzI4NjQ0MzUyMTI3NTkzNCI=', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 27, '2026-03-19T06:12:57+00:00', '81-90', 'https://linkshortx.in/J3tjMGE', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIxNzUwNDkyMjUzMzc1NDk1MzM3MzI2MDY0NzkwNDMyNDM2ODQyMSI=', 'RESOLVED'),
+('-1002886015126', 'Mark of the Fool (Audiobook) |AudioVerseNetwork|', 27, '2026-03-19T06:12:57+00:00', '91-104', 'https://linkshortx.in/3lmm', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzNTE5OTg0ODQyMjE4ODYzMjc1NDEyNTU5NzM0MDI0MDU3OTE3OSI=', 'RESOLVED'),
 ('-1003857419364', 'Martial Madness', 3, '2026-07-05T04:15:31+00:00', '01-20', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTczNTE1NTMyNzc1OTMxMzkzLTczNTM0NTcwMjAzODM1Mzcw', 'RESOLVED'),
 ('-1003857419364', 'Martial Madness', 3, '2026-07-05T04:15:31+00:00', '21-40', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTczNTM1NTcyMTczNzI1MDUzLTczNTU0NjA5NjAxNjI5MDMw', 'RESOLVED'),
 ('-1003857419364', 'Martial Madness', 3, '2026-07-05T04:15:31+00:00', '41-60', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTczNTU1NjExNTcxNTE4NzEzLTczNTc0NjQ4OTk5NDIyNjkw', 'RESOLVED'),
