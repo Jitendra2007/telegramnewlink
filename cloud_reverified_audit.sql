@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 17:37:14 UTC
--- Total Records: 8811
+-- Generated on: 2026-08-22 17:37:55 UTC
+-- Total Records: 8832
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -597,6 +597,27 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1002816175015', 'All the Skills: A Deck-Building LitRPG (Audiobook) |AudioVerseNetwork|', 10, '2025-08-12T14:21:11+00:00', '51-60', 'https://linkshortx.in/lWjI5T4', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI1MjY4MDY3ODQ1MTYxNDcyNDkxMTQ2MDUxNDMxMjg4NTYyODM2MCI=', 'RESOLVED'),
 ('-1002816175015', 'All the Skills: A Deck-Building LitRPG (Audiobook) |AudioVerseNetwork|', 13, '2025-08-14T02:36:43+00:00', '51-63', 'https://linkshortx.in/pcwSW', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjcyMjY5MTY2ODUyMjUzODMwNDgzNTA3MDc3NzQ5MDg0NTU5MzY0Ig==', 'RESOLVED'),
 ('-1002816175015', 'All the Skills: A Deck-Building LitRPG (Audiobook) |AudioVerseNetwork|', 15, '2025-08-17T14:59:36+00:00', '51-55', 'https://urlshortx.io/EVtZkak', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzNDk0OTcyOTY5NjM2MjMxMjM3MzUyMzg3NzYzOTg0NDQ1NjU4NyI=', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 13, '2025-12-27T04:37:34+00:00', '00-09', 'https://urlshortx.io/JFcLA', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0NzI0MzkxNjg3NjYyNDg1NS0xNDcyNTI5MzUxODQ1MDgwMDY', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 16, '2026-04-22T03:59:31+00:00', '01-10', 'https://linkshortx.in/El5VRIj', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE3NjEyNzU1Mjk1NzkzOTAzMC0xNzYxMzY1NzEyNjU4MjIxODE', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 13, '2025-12-27T04:37:34+00:00', '10-19', 'https://linkshortx.in/ELH7', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0NzI1MzkzNzIxODcxNzI0NS0xNDcyNjI5NTU1MjY2MDAzOTY', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 16, '2026-04-22T03:59:31+00:00', '11-20', 'https://urlshortx.io/Fd8O', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE3NjEzNzU3MzMwMDAzMTQyMC0xNzYxNDY1OTE2MDc5MTQ1NzE', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 13, '2025-12-27T04:37:34+00:00', '20-29', 'https://urlshortx.io/jmEv', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0NzI2Mzk1NzU2MDgwOTYzNS0xNDcyNzI5NzU4Njg2OTI3ODY', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 16, '2026-04-22T03:59:31+00:00', '21-30', 'https://linkshortx.in/0taBHqd', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE3NjE0NzU5MzY0MjEyMzgxMC0xNzYxNTY2MTE5NTAwMDY5NjE', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 8, '2025-10-21T12:31:23+00:00', '21-32', 'https://linkshortx.in/2GKe1u', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTEyNjE5NjE4ODMxMTU1OTY2MC0xMjYyMDkyMTQ3NTYyNzk3Njc', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 13, '2025-12-27T04:37:34+00:00', '30-39', 'https://linkshortx.in/aWxHZBV', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0NzI3Mzk3NzkwMjkwMjAyNS0xNDcyODI5OTYyMTA3ODUxNzY', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 4, '2025-07-27T08:45:00+00:00', '31-33', 'N/A', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTEwNDM5MjkyNTk1MjcyODI1OS0xMDQzOTc5MzYxMjM3NzQ0NTQ', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 16, '2026-04-22T03:59:31+00:00', '31-40', 'https://linkshortx.in/gI00', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE3NjE1NzYxMzk4NDIxNjIwMC0xNzYxNjY2MzIyOTIwOTkzNTE', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 9, '2025-10-28T16:42:08+00:00', '31-41', 'https://linkshortx.in/7t8Mq6ej', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTEzMDE0NjIwNzE2NDM3OTc5OC0xMzAxNTcyMjk1NDA2ODE0Mjc', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 10, '2025-10-28T16:45:57+00:00', '31-36', 'https://urlshortx.io/Is2rfYVa', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTEzMDE5MDI5NjY2OTU4NjMxNC0xMzAxOTczMTA5MDkwNTA5ODc', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 13, '2025-12-27T04:37:34+00:00', '40-49', 'https://urlshortx.io/NaE1KNW', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0NzI4Mzk5ODI0NDk5NDQxNS0xNDcyOTMwMTY1NTI4Nzc1NjY', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 16, '2026-04-22T03:59:31+00:00', '41-50', 'https://urlshortx.io/JDH7S9', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE3NjE2NzYzNDMyNjMwODU5MC0xNzYxNzY2NTI2MzQxOTE3NDE', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 12, '2025-12-27T04:24:59+00:00', '50-59', 'https://urlshortx.io/lzeWw', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0NzIyOTg4ODM5NzY5NTUwOS0xNDcyMzg5MDY3MDU1Nzg2NjA', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 13, '2025-12-27T04:37:34+00:00', '50-55', 'https://linkshortx.in/LxCpXL5', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0NzI5NDAxODU4NzA4NjgwNS0xNDcyOTkwMjg3NTgxMzMwMDA', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 16, '2026-04-22T03:59:31+00:00', '51-60', 'https://linkshortx.in/1Imj3Bg', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE3NjE3NzY1NDY2ODQwMDk4MC0xNzYxODY2NzI5NzYyODQxMzE', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 14, '2025-12-27T06:20:40+00:00', '51-56', 'https://linkshortx.in/7Y0kG', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0NzM1MzEzODYwNTQzMTkwNi0xNDczNjIxNTY5MTMzMTUwNTc', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 12, '2025-12-27T04:24:59+00:00', '60-62', 'https://linkshortx.in/DA9Ft', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0NzIzOTkwODczOTc4Nzg5OS0xNDcyNDE5MTI4MDgyMDYzNzc', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 16, '2026-04-22T03:59:31+00:00', '61-70', 'https://linkshortx.in/d6rxPDg', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE3NjE4NzY3NTAxMDQ5MzM3MC0xNzYxOTY2OTMzMTgzNzY1MjE', 'RESOLVED'),
+('-1002831787703', 'Awaken Online', 15, '2026-04-21T10:30:52+00:00', '61-66', 'https://linkshortx.in/x4wsRnT8', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3NjEyMDUzODcxODQ3NDM1Ny0xNzYxMjU1NDg4ODk1MjA1NTI', 'RESOLVED'),
 ('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '01-10', 'https://linkshortx.in/0Uy0', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1Mjc1OTkzODcyMTA0NDI0LTc1Mjg1MDExNjAxMTExNTcx', 'RESOLVED'),
 ('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '11-20', 'https://urlshortx.io/p7Wew', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1Mjg2MDEzNTcxMDAxMjU0LTc1Mjk1MDMxMzAwMDA4NDAx', 'RESOLVED'),
 ('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '21-30', 'https://linkshortx.in/h0ikp0Ui', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1Mjk2MDMzMjY5ODk4MDg0LTc1MzA1MDUwOTk4OTA1MjMx', 'RESOLVED'),
