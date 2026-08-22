@@ -41604,6 +41604,66 @@
     "status": "RESOLVED"
   },
   {
+    "channel_id": "-1003952299925",
+    "channel_name": "Samrat | Pocket FM | Telugu Audio",
+    "message_id": 12,
+    "message_date": "2026-07-28T02:25:26+00:00",
+    "start_ep": 1,
+    "end_ep": 10,
+    "range_label": "01-10",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/KingAudioPocketFm_bot?start=a211f924c80da5d9",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1003952299925",
+    "channel_name": "Samrat | Pocket FM | Telugu Audio",
+    "message_id": 12,
+    "message_date": "2026-07-28T02:25:26+00:00",
+    "start_ep": 11,
+    "end_ep": 20,
+    "range_label": "11-20",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/KingAudioPocketFm_bot?start=889e5cf44532d37a",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1003952299925",
+    "channel_name": "Samrat | Pocket FM | Telugu Audio",
+    "message_id": 12,
+    "message_date": "2026-07-28T02:25:26+00:00",
+    "start_ep": 21,
+    "end_ep": 30,
+    "range_label": "21-30",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/KingAudioPocketFm_bot?start=1cb4fa61d3b80bf7",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1003952299925",
+    "channel_name": "Samrat | Pocket FM | Telugu Audio",
+    "message_id": 12,
+    "message_date": "2026-07-28T02:25:26+00:00",
+    "start_ep": 31,
+    "end_ep": 40,
+    "range_label": "31-40",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/KingAudioPocketFm_bot?start=4056724b95c81410",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1003952299925",
+    "channel_name": "Samrat | Pocket FM | Telugu Audio",
+    "message_id": 12,
+    "message_date": "2026-07-28T02:25:26+00:00",
+    "start_ep": 41,
+    "end_ep": 50,
+    "range_label": "41-50",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/KingAudioPocketFm_bot?start=860b0ae899a2f20f",
+    "status": "RESOLVED"
+  },
+  {
     "channel_id": "-1002179184691",
     "channel_name": "Shadow Slave",
     "message_id": 74,
