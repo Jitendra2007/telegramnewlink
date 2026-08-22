@@ -528,12 +528,12 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                             return {action: "dead_404"};
                         }
 
-                        const gl = document.querySelector(".get-link, #getlink, a.get-link, a.btn-success");
+                        const gl = document.querySelector(".get-link, #getlink, a.get-link, a.btn-success, #btn-main, a#btn-main, .btn-primary");
                         if (gl) {
                             const href = gl.href || gl.getAttribute("href") || "";
                             if (BOT_PAT.test(href)) return {telegram: href};
                             const txt = (gl.innerText || "").toLowerCase();
-                            const locked = gl.classList.contains("disabled") || txt.includes("wait");
+                            const locked = gl.classList.contains("disabled") || txt.includes("wait") || txt.includes("getting");
                             if (!locked) {
                                 try { gl.click(); } catch(e){}
                                 return {clicked: true, href: href};
@@ -550,11 +550,6 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                         break
                     if eval_res.get("action") == "dead_404":
                         is_dead[0] = True
-                        break
-                    if eval_res.get("clicked"):
-                        await asyncio.sleep(2.5)
-                        if page1.url and BOT_RE.search(page1.url):
-                            bot_target[0] = BOT_RE.search(page1.url).group(0)
                         break
                 except Exception:
                     pass
