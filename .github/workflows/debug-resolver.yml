@@ -1,0 +1,53 @@
+name: Debug Resolver (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      shortlink:
+        description: 'Shortlink to debug (overrides default)'
+        required: false
+        default: 'https://urlshortx.io/k4UBWjE'
+
+jobs:
+  debug-resolve:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install apt deps (Playwright system libs)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libatk1.0-0 libxss1 libasound2 libx11-xcb1 libgbm1 fonts-liberation libpangocairo-1.0-0 libgconf-2-4
+
+      - name: Install Python deps and Playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m pip install playwright aiohttp
+          python -m playwright install --with-deps
+
+      - name: Show Playwright info
+        run: |
+          python - <<'PY'
+import playwright
+print('playwright package:', playwright.__version__)
+PY
+
+      - name: Run debug resolver
+        run: |
+          export SHORTLINK="${{ github.event.inputs.shortlink || 'https://urlshortx.io/k4UBWjE' }}"
+          python debug_resolve.py || true
+
+      - name: Upload debug artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: resolver-debug
+          path: |
+            debug_page_content.html
+            debug_page_screenshot.png
