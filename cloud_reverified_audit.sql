@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 20:51:56 UTC
--- Total Records: 15432
+-- Generated on: 2026-08-22 20:52:35 UTC
+-- Total Records: 15452
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -5339,6 +5339,26 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1002720452353', 'Hellbound With You •|Pocket FM|•', 15, '2025-07-16T11:35:06+00:00', '606-610', 'https://linkshortx.in/0EuQthW', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTMwMzMwODYwODA4NDQxNDI0LTMwMzM0ODY5MTE1NjcxMjk2', 'RESOLVED'),
 ('-1002720452353', 'Hellbound With You •|Pocket FM|•', 15, '2025-07-16T11:35:06+00:00', '611-615', 'https://linkshortx.in/YYjraif', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTMwMzM1ODcxMTkyNDc4NzY0LTMwMzM5ODc5NDk5NzA4NjM2', 'RESOLVED'),
 ('-1002720452353', 'Hellbound With You •|Pocket FM|•', 15, '2025-07-16T11:35:06+00:00', '616-619', 'https://linkshortx.in/y7ovyTAt', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTMwMzQwODgxNTc2NTE2MTA0LTMwMzQzODg3ODA2OTM4NTA4', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 9, '2025-05-12T17:21:37+00:00', '01-10', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMwNDEyNjI4NTU2OTI4NzUwMDEwODU0MTkwMzgyNDMwODA4MjIxNiI=', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 9, '2025-05-12T17:21:37+00:00', '11-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE1MDE3NTg4Mzc5MTI5MTQxODU1MTI5ODE5ODI1NjQ1NTA4MDE5Ig==', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 9, '2025-05-12T17:21:37+00:00', '21-30', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzMjA2Mjc0NDQyMjc3NTY4NjkzNzMyMjgyNjI1NDg3ODgyNzkxNSI=', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 9, '2025-05-12T17:21:37+00:00', '31-40', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI3NzUzNzM5Mzc3MjE2OTgwNzg0MDYwNzkwMzU1ODA2OTA2MTE4NyI=', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 9, '2025-05-12T17:21:37+00:00', '41-50', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE4NDg3NDUyNzUxMzk1MzA4MjQ3ODQ2OTQwNDIzMDk5NzU2ODA0NSI=', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 9, '2025-05-12T17:21:37+00:00', '51-60', 'https://linkshortx.in/oTFN9', 'https://telegram.me/AV_File_Sharing1_Bot?start=Ijk1MzM1MjU5OTM0NjQwODAxNDg5Njc0MDIxMzYwODA3Njg1NTgwIg==', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 9, '2025-05-12T17:21:37+00:00', '61-70', 'https://linkshortx.in/FAEKP4', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjM0MTYzMjI4MzkwNDc0MDA2ODc4NjAyNjU0ODc0MjAyNjE5NDIzIg==', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 9, '2025-05-12T17:21:37+00:00', '71-80', 'https://urlshortx.io/ccI6', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjM2MzU3MjExMjM5NDg3NzI2ODc4Mzg0MjI0NjE0ODY2MjEyOTg2Ig==', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 9, '2025-05-12T17:21:37+00:00', '81-90', 'https://linkshortx.in/oTSgZlR', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMzODUwNTI2MTI4ODkwODc5NTYwNDMyMzc1ODg3MzQ4MjQ5OTE2MCI=', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 9, '2025-05-12T17:21:37+00:00', '91-100', 'https://linkshortx.in/XT1BZL1', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzOTIwMjc1NjAwNDk3MDk1Mzc4MDg5MjczMTE3MzIwNTU2MDU2MSI=', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 10, '2025-05-12T17:21:37+00:00', '101-110', 'https://urlshortx.io/vkh1', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE1NTQ4OTUwNDg3OTk3OTM1NjAxNzQ4NDIxMTAzMDA2MzI0NDQ0OCI=', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 10, '2025-05-12T17:21:37+00:00', '111-120', 'https://linkshortx.in/7RaDnks', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjUwNjY0MjI1NTIxOTY2ODMwMTgyNzU0MzM2Nzg5NzAyNzM2OTg3Ig==', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 10, '2025-05-12T17:21:37+00:00', '121-130', 'https://linkshortx.in/2svAo', 'https://telegram.me/AV_File_Sharing1_Bot?start=Ijk5MDQ0NzgxODA3ODI2OTYxMjc3NTQ0ODQxNDA4NTMwMjEyNDY0Ig==', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 10, '2025-05-12T17:21:37+00:00', '131-140', 'https://urlshortx.io/mA3d', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEzMjI3MjcyMjcyMDcyNjQ1MDk2MzYwMTI5NTA5OTQzNjEwMDA1OSI=', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 10, '2025-05-12T17:21:37+00:00', '141-150', 'https://linkshortx.in/3egID5n', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjQzNDIyMTI4MzE0NDk2MzcyMDMxODc4MDY3Mzg0MzAxNTI5NjMyIg==', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 10, '2025-05-12T17:21:37+00:00', '151-160', 'https://linkshortx.in/rpqop', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjU4MjYxMTAzOTM1NzM5MTA1NzUzMjkyODY3MDc1NjIzNjg2NTI5Ig==', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 10, '2025-05-12T17:21:37+00:00', '161-170', 'https://urlshortx.io/i5ba0ZM', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIwNTY5ODQ1OTc5MzAxNzYwODU0MTYyODY3OTcyMDcyNjgyMzc3Ig==', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 10, '2025-05-12T17:21:37+00:00', '171-180', 'https://linkshortx.in/kyPduk', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIwMDcwNzY5MjcyMTYyMjE4MjkxMzM3OTE4ODMyMTY0OTIwOTc1MyI=', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 10, '2025-05-12T17:21:37+00:00', '181-190', 'https://linkshortx.in/rtJX', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIwMTExOTczODMwNDUxODU1ODc5NDU0ODM3NTg3OTAwMjY1ODM5NCI=', 'RESOLVED'),
+('-1002560167188', 'Her Lightness System (English) •|Pocket FM|•', 10, '2025-05-12T17:21:37+00:00', '191-198', 'https://urlshortx.io/tuTNxa', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjcyMDA4MzgwNDYzOTc5ODA2NDk4Njg3Njc2MTE3ODMwODI0NzM3Ig==', 'RESOLVED'),
 ('-1003740123851', 'Her Secret Twins (English) •|Pocket FM|•', 10, '2026-04-03T11:51:47+00:00', '01-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMxODQ2NjY3NTIwMjA4MDc1OTc2NTQ0MzM0Mzc0MTE4NDEwMjQyOCI=', 'RESOLVED'),
 ('-1003740123851', 'Her Secret Twins (English) •|Pocket FM|•', 10, '2026-04-03T11:51:47+00:00', '21-40', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI4MTYyMTg0MTI4ODI0NTI2OTQwMjgzNTMyNDg1MDQxNjU2MzU5NCI=', 'RESOLVED'),
 ('-1003740123851', 'Her Secret Twins (English) •|Pocket FM|•', 10, '2026-04-03T11:51:47+00:00', '41-60', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI0MTQzNzc4OTUzNDYzOTc1NTcyNTM4NTQ3NjQ2MTEzNjg1MjkyNyI=', 'RESOLVED'),
