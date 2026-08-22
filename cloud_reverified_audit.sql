@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 21:45:04 UTC
--- Total Records: 17127
+-- Generated on: 2026-08-22 21:45:46 UTC
+-- Total Records: 17154
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -3001,6 +3001,33 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1004397425956', 'Dhruva Pocket Fm', 52, '2026-07-14T15:07:17+00:00', '21-30', 'N/A', 'https://telegram.me/DhruvaAudio_3705_bot?start=f7791aa444ea4928', 'RESOLVED'),
 ('-1004397425956', 'Dhruva Pocket Fm', 52, '2026-07-14T15:07:17+00:00', '31-40', 'N/A', 'https://telegram.me/DhruvaAudio_3705_bot?start=61eadeb8efae4347', 'RESOLVED'),
 ('-1004397425956', 'Dhruva Pocket Fm', 52, '2026-07-14T15:07:17+00:00', '41-50', 'N/A', 'https://telegram.me/DhruvaAudio_3705_bot?start=9cfeba1ed1c54e06', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 94, '2024-09-16T14:24:44+00:00', '01-10', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MTQ3Nzg4NDIzMTI4NzAwLTI1MTU2ODA3MzU1MDE5ODQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 94, '2024-09-16T14:24:44+00:00', '11-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MTU3ODA5NDU4NTYzMzAwLTI1MTY2ODI4MzkwNDU0NDQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 94, '2024-09-16T14:24:44+00:00', '21-30', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MTY3ODMwNDkzOTk3OTAwLTI1MTc2ODQ5NDI1ODg5MDQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 94, '2024-09-16T14:24:44+00:00', '31-40', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MTc3ODUxNTI5NDMyNTAwLTI1MTg2ODcwNDYxMzIzNjQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 94, '2024-09-16T14:24:44+00:00', '41-50', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MTg3ODcyNTY0ODY3MTAwLTI1MTk2ODkxNDk2NzU4MjQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 94, '2024-09-16T14:24:44+00:00', '51-60', 'https://urlshortx.io/zuBZC9P', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MTk3ODkzNjAwMzAxNzAwLTI1MjA2OTEyNTMyMTkyODQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 94, '2024-09-16T14:24:44+00:00', '61-70', 'https://linkshortx.in/yzxWZEW', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MjA3OTE0NjM1NzM2MzAwLTI1MjE2OTMzNTY3NjI3NDQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 94, '2024-09-16T14:24:44+00:00', '71-80', 'https://urlshortx.io/9OHp', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MjE3OTM1NjcxMTcwOTAwLTI1MjI2OTU0NjAzMDYyMDQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 94, '2024-09-16T14:24:44+00:00', '81-90', 'https://linkshortx.in/3Hu6Th8K', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MjI3OTU2NzA2NjA1NTAwLTI1MjM2OTc1NjM4NDk2NjQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 94, '2024-09-16T14:24:44+00:00', '91-100', 'https://urlshortx.io/j9Vy9i8g', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MjM3OTc3NzQyMDQwMTAwLTI1MjQ2OTk2NjczOTMxMjQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 95, '2024-09-16T14:24:50+00:00', '101-110', 'https://urlshortx.io/0Sh3P', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MjQ3OTk4Nzc3NDc0NzAwLTI1MjU3MDE3NzA5MzY1ODQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 95, '2024-09-16T14:24:50+00:00', '111-120', 'https://linkshortx.in/Eyv7', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MjU4MDE5ODEyOTA5MzAwLTI1MjY3MDM4NzQ0ODAwNDQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 95, '2024-09-16T14:24:50+00:00', '121-130', 'https://urlshortx.io/uPXZ1o', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MjY4MDQwODQ4MzQzOTAwLTI1Mjc3MDU5NzgwMjM1MDQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 95, '2024-09-16T14:24:50+00:00', '131-140', 'https://linkshortx.in/EaljVL4S', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1Mjc4MDYxODgzNzc4NTAwLTI1Mjg3MDgwODE1NjY5NjQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 95, '2024-09-16T14:24:50+00:00', '141-150', 'https://urlshortx.io/U802ye', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1Mjg4MDgyOTE5MjEzMTAwLTI1Mjk3MTAxODUxMTA0MjQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 95, '2024-09-16T14:24:50+00:00', '151-160', 'https://linkshortx.in/A3IqU7A', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1Mjk4MTAzOTU0NjQ3NzAwLTI1MzA3MTIyODg2NTM4ODQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 95, '2024-09-16T14:24:50+00:00', '161-170', 'https://urlshortx.io/4DlE2Z', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MzA4MTI0OTkwMDgyMzAwLTI1MzE3MTQzOTIxOTczNDQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 95, '2024-09-16T14:24:50+00:00', '171-180', 'https://linkshortx.in/Bi3owuuE', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MzE4MTQ2MDI1NTE2OTAwLTI1MzI3MTY0OTU3NDA4MDQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 95, '2024-09-16T14:24:50+00:00', '181-190', 'https://urlshortx.io/iHRJpq', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MzI4MTY3MDYwOTUxNTAwLTI1MzM3MTg1OTkyODQyNjQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 95, '2024-09-16T14:24:50+00:00', '191-200', 'https://linkshortx.in/coWQ1i', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MzM4MTg4MDk2Mzg2MTAwLTI1MzQ3MjA3MDI4Mjc3MjQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 96, '2024-09-16T14:24:51+00:00', '201-210', 'https://urlshortx.io/CkYnh', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MzQ4MjA5MTMxODIwNzAwLTI1MzU3MjI4MDYzNzExODQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 96, '2024-09-16T14:24:51+00:00', '211-220', 'https://linkshortx.in/3XJJY', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MzU4MjMwMTY3MjU1MzAwLTI1MzY3MjQ5MDk5MTQ2NDQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 96, '2024-09-16T14:24:51+00:00', '221-230', 'https://urlshortx.io/iscKqUw0', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1MzY4MjUxMjAyNjg5OTAwLTI1Mzc3MjcwMTM0NTgxMDQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 96, '2024-09-16T14:24:51+00:00', '231-240', 'https://linkshortx.in/6IDr6idL', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1Mzc4MjcyMjM4MTI0NTAwLTI1Mzg3MjkxMTcwMDE1NjQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 96, '2024-09-16T14:24:51+00:00', '241-250', 'https://urlshortx.io/0KUg', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1Mzg4MjkzMjczNTU5MTAwLTI1Mzk3MzEyMjA1NDUwMjQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 96, '2024-09-16T14:24:51+00:00', '251-260', 'https://linkshortx.in/bLGtK', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1Mzk4MzE0MzA4OTkzNzAwLTI1NDA3MzMzMjQwODg0ODQw', 'RESOLVED'),
+('-1001720008414', 'Diana’s Defense', 96, '2024-09-16T14:24:51+00:00', '261-270', 'https://urlshortx.io/wS3ZID', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTI1NDA4MzM1MzQ0NDI4MzAwLTI1NDE3MzU0Mjc2MzE5NDQw', 'RESOLVED'),
 ('-1002914890229', 'Dragon Emperor (English) •|Pocket FM|•', 8, '2025-09-09T03:30:34+00:00', '01-10', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTMwNTY1MTYwMTc5MDczNDYwLTMwNTc0MTc5MTEwOTY0NjAw', 'RESOLVED'),
 ('-1002914890229', 'Dragon Emperor (English) •|Pocket FM|•', 8, '2025-09-09T03:30:34+00:00', '11-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTMwNTc1MTgxMjE0NTA4MDYwLTMwNTg0MjAwMTQ2Mzk5MjAw', 'RESOLVED'),
 ('-1002914890229', 'Dragon Emperor (English) •|Pocket FM|•', 8, '2025-09-09T03:30:34+00:00', '21-30', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=Z2V0LTMwNTg1MjAyMjQ5OTQyNjYwLTMwNTk0MjIxMTgxODMzODAw', 'RESOLVED'),
