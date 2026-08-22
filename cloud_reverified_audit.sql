@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 14:41:48 UTC
--- Total Records: 5335
+-- Generated on: 2026-08-22 14:42:33 UTC
+-- Total Records: 5358
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -1465,6 +1465,29 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1003950462849', 'Forged in Flames (English) •|Pocket FM|•', 20, '2026-06-12T15:17:20+00:00', '771-780', 'https://linkshortx.in/LCxIrI2V', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwNjAxNDcxNTg0NjA3NzA2MC0xMDYwMjM3MzQ1MzczNDQyNzI', 'RESOLVED'),
 ('-1003950462849', 'Forged in Flames (English) •|Pocket FM|•', 20, '2026-06-12T15:17:20+00:00', '781-790', 'https://linkshortx.in/Hdk84', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwNjAyNDczNjYxNDE1MTc0MC0xMDYwMzM3NTUzMDU0MTg5NTI', 'RESOLVED'),
 ('-1003950462849', 'Forged in Flames (English) •|Pocket FM|•', 20, '2026-06-12T15:17:20+00:00', '791-800', 'https://urlshortx.io/6r9Ae1', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwNjAzNDc1NzM4MjIyNjQyMC0xMDYwNDM3NzYwNzM0OTM2MzI', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 3, '2026-07-25T03:35:01+00:00', '01-20', 'N/A', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NjAxODI5MzExMjEwNjIzLTM4NjIwODkzOTI0OTk1Mzcw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 3, '2026-07-25T03:35:01+00:00', '21-40', 'N/A', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NjIxODk3MzI1NzIwODgzLTM4NjQwOTYxOTM5NTA1NjMw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 3, '2026-07-25T03:35:01+00:00', '41-60', 'N/A', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NjQxOTY1MzQwMjMxMTQzLTM4NjYxMDI5OTU0MDE1ODkw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 3, '2026-07-25T03:35:01+00:00', '61-80', 'N/A', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NjYyMDMzMzU0NzQxNDAzLTM4NjgxMDk3OTY4NTI2MTUw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 3, '2026-07-25T03:35:01+00:00', '81-100', 'N/A', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NjgyMTAxMzY5MjUxNjYzLTM4NzAxMTY1OTgzMDM2NDEw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 4, '2026-07-25T03:35:04+00:00', '101-110', 'https://linkshortx.in/aK6v', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NzAyMTY5MzgzNzYxOTIzLTM4NzExMTk5OTkwMjkxNTQw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 4, '2026-07-25T03:35:04+00:00', '111-120', 'https://urlshortx.io/hhyKbODH', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NzEyMjAzMzkxMDE3MDUzLTM4NzIxMjMzOTk3NTQ2Njcw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 4, '2026-07-25T03:35:04+00:00', '121-130', 'https://linkshortx.in/viCl', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NzIyMjM3Mzk4MjcyMTgzLTM4NzMxMjY4MDA0ODAxODAw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 4, '2026-07-25T03:35:04+00:00', '131-140', 'https://linkshortx.in/uE23afkk', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NzMyMjcxNDA1NTI3MzEzLTM4NzQxMzAyMDEyMDU2OTMw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 4, '2026-07-25T03:35:04+00:00', '141-150', 'https://urlshortx.io/Yfazm', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NzQyMzA1NDEyNzgyNDQzLTM4NzUxMzM2MDE5MzEyMDYw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 4, '2026-07-25T03:35:04+00:00', '151-160', 'https://linkshortx.in/7FFeixX', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NzUyMzM5NDIwMDM3NTczLTM4NzYxMzcwMDI2NTY3MTkw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 4, '2026-07-25T03:35:04+00:00', '161-170', 'https://linkshortx.in/esy3t', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NzYyMzczNDI3MjkyNzAzLTM4NzcxNDA0MDMzODIyMzIw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 4, '2026-07-25T03:35:04+00:00', '171-180', 'https://urlshortx.io/9jTw', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NzcyNDA3NDM0NTQ3ODMzLTM4NzgxNDM4MDQxMDc3NDUw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 4, '2026-07-25T03:35:04+00:00', '181-190', 'https://linkshortx.in/Vysc', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NzgyNDQxNDQxODAyOTYzLTM4NzkxNDcyMDQ4MzMyNTgw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 4, '2026-07-25T03:35:04+00:00', '191-200', 'https://linkshortx.in/qKzb9FE', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4NzkyNDc1NDQ5MDU4MDkzLTM4ODAxNTA2MDU1NTg3NzEw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '201-210', 'https://urlshortx.io/NrLd', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODAyNTA5NDU2MzEzMjIzLTM4ODExNTQwMDYyODQyODQw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '211-220', 'https://linkshortx.in/0RCl', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODEyNTQzNDYzNTY4MzUzLTM4ODIxNTc0MDcwMDk3OTcw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '221-230', 'https://linkshortx.in/7TpTEv', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODIyNTc3NDcwODIzNDgzLTM4ODMxNjA4MDc3MzUzMTAw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '231-240', 'https://urlshortx.io/KdHqT5E', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODMyNjExNDc4MDc4NjEzLTM4ODQxNjQyMDg0NjA4MjMw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '241-250', 'https://linkshortx.in/q8QP29', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODQyNjQ1NDg1MzMzNzQzLTM4ODUxNjc2MDkxODYzMzYw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '251-260', 'https://linkshortx.in/5LeGC', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODUyNjc5NDkyNTg4ODczLTM4ODYxNzEwMDk5MTE4NDkw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '261-270', 'https://urlshortx.io/HCfVk', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODYyNzEzNDk5ODQ0MDAzLTM4ODcxNzQ0MTA2MzczNjIw', 'RESOLVED'),
+('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '271-279', 'https://linkshortx.in/SwW5U', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODcyNzQ3NTA3MDk5MTMzLTM4ODgwNzc0NzEyOTAzMjM3', 'RESOLVED'),
 ('-1002210956567', 'God Of The Six Elements', 19, '2025-10-08T11:13:43+00:00', '01-20', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4MTEzNDcxNzkwMTUwNjMxMy0xODExNTM3NTY1NTE0ODE4NTQ', 'RESOLVED'),
 ('-1002210956567', 'God Of The Six Elements', 19, '2025-10-08T11:13:43+00:00', '21-40', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4MTE1NDc1ODU4NTY5MTA5My0xODExNzM3OTcyMzU2NjY2MzQ', 'RESOLVED'),
 ('-1002210956567', 'God Of The Six Elements', 19, '2025-10-08T11:13:43+00:00', '41-60', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4MTE3NDc5OTI2OTg3NTg3My0xODExOTM4Mzc5MTk4NTE0MTQ', 'RESOLVED'),
