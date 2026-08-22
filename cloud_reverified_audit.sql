@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 14:42:33 UTC
--- Total Records: 5358
+-- Generated on: 2026-08-22 14:43:19 UTC
+-- Total Records: 5373
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -510,6 +510,21 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1004371209939', 'All In One', 91, '2026-08-13T09:26:40+00:00', '4931-4933', 'https://linkshortx.in/BWMas23', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwOTE0ODIxMDAyMzAyOTQ5Ni0xMDkxNTAyMTQxNzY2NDQ0MzI', 'RESOLVED'),
 ('-1004371209939', 'All In One', 92, '2026-08-13T09:26:40+00:00', '4936-4940', 'https://linkshortx.in/mXqMXHQ', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwOTI5NzUxOTQ2NzM0MjIyOC0xMDkzMDE1Mjc3NzQ1NzIxMDA', 'RESOLVED'),
 ('-1004371209939', 'All In One', 93, '2026-08-13T09:26:40+00:00', '4951-4955', 'https://linkshortx.in/BgudQE', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwOTM4NzcwNjM4MDAxNDM0OC0xMDkzOTE3MTQ2ODcyNDQyMjA', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '01-10', 'https://linkshortx.in/0Uy0', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1Mjc1OTkzODcyMTA0NDI0LTc1Mjg1MDExNjAxMTExNTcx', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '11-20', 'https://urlshortx.io/p7Wew', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1Mjg2MDEzNTcxMDAxMjU0LTc1Mjk1MDMxMzAwMDA4NDAx', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '21-30', 'https://linkshortx.in/h0ikp0Ui', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1Mjk2MDMzMjY5ODk4MDg0LTc1MzA1MDUwOTk4OTA1MjMx', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '31-40', 'https://linkshortx.in/JT4aRuNs', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1MzA2MDUyOTY4Nzk0OTE0LTc1MzE1MDcwNjk3ODAyMDYx', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '41-50', 'https://urlshortx.io/Wiv3', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1MzE2MDcyNjY3NjkxNzQ0LTc1MzI1MDkwMzk2Njk4ODkx', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '51-60', 'https://linkshortx.in/K0PYV9fY', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1MzI2MDkyMzY2NTg4NTc0LTc1MzM1MTEwMDk1NTk1NzIx', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '61-70', 'https://linkshortx.in/JLbT', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1MzM2MTEyMDY1NDg1NDA0LTc1MzQ1MTI5Nzk0NDkyNTUx', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 7, '2025-06-28T17:04:44+00:00', '61-64', 'https://linkshortx.in/W7fog', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTEwMDEyMjI1NjE1Mjk1MTY0MS0xMDAxMjcyNjYzMjM5OTc4MzY', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 4, '2025-06-24T18:31:18+00:00', '71-73', 'https://urlshortx.io/UUD9ug', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTk5NjM1MjY3NTI3MjYxNDg3LTk5NjM5Mjc1NjY0MDk4NDQz', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 10, '2026-07-24T14:30:50+00:00', '71-80', 'https://urlshortx.io/2t1HRhnG', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1MjU0OTUyNTA0NDIxMDgxLTc1MjYzOTcwMjMzNDI4MjI4', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 11, '2026-07-24T14:31:13+00:00', '71-76', 'https://urlshortx.io/qiUutYYB', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1MzQ2MTMxNzY0MzgyMjM0LTc1MzUxMTQxNjEzODMwNjQ5', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 9, '2026-07-24T14:30:18+00:00', '81-90', 'https://linkshortx.in/99eT5', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4NTg1OTMwOTE5ODA2ODE5OC0xODU4NjgzMjc1MDU5NTEzNDk', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 10, '2026-07-24T14:30:50+00:00', '81-89', 'https://linkshortx.in/jUprA7', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc1MjY0OTcyMjAzMzE3OTExLTc1MjcyOTg3OTYyNDM1Mzc1', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 8, '2026-07-24T14:29:06+00:00', '91-96', 'https://linkshortx.in/fiwPOrA', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4NTc3MTEzMDE4NzY1NTE2Ni0xODU3NzYxNDAzNTg3MDEzNjE', 'RESOLVED'),
+('-1002749767045', 'Azarinth Healer', 9, '2026-07-24T14:30:18+00:00', '91-98', 'https://linkshortx.in/CloRCj', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4NTg2OTMyOTU0MDE2MDU4OC0xODU4NzYzNDM3Nzk2MjUyNjE', 'RESOLVED'),
 ('-1003834123168', 'Beast Tamer''s Dominion', 4, '2026-04-03T13:32:50+00:00', '01-10', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTYyODU1NTc1MTE5NTkzOTU2LTYyODY0NTkyODQ4NjAxMTAz', 'RESOLVED'),
 ('-1003834123168', 'Beast Tamer''s Dominion', 4, '2026-04-03T13:32:50+00:00', '11-20', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTYyODY1NTk0ODE4NDkwNzg2LTYyODc0NjEyNTQ3NDk3OTMz', 'RESOLVED'),
 ('-1003834123168', 'Beast Tamer''s Dominion', 4, '2026-04-03T13:32:50+00:00', '21-30', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTYyODc1NjE0NTE3Mzg3NjE2LTYyODg0NjMyMjQ2Mzk0NzYz', 'RESOLVED'),
