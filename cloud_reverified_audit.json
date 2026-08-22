@@ -13464,6 +13464,66 @@
     "status": "RESOLVED"
   },
   {
+    "channel_id": "-1004397425956",
+    "channel_name": "Dhruva Pocket Fm",
+    "message_id": 52,
+    "message_date": "2026-07-14T15:07:17+00:00",
+    "start_ep": 1,
+    "end_ep": 10,
+    "range_label": "01-10",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/DhruvaAudio_3705_bot?start=fd658cfbf08f43df",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1004397425956",
+    "channel_name": "Dhruva Pocket Fm",
+    "message_id": 52,
+    "message_date": "2026-07-14T15:07:17+00:00",
+    "start_ep": 11,
+    "end_ep": 20,
+    "range_label": "11-20",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/DhruvaAudio_3705_bot?start=217bd8e0f13a47a3",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1004397425956",
+    "channel_name": "Dhruva Pocket Fm",
+    "message_id": 52,
+    "message_date": "2026-07-14T15:07:17+00:00",
+    "start_ep": 21,
+    "end_ep": 30,
+    "range_label": "21-30",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/DhruvaAudio_3705_bot?start=f7791aa444ea4928",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1004397425956",
+    "channel_name": "Dhruva Pocket Fm",
+    "message_id": 52,
+    "message_date": "2026-07-14T15:07:17+00:00",
+    "start_ep": 31,
+    "end_ep": 40,
+    "range_label": "31-40",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/DhruvaAudio_3705_bot?start=61eadeb8efae4347",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1004397425956",
+    "channel_name": "Dhruva Pocket Fm",
+    "message_id": 52,
+    "message_date": "2026-07-14T15:07:17+00:00",
+    "start_ep": 41,
+    "end_ep": 50,
+    "range_label": "41-50",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/DhruvaAudio_3705_bot?start=9cfeba1ed1c54e06",
+    "status": "RESOLVED"
+  },
+  {
     "channel_id": "-1003840220845",
     "channel_name": "Dragon of sin",
     "message_id": 4,
