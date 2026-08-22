@@ -166,6 +166,8 @@ def save_stubborn_json_and_report():
         print(f"⚠️ Error saving stubborn MD report: {e}", flush=True)
 
 
+MASTER_PROVENANCE_ROWS = {}
+
 def generate_audit_sql_and_report():
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     
@@ -177,21 +179,52 @@ def generate_audit_sql_and_report():
 
     sql_lines = [
         f"-- =========================================================================\n",
-        f"-- CODEX MASTER AUDITED DATASET (STANDARD pocket_fm_bot_links FORMAT)\n",
-        f"-- Generated at: {now_str} | Total Links Audited: {len(AUDIT_RESULTS):,}\n",
+        f"-- CODEX MASTER 8-COLUMN DATASET (pocket_fm_all_in_one_links FORMAT)\n",
+        f"-- Generated at: {now_str} | Total Verified Ranges: {len(MASTER_PROVENANCE_ROWS):,}\n",
         f"-- =========================================================================\n\n",
-        "INSERT INTO `pocket_fm_bot_links` (`telegram_channel_id`, `telegram_channel_name`, `invite_link`, `message_id`, `button_range`, `shortlink_url`, `bot_link_url`, `status`) VALUES\n"
+        "CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (\n",
+        "  `id` int(11) NOT NULL AUTO_INCREMENT,\n",
+        "  `channel_id` varchar(64) NOT NULL,\n",
+        "  `channel_name` varchar(255) NOT NULL,\n",
+        "  `message_id` int(11) NOT NULL DEFAULT 0,\n",
+        "  `message_date` varchar(64) NOT NULL DEFAULT '',\n",
+        "  `button_range` varchar(32) NOT NULL,\n",
+        "  `shortlink_url` text NOT NULL,\n",
+        "  `telegram_bot_link` text NOT NULL,\n",
+        "  `status` varchar(32) NOT NULL DEFAULT 'PENDING',\n",
+        "  PRIMARY KEY (`id`)\n",
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n",
+        "INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message_id`, `message_date`, `button_range`, `shortlink_url`, `telegram_bot_link`, `status`) VALUES\n"
     ]
     
     val_lines = []
+    for key, item in sorted(MASTER_PROVENANCE_ROWS.items(), key=lambda x: (x[1].get('channel_name', ''), x[1].get('start_ep', 0))):
+        cid = item.get("channel_id", "")
+        cname = item.get("channel_name", "").replace("'", "''")
+        mid = item.get("message_id", 0)
+        mdate = item.get("message_date", "")
+        rng = item.get("range_label", "")
+        surl = item.get("shortlink", "N/A")
+        bot_link = item.get("bot_link", "N/A")
+        
+        # Check if shortlink was resolved
+        if surl != "N/A":
+            if surl in AUDIT_RESULTS:
+                live_b = canonical_bot_url(AUDIT_RESULTS[surl].get("live_bot_link", "N/A"))
+                if live_b != "N/A":
+                    bot_link = live_b
+            elif surl in BASELINE_CACHE:
+                base_b = canonical_bot_url(BASELINE_CACHE.get(surl, "N/A"))
+                if base_b != "N/A":
+                    bot_link = base_b
+
+        status = "RESOLVED" if bot_link != "N/A" and bot_link else "PENDING"
+        surl_esc = surl.replace("'", "''")
+        burl_esc = bot_link.replace("'", "''")
+        val_lines.append(f"('{cid}', '{cname}', {mid}, '{mdate}', '{rng}', '{surl_esc}', '{burl_esc}', '{status}')")
+
     for surl, data in AUDIT_RESULTS.items():
         vstat = data.get("verification_status", "UNKNOWN")
-        live_bot = canonical_bot_url(data.get("live_bot_link", "N/A"))
-        cname = data.get("channel_name", "").replace("'", "''")
-        cid = data.get("channel_id", "")
-        rng = data.get("range_label", "")
-        mid = data.get("message_id", 0)
-        
         if vstat in ("MATCH", "CACHE_VERIFIED"):
             matches += 1
         elif vstat == "NEW_RESOLVED":
@@ -203,19 +236,11 @@ def generate_audit_sql_and_report():
         elif vstat == "FAILED_TO_RESOLVE":
             unresolved.append(data)
 
-        if live_bot != "N/A":
-            surl_esc = surl.replace("'", "''")
-            burl_esc = live_bot.replace("'", "''")
-            val_lines.append(f"('{cid}', '{cname}', '', {mid}, '{rng}', '{surl_esc}', '{burl_esc}', 'RESOLVED')")
-        elif vstat != "DEAD_404_EXPIRED":
-            surl_esc = surl.replace("'", "''")
-            val_lines.append(f"('{cid}', '{cname}', '', {mid}, '{rng}', '{surl_esc}', 'N/A', 'PENDING')")
-
     if val_lines:
         sql_lines.append(",\n".join(val_lines) + ";\n")
         with open(AUDIT_SQL_PATH, "w", encoding="utf-8") as f:
             f.writelines(sql_lines)
-        print(f"💾 Clean Audit SQL Dump generated: {len(val_lines):,} rows in {AUDIT_SQL_PATH}", flush=True)
+        print(f"💾 Full 8-Column Master SQL Dump generated: {len(val_lines):,} rows in {AUDIT_SQL_PATH}", flush=True)
 
     with open(AUDIT_REPORT_MD, "w", encoding="utf-8") as f:
         f.write(f"# 🛡️ CODEX Cloud Re-Verification & Discrepancy Audit Report\n\n")
@@ -287,6 +312,12 @@ def parse_range_numbers(range_str):
                 thousands = (s // 1000) * 1000
                 if thousands + e >= s:
                     e = thousands + e
+
+        # Anti-Flattening Invariant: Reject broad container headings (e.g. 101-200, 1-100)
+        # Real episode link ranges across Pocket FM channels are strictly <= 20 episodes
+        if (e - s) > 20 or (e - s) < 0:
+            return None, None, None
+
         formatted = f"{s:02d}-{e:02d}" if s < 100 and e < 100 else f"{s}-{e}"
         return s, e, formatted
     return None, None, None
@@ -730,41 +761,61 @@ async def run_safe_parallel_cloud_reverification():
                 async for message in cli.iter_messages(d.entity, reverse=True, limit=None):
                     msg_count += 1
                     mdate = message.date.isoformat() if message.date else ""
+                    has_buttons = False
+
+                    # Priority 1: Inline Buttons (Sub-ranges <= 20 episodes)
                     if message.reply_markup and hasattr(message.reply_markup, 'rows'):
                         for row in message.reply_markup.rows:
                             for btn in row.buttons:
                                 if hasattr(btn, 'url') and btn.url:
-                                    s_ep, e_ep, formatted_range = parse_range_numbers(getattr(btn, 'text', ''))
-                                    if s_ep is not None:
-                                        raw_channel_items.append({
-                                            "channel_id": cid,
-                                            "channel_name": cname,
-                                            "message_id": message.id,
-                                            "message_date": mdate,
-                                            "start_ep": s_ep, "end_ep": e_ep,
-                                            "range_label": formatted_range,
-                                            "shortlink": normalize_shortlink(btn.url),
-                                            "bot_link": canonical_bot_url(btn.url)
-                                        })
+                                    u = btn.url.strip()
+                                    btxt = getattr(btn, 'text', '').strip()
+                                    
+                                    # Ignore join/promo/ad buttons
+                                    if any(k in btxt.lower() for k in ['join', 'promo', 'update', 'owner', 'channel']) or 't.me/+' in u:
+                                        continue
 
-                    text = message.text or ""
-                    b_m = BOT_RE.search(text)
-                    s_m = SHORTLINK_RE.search(text)
-                    if b_m or s_m:
-                        rng_m = re.search(r'(\d+\s*[-–]\s*\d+)', text)
-                        brange = rng_m.group(1) if rng_m else "01-10"
-                        s_ep, e_ep, formatted_range = parse_range_numbers(brange)
-                        if s_ep is not None:
-                            raw_channel_items.append({
-                                "channel_id": cid,
-                                "channel_name": cname,
-                                "message_id": message.id,
-                                "message_date": mdate,
-                                "start_ep": s_ep, "end_ep": e_ep,
-                                "range_label": formatted_range,
-                                "shortlink": normalize_shortlink(s_m.group(0)) if s_m else "N/A",
-                                "bot_link": canonical_bot_url(b_m.group(0)) if b_m else "N/A"
-                            })
+                                    s_ep, e_ep, formatted_range = parse_range_numbers(btxt)
+                                    if s_ep is not None:
+                                        has_buttons = True
+                                        bot_u = canonical_bot_url(u) if ('?start=' in u and ('t.me/' in u or 'telegram.me/' in u)) else 'N/A'
+                                        short_u = normalize_shortlink(u) if bot_u == 'N/A' else 'N/A'
+
+                                        if bot_u != 'N/A' or short_u != 'N/A':
+                                            raw_channel_items.append({
+                                                "channel_id": cid,
+                                                "channel_name": cname,
+                                                "message_id": message.id,
+                                                "message_date": mdate,
+                                                "start_ep": s_ep, "end_ep": e_ep,
+                                                "range_label": formatted_range,
+                                                "shortlink": short_u,
+                                                "bot_link": bot_u,
+                                                "status": "RESOLVED" if bot_u != "N/A" else "PENDING"
+                                            })
+
+                    # Priority 2: Text Posts WITHOUT Buttons (e.g. daily live updates)
+                    if not has_buttons:
+                        text = message.text or ""
+                        b_m = BOT_RE.search(text)
+                        s_m = SHORTLINK_RE.search(text)
+                        if b_m or s_m:
+                            s_ep, e_ep, formatted_range = parse_range_numbers(text)
+                            if s_ep is not None:
+                                bot_u = canonical_bot_url(b_m.group(0)) if b_m else "N/A"
+                                short_u = normalize_shortlink(s_m.group(0)) if s_m else "N/A"
+                                if bot_u != "N/A" or short_u != "N/A":
+                                    raw_channel_items.append({
+                                        "channel_id": cid,
+                                        "channel_name": cname,
+                                        "message_id": message.id,
+                                        "message_date": mdate,
+                                        "start_ep": s_ep, "end_ep": e_ep,
+                                        "range_label": formatted_range,
+                                        "shortlink": short_u,
+                                        "bot_link": bot_u,
+                                        "status": "RESOLVED" if bot_u != "N/A" else "PENDING"
+                                    })
             except Exception as e:
                 scan_error = True
                 print(f"⚠️ Error scanning channel {cname}: {e}", flush=True)
@@ -777,21 +828,19 @@ async def run_safe_parallel_cloud_reverification():
                 save_skipped_channel(cid, cname, reason="no_links_found")
                 continue
 
-            has_any_shortlink = any(i["shortlink"] != "N/A" and i["shortlink"] for i in raw_channel_items)
-            if not has_any_shortlink:
-                print(f"  🚫 Only free bot links in '{cname}' (0 shortlinks). Skipping.", flush=True)
-                save_skipped_channel(cid, cname, reason="only_free_bot_links")
-                continue
-
             unique_ranges = {}
             for item in raw_channel_items:
                 unique_ranges[(item["start_ep"], item["end_ep"])] = item
             ordered_story_items = sorted(unique_ranges.values(), key=lambda x: x["start_ep"])
-            all_harvested_items.extend(ordered_story_items)
+            
+            # Store all channel items into master provenance rows (including free 01-100 bot links)
+            for it in ordered_story_items:
+                MASTER_PROVENANCE_ROWS[(it["channel_id"], it["start_ep"], it["end_ep"])] = it
+                all_harvested_items.append(it)
 
             items_to_resolve = [it for it in ordered_story_items if it.get("shortlink", "N/A") != "N/A"]
             if not items_to_resolve:
-                print(f"  🚫 No shortlinks to resolve in '{cname}'. Skipping.", flush=True)
+                print(f"  ✅ Channel '{cname}': {len(ordered_story_items)} free bot links recorded (0 shortlinks to resolve).", flush=True)
                 continue
 
             # =====================================================================
@@ -799,7 +848,7 @@ async def run_safe_parallel_cloud_reverification():
             # Process all shortlinks for this channel with queue workers.
             # Up to 3 retry passes per channel before moving on.
             # =====================================================================
-            print(f"⚡ [{idx}/{len(channel_targets)}] Resolving '{cname}': {len(items_to_resolve)} shortlinks with {MAX_CONCURRENT_RESOLVERS} workers...", flush=True)
+            print(f"⚡ [{idx}/{len(channel_targets)}] Resolving '{cname}': {len(items_to_resolve)} shortlinks ({len(ordered_story_items)} total ranges) with {MAX_CONCURRENT_RESOLVERS} workers...", flush=True)
 
             channel_resolved = 0
             channel_dead = 0
@@ -826,6 +875,10 @@ async def run_safe_parallel_cloud_reverification():
                     elapsed = time.time() - t0
 
                     if res_type == "RESOLVED" and live_bot != "N/A":
+                        pkey = (item["channel_id"], item["start_ep"], item["end_ep"])
+                        if pkey in MASTER_PROVENANCE_ROWS:
+                            MASTER_PROVENANCE_ROWS[pkey]["bot_link"] = live_bot
+                            MASTER_PROVENANCE_ROWS[pkey]["status"] = "RESOLVED"
                         if baseline_bot != "N/A":
                             status = "MATCH" if live_bot == baseline_bot else "MISMATCH"
                             print(f"    [W{worker_id}] ✅ [{status}] [{item['range_label']}] -> {live_bot} ({elapsed:.1f}s)", flush=True)
@@ -891,6 +944,10 @@ async def run_safe_parallel_cloud_reverification():
                         elapsed = time.time() - t0
 
                         if res_type == "RESOLVED" and live_bot != "N/A":
+                            pkey = (item["channel_id"], item["start_ep"], item["end_ep"])
+                            if pkey in MASTER_PROVENANCE_ROWS:
+                                MASTER_PROVENANCE_ROWS[pkey]["bot_link"] = live_bot
+                                MASTER_PROVENANCE_ROWS[pkey]["status"] = "RESOLVED"
                             print(f"    [W{worker_id}] ✨ [RETRY SOLVED] [{item['range_label']}] -> {live_bot} ({elapsed:.1f}s)", flush=True)
                             AUDIT_RESULTS[surl]["live_bot_link"] = live_bot
                             AUDIT_RESULTS[surl]["verification_status"] = "NEW_RESOLVED"
