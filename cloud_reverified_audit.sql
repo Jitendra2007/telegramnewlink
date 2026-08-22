@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 19:34:32 UTC
--- Total Records: 13022
+-- Generated on: 2026-08-22 19:35:11 UTC
+-- Total Records: 13043
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -10120,6 +10120,27 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1003758220121', 'TDMB', 30, '2026-06-16T17:08:06+00:00', '1761-1770', 'https://urlshortx.io/djhngMsV', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE2MTA2OTY1MzI5OTgxNjgyOTI2NTMwNDc0ODQxOTk5Nzk3MTgyNiI=', 'RESOLVED'),
 ('-1003758220121', 'TDMB', 30, '2026-06-16T17:08:06+00:00', '1771-1780', 'https://linkshortx.in/MBoSv', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjgzNTUzMDA0MDQyODM5MTA5ODAwOTExOTQ4OTcwOTY4MzY3NDkzIg==', 'RESOLVED'),
 ('-1003758220121', 'TDMB', 30, '2026-06-16T17:08:06+00:00', '1781-1790', 'https://linkshortx.in/mDRWn7xw', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMxNzk1MzE1NDQ5OTU4ODc1NDcwNTYyNTg3NjA5NTkzMTkxMjMwOSI=', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 14, '2025-12-27T06:27:02+00:00', '01-10', 'https://linkshortx.in/JGKsiSp2', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQxNDU4NTA4MTI1NDEzNDkxLTQxNDY3NTI1ODU0NDIwNjM4', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 17, '2025-12-27T06:34:04+00:00', '01-05', 'https://linkshortx.in/0Pu6aNb', 'https://telegram.me/AVFile_BOT?start=Z2V0LTY0MzU4MTIyNTM0NDAzODItNjQzOTgyNTg1NjM0MjQzNA', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 17, '2025-12-27T06:34:04+00:00', '06-10', 'https://urlshortx.io/oFztCiuB', 'https://telegram.me/AVFile_BOT?start=Z2V0LTY0NDA4MjkyNTcwNjc5NDctNjQ0NDg0Mjg1OTk2OTk5OQ', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 14, '2025-12-27T06:27:02+00:00', '11-20', 'https://urlshortx.io/eA69zV', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQxNDY4NTI3ODI0MzEwMzIxLTQxNDc3NTQ1NTUzMzE3NDY4', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 17, '2025-12-27T06:34:04+00:00', '11-15', 'https://linkshortx.in/H1Qlh', 'https://telegram.me/AVFile_BOT?start=Z2V0LTY0NDU4NDYyNjA2OTU1MTItNjQ0OTg1OTg2MzU5NzU2NA', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 17, '2025-12-27T06:34:04+00:00', '16-20', 'https://urlshortx.io/NKyH', 'https://telegram.me/AVFile_BOT?start=Z2V0LTY0NTA4NjMyNjQzMjMwNzctNjQ1NDg3Njg2NzIyNTEyOQ', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 16, '2025-12-27T06:32:36+00:00', '16-18', 'https://urlshortx.io/Y1MY', 'https://telegram.me/AVFile_BOT?start=Z2V0LTY0MTI3MzQwMzY3NTM1ODMtNjQxNDc0MDgzODIwNDYwOQ', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 14, '2025-12-27T06:27:02+00:00', '21-30', 'https://linkshortx.in/b9dya', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQxNDc4NTQ3NTIzMjA3MTUxLTQxNDg3NTY1MjUyMjE0Mjk4', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 15, '2025-12-27T06:31:31+00:00', '21-24', 'https://urlshortx.io/SpF71', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQxNTI3NjQ0MDQ3ODAxNjE4LTQxNTMwNjQ5OTU3NDcwNjY3', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 14, '2025-12-27T06:27:02+00:00', '31-40', 'https://urlshortx.io/v7fkiHK', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQxNDg4NTY3MjIyMTAzOTgxLTQxNDk3NTg0OTUxMTExMTI4', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 13, '2025-12-27T06:25:06+00:00', '41-50', 'https://urlshortx.io/Wa0qR', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTM5OTk2NjM0MDU2MzY1OTk0LTQwMDA1NjUxNzg1MzczMTQx', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 11, '2025-12-16T04:08:16+00:00', '41-45', 'https://linkshortx.in/1fTG', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTM5ODk3NDM5MDM3Mjg3Mzc3LTM5OTAxNDQ2OTE2ODQ2MTA5', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 14, '2025-12-27T06:27:02+00:00', '41-47', 'https://linkshortx.in/6pnZKIq', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQxNDk4NTg2OTIxMDAwODExLTQxNTA0NTk4NzQwMzM4OTA5', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 13, '2025-12-27T06:25:06+00:00', '51-60', 'https://linkshortx.in/kjIfA', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQwMDA2NjUzNzU1MjYyODI0LTQwMDE1NjcxNDg0MjY5OTcx', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 8, '2025-12-15T14:20:00+00:00', '61-70', 'https://linkshortx.in/ofmRI', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTEzMDEwMjExNzY1OTE3MzI4Mi0xMzAxMTExMzU5NjcwNTY0MzM', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 5, '2025-11-04T08:04:19+00:00', '61-67', 'https://urlshortx.io/seuH', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTEzMDAzMTk3NTI2NDUyNjU1Mi0xMzAwMzk5OTE1MzgyMDA0NjQ', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 9, '2025-12-15T14:21:00+00:00', '61-66', 'https://linkshortx.in/97YCKD', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTEzMDI1OTQzNzAzMDAyMzgwNS0xMzAyNjQ0NDcyMDEwNzAwMDA', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 10, '2025-12-15T14:22:26+00:00', '61-63', 'https://linkshortx.in/nUOIV', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTEzMDMyNzU3NTM1NjI1MjA1Ny0xMzAzMjk1Nzk0MjQ2NzA1MzU', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 13, '2025-12-27T06:25:06+00:00', '61-68', 'https://urlshortx.io/EMyB7D', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTQwMDE2NjczNDU0MTU5NjU0LTQwMDIzNjg3MjQzMzg3NDM1', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 4, '2025-11-04T07:52:14+00:00', '71-80', 'N/A', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTEyOTk1NDgxODYzMDQxNTE0OS0xMjk5NjM4MzY5MzgyOTgzMDA', 'RESOLVED'),
+('-1003056249878', 'Ten Realms', 4, '2025-11-04T07:52:14+00:00', '81-83', 'N/A', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTEyOTk2NDgzODk3MjUwNzUzOS0xMjk5Njg4NDcxMDkzNDQ0OTU', 'RESOLVED'),
 ('-1003764269399', 'The Alpha''s Bride (English) •|Pocket FM|•', 7, '2026-04-15T08:12:59+00:00', '01-10', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI4ODY5MzI0MjU2Mjk3NjAwOTM2ODg5NTU1MzE0OTM5MTczOTY1NyI=', 'RESOLVED'),
 ('-1003764269399', 'The Alpha''s Bride (English) •|Pocket FM|•', 7, '2026-04-15T08:12:59+00:00', '11-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjY1MzExODIwMzcyMTg3Mzg3OTg4ODg3MDEyNTA3NTE5MDMwNzAzIg==', 'RESOLVED'),
 ('-1003764269399', 'The Alpha''s Bride (English) •|Pocket FM|•', 7, '2026-04-15T08:12:59+00:00', '21-30', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE3NDAyMTgwMjMyMzUyMDE1ODMxNDMwNjE2MzA5MTQ0MzgwMjI5NSI=', 'RESOLVED'),
