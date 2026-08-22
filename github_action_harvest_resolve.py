@@ -488,12 +488,14 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                 bot_target[0] = m.group(0)
 
         # Phase 1: Fast Direct Referer Bypass (10-15s)
+        proxy_cfg = {"server": "socks5://127.0.0.1:40000"} if os.environ.get("GITHUB_ACTIONS") == "true" else None
         context1 = None
         try:
             context1 = await browser.new_context(
                 user_agent=UA,
                 viewport={"width": 1280, "height": 720},
-                java_script_enabled=True
+                java_script_enabled=True,
+                proxy=proxy_cfg
             )
 
             def attach_page_listeners(p):
@@ -600,7 +602,8 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
             context2 = await browser.new_context(
                 user_agent=UA,
                 viewport={"width": 1280, "height": 720},
-                java_script_enabled=True
+                java_script_enabled=True,
+                proxy=proxy_cfg
             )
 
             context2.on("page", lambda p: attach_page_listeners(p))

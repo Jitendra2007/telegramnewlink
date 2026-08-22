@@ -45,7 +45,7 @@ jobs:
       - name: 🛡️ Connect Cloudflare WARP (Bypass Datacenter IP Restrictions)
         uses: fscarmen/warp-on-actions@v1.3
         with:
-          mode: client
+          mode: warp
 
       - name: 🚀 Run 5-Cycle Multi-Pass Harvester & Audit Engine
         env:
