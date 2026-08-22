@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 19:35:11 UTC
--- Total Records: 13043
+-- Generated on: 2026-08-22 19:35:35 UTC
+-- Total Records: 13048
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -12221,6 +12221,11 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1003793893107', 'The Silver Reign (English) •|Pocket FM|•', 58, '2026-06-25T16:08:56+00:00', '3781-3790', 'https://linkshortx.in/7M3pmvi', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwMDgyMTk1MzgyOTc3Nzg4NC0xMDA4MzA5NzI1MjEwNDUwOTY', 'RESOLVED'),
 ('-1003793893107', 'The Silver Reign (English) •|Pocket FM|•', 58, '2026-06-25T16:08:56+00:00', '3791-3800', 'https://linkshortx.in/xqQj', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwMDgzMTk3NDU5Nzg1MjU2NC0xMDA4NDA5OTMyODkxMTk3NzY', 'RESOLVED'),
 ('-1003793893107', 'The Silver Reign (English) •|Pocket FM|•', 59, '2026-06-25T16:08:56+00:00', '3801-3805', 'https://linkshortx.in/GdUrb7TX', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTEwMDg0MTk5NTM2NTkyNzI0NC0xMDA4NDYwMDM2NzMxNTcxMTY', 'RESOLVED'),
+('-1003668791419', 'The Vampire Vincent', 10, '2025-12-25T13:30:19+00:00', '01-10', 'https://urlshortx.io/Iuil0w', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI5ODcxMzQ0NDgwMjEzMDQ0NDUwODk1NDY0NzMwMjUxNTMzMzM4OCI=', 'RESOLVED'),
+('-1003668791419', 'The Vampire Vincent', 10, '2025-12-25T13:30:19+00:00', '11-20', 'https://linkshortx.in/Lsc1e', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI1NzU4MDM4NjkyMDAyNTExMjgxNjAyODY0NTAyNDk5NDA0ODg3MCI=', 'RESOLVED'),
+('-1003668791419', 'The Vampire Vincent', 10, '2025-12-25T13:30:19+00:00', '21-30', 'https://linkshortx.in/25m32ho', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIwNTgxNTY3NDkxMzQ4Njk5Njk1MTI5NTc4ODk5NTIxNjcxNDcxIg==', 'RESOLVED'),
+('-1003668791419', 'The Vampire Vincent', 10, '2025-12-25T13:30:19+00:00', '31-40', 'https://urlshortx.io/uV6QKt2', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE3MTk3MjQ5OTk2NDExMzg5OTk2MTIyOTY4Njg3OTg1NDY4MzkzNSI=', 'RESOLVED'),
+('-1003668791419', 'The Vampire Vincent', 10, '2025-12-25T13:30:19+00:00', '41-48', 'https://linkshortx.in/j6nu', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMyMjgwMTY0NDg1MDYwMzcwOTY4NjA5NjMyNDAwMjE0Nzc3NzIzNiI=', 'RESOLVED'),
 ('-1002688425416', 'The Wild Warrior', 7, '2025-05-03T16:39:28+00:00', '01-20', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTkwNTU0ODMzNTIzMTM3NjY5LTkwNTczODcyMTczMTEzMjEw', 'RESOLVED'),
 ('-1002688425416', 'The Wild Warrior', 7, '2025-05-03T16:39:28+00:00', '21-40', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTkwNTc0ODc0MjA3MzIyNDQ5LTkwNTkzOTEyODU3Mjk3OTkw', 'RESOLVED'),
 ('-1002688425416', 'The Wild Warrior', 7, '2025-05-03T16:39:28+00:00', '41-60', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTkwNTk0OTE0ODkxNTA3MjI5LTkwNjEzOTUzNTQxNDgyNzcw', 'RESOLVED'),
