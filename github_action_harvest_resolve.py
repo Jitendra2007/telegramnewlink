@@ -554,6 +554,14 @@ async def live_resolve_single_shortlink(browser, shortlink, sem):
                     if eval_res.get("href") and BOT_RE.search(eval_res["href"]):
                         bot_target[0] = BOT_RE.search(eval_res["href"]).group(0)
                         break
+                    if eval_res.get("href") and "/links/gw/" in eval_res["href"]:
+                        try:
+                            await page1.goto(eval_res["href"], timeout=10000)
+                        except Exception:
+                            pass
+                        if page1.url and BOT_RE.search(page1.url):
+                            bot_target[0] = BOT_RE.search(page1.url).group(0)
+                            break
                     if eval_res.get("action") == "dead_404":
                         is_dead[0] = True
                         break

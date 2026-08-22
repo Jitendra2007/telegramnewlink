@@ -42,6 +42,11 @@ jobs:
         run: |
           playwright install chromium --with-deps
 
+      - name: 🛡️ Connect Cloudflare WARP (Bypass Datacenter IP Restrictions)
+        uses: fscarmen/warp-on-actions@v1.3
+        with:
+          mode: client
+
       - name: 🚀 Run 5-Cycle Multi-Pass Harvester & Audit Engine
         env:
           API_ID: ${{ secrets.API_ID }}
