@@ -4,9 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       shortlink:
-        description: 'Shortlink to debug (overrides default)'
+        description: 'Single shortlink to debug (overrides default)'
         required: false
         default: 'https://urlshortx.io/k4UBWjE'
+      links_to_test:
+        description: 'Whitespace/comma/newline separated list of shortlinks to test (overrides default batch)'
+        required: false
+        default: |
+          https://urlshortx.io/k4UBWjE https://urlshortx.io/20oRe https://urlshortx.io/jML6Fc https://urlshortx.io/JNfMga0 https://urlshortx.io/LCn6STdL https://urlshortx.io/LbY2Su https://urlshortx.io/m3Dgez8 https://urlshortx.io/7VwdwEQQ https://urlshortx.io/POER https://urlshortx.io/aoD9 https://urlshortx.io/hKSZ https://urlshortx.io/JQuOe https://urlshortx.io/lgAPXNoo https://urlshortx.io/oJk7N8D https://urlshortx.io/Kbor https://urlshortx.io/IiRrO https://urlshortx.io/2BYb https://urlshortx.io/YOHCWOxX https://urlshortx.io/DQ92o4aj https://urlshortx.io/FQWnPi https://urlshortx.io/cuM7 https://urlshortx.io/UCmWYH https://urlshortx.io/bM2J9 https://urlshortx.io/klSr https://urlshortx.io/I9pYC https://urlshortx.io/vPQOZL0J https://urlshortx.io/nFOXLwyH https://urlshortx.io/jwGR https://urlshortx.io/2QxLgQ https://urlshortx.io/wS9hP5 https://urlshortx.io/CaiQ7 https://urlshortx.io/A4vG82Q https://urlshortx.io/OOWS https://urlshortx.io/h3BEeK https://urlshortx.io/WtOY https://urlshortx.io/sznk95 https://urlshortx.io/uaW3Tr https://urlshortx.io/0EXX4t https://urlshortx.io/NQpj3rjF https://urlshortx.io/Fi43Ajv https://urlshortx.io/aLSC0 https://urlshortx.io/eD3c81 https://urlshortx.io/PjPVm8 https://urlshortx.io/7UN0 https://urlshortx.io/6Wz0RI https://urlshortx.io/pbHdM4P2 https://urlshortx.io/agSqjVi https://urlshortx.io/zYF4A https://urlshortx.io/Jl9b https://urlshortx.io/UjsK https://urlshortx.io/ypvGlC76 https://urlshortx.io/gnyB21L
 
 jobs:
   debug-resolve:
@@ -28,9 +33,9 @@ jobs:
       - name: Install Python deps and Playwright
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          python -m pip install playwright aiohttp
-          python -m playwright install --with-deps
+          pip install -r requirements.txt || true
+          python -m pip install playwright aiohttp || true
+          python -m playwright install --with-deps || true
 
       - name: Show Playwright info
         run: |
@@ -39,9 +44,16 @@ import playwright
 print('playwright package:', playwright.__version__)
 PY
 
-      - name: Run debug resolver
+      - name: Run debug resolver (safe: no Telegram credentials)
+        env:
+          TELEGRAM_STRING_SESSION: ""
+          TELEGRAM_STRING_SESSION_SUB: ""
+          API_ID: ""
+          API_HASH: ""
+          LINKS_TO_TEST: "${{ github.event.inputs.links_to_test }}"
+          SHORTLINK: "${{ github.event.inputs.shortlink }}"
         run: |
-          export SHORTLINK="${{ github.event.inputs.shortlink || 'https://urlshortx.io/k4UBWjE' }}"
+          echo "Links to test:\n$LINKS_TO_TEST"
           python debug_resolve.py || true
 
       - name: Upload debug artifacts
@@ -49,5 +61,5 @@ PY
         with:
           name: resolver-debug
           path: |
-            debug_page_content.html
-            debug_page_screenshot.png
+            debug_page_content_*.html
+            debug_page_screenshot_*.png
