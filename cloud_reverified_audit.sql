@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 12:35:46 UTC
--- Total Records: 2882
+-- Generated on: 2026-08-22 12:36:32 UTC
+-- Total Records: 2898
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -2588,6 +2588,22 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1004297123836', 'The Grim Reaper Anomaly (English) •|Pocket FM|•', 23, '2026-07-30T08:14:38+00:00', '501-504', 'https://linkshortx.in/fYmPAY7d', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTEwNzUwNzgxMDI4OTIwNDM4MC0xMDc1MTA4MTY1MTk2MjY3ODQ', 'RESOLVED'),
 ('-1004297123836', 'The Grim Reaper Anomaly (English) •|Pocket FM|•', 34, '2026-08-19T14:22:41+00:00', '522-524', 'https://linkshortx.in/g5qF', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTExMDk4MTAwODUwMzg4ODQ2OC0xMTA5ODMwMTI2NTc1MDM0MDQ', 'RESOLVED'),
 ('-1004297123836', 'The Grim Reaper Anomaly (English) •|Pocket FM|•', 36, '2026-08-20T14:31:57+00:00', '525-527', 'https://UrlShortx.io/nAYJ1q', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTExMDk4NDAxNDczNDMxMDg3Mi0xMTA5ODYwMTg4ODc5MjU4MDg', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 45, '2026-08-19T17:28:33+00:00', '01-10', 'https://linkshortx.in/CkUg6W', 'https://telegram.me/AV_File_Sharing1_Bot?start=Ijc4MjgwNzM1NDYwNjAzMjUwMzIxNDIzMzI2NTgyODc4NDg1MTc5Ig==', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 45, '2026-08-19T17:28:33+00:00', '11-20', 'https://urlshortx.io/J63Qu', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI1NjQ2Mzk5ODEwODU2MzcyMzczMTE5MTQyNjc5NTI2MDYyMTI2NyI=', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 45, '2026-08-19T17:28:33+00:00', '21-30', 'https://linkshortx.in/EJ42C7z8', 'https://telegram.me/AV_File_Sharing1_Bot?start=Ijk3MzUxMTA2Njc1OTc4ODA3MDgxODI3MDU5NjMxNzAzODA4NzkwIg==', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 45, '2026-08-19T17:28:33+00:00', '31-40', 'https://linkshortx.in/8090BQXN', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI0ODUyNDc2MzMxMDI1NjYzMDY4Mjg0MDY1MTYzMjY4OTc4MzEyNSI=', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 45, '2026-08-19T17:28:33+00:00', '41-50', 'https://urlshortx.io/rmGoi', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMwODc2Njg4NzA0OTIyNTk3Njg0NzAxNDk3MzE0NTU0OTMwODkwNSI=', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 45, '2026-08-19T17:28:33+00:00', '51-60', 'https://linkshortx.in/9Gj3', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzODQxNzk0NDM2OTgzMTk4Mjc1MTQ2ODkzNDAxOTM2MDY4NzYzNyI=', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 45, '2026-08-19T17:28:33+00:00', '61-70', 'https://linkshortx.in/hbH0', 'https://telegram.me/AV_File_Sharing1_Bot?start=Ijg5NDEwNDU4MzU0MTczNjI3OTc1MzU1MjcxMzE4OTk4Nzc4NDkxIg==', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 17, '2025-03-14T14:20:55+00:00', '61-68', 'https://urlshortx.io/3mrn', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI3ODkyNDE1NTM0NTM4NjA0NzMxNjE1ODU2MDM0MzcxNDAwNTYyMyI=', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 41, '2026-06-02T13:08:38+00:00', '71-75', 'https://urlshortx.io/Ky9a', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEzMTQ0NzMwOTc0NTAyNzMyNjEzNDcxOTEzODkyMDM0MDI4MTQ1OSI=', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 39, '2026-01-08T06:23:00+00:00', '71-80', 'https://linkshortx.in/bEZUg8E', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIyMTM3NDgxNDQ5NjM1MTk4NjgwOTE2ODIxMjQ0MTQ5NjAwNzMwOSI=', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 18, '2025-03-14T14:20:56+00:00', '71-76', 'https://linkshortx.in/zSmWA4', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzOTkyODAwNDI5NzEyNjY1OTY5MjA3NjQ4MjkzODE1NjA2MzI4Ig==', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 22, '2025-03-18T06:20:02+00:00', '71-78', 'https://urlshortx.io/TOnodX', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIyNDEwNjI1MjU4ODExNzU4MDM2MjczNzAxMDcyMzQwODEyOTg4Ig==', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 24, '2025-03-23T06:21:22+00:00', '71-77', 'https://linkshortx.in/9v8F', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI0MTk5MTExMjU5ODAxODA0MjYxMzIzNTkzNzU0NjkyNTIzNzM2MSI=', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 45, '2026-08-19T17:28:33+00:00', '71-84', 'https://urlshortx.io/NfRVD', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEwOTU4ODE1NDM0NjkzODQyNzI1NDgyNjUxOTI5MzQ1MDM1NTI0NyI=', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 26, '2025-03-27T14:38:33+00:00', '81-90', 'https://linkshortx.in/vADcYg', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE2MzQ4ODY0MDM0MjQ2NTU3NjA1NTcxMjY0MTM0MjgxMjc2ODM5MyI=', 'RESOLVED'),
+('-1002284285472', 'The Primal Hunter (Audiobook) |AudioVerseNetwork|', 26, '2025-03-27T14:38:33+00:00', '91-94', 'https://linkshortx.in/W5QmtUg', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE2ODMzMDg0ODIxNzczMjAxNTgzMzYwNzYxODQ1NDY1Njk1MTkxOSI=', 'RESOLVED'),
 ('-1004376969547', 'The Primal Hunter (English) •|Pocket FM|•', 10, '2026-07-14T14:39:02+00:00', '01-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE0OTM4NDMyOTA3NTQwNTg3NzQxMzE2ODgzNzY0MzUyNTUzMDY5MiI=', 'RESOLVED'),
 ('-1004376969547', 'The Primal Hunter (English) •|Pocket FM|•', 10, '2026-07-14T14:39:02+00:00', '21-40', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEyMzI2MTMzMTM4OTg5NDAxMzUxMTkzMDk5NjI4MzMwOTE2NDg1NCI=', 'RESOLVED'),
 ('-1004376969547', 'The Primal Hunter (English) •|Pocket FM|•', 10, '2026-07-14T14:39:02+00:00', '41-60', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE4OTc1MjA1NzU1ODEwNDU2NDEwMzkwMDE0MzA4NDc3NDM3NzMxNyI=', 'RESOLVED'),
