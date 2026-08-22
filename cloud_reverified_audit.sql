@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 20:49:26 UTC
--- Total Records: 15364
+-- Generated on: 2026-08-22 20:49:32 UTC
+-- Total Records: 15368
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -12432,6 +12432,10 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1002611834444', 'The Billionaire''s Bodyguard (English) •|Pocket FM|•', 203, '2026-01-24T03:12:07+00:00', '1347-1348', 'https://UrlShortx.io/7PEvf3v__', 'N/A', 'DEAD_404'),
 ('-1002611834444', 'The Billionaire''s Bodyguard (English) •|Pocket FM|•', 204, '2026-01-28T02:51:04+00:00', '1349-1351', 'https://linkshortx.in/D6eVv6__', 'N/A', 'DEAD_404'),
 ('-1002611834444', 'The Billionaire''s Bodyguard (English) •|Pocket FM|•', 205, '2026-01-29T17:26:04+00:00', '1352-1354', 'https://UrlShortx.io/EYbvw__', 'N/A', 'DEAD_404'),
+('-1002668507763', 'The Cursed Mage', 6, '2025-05-27T14:25:04+00:00', '01-20', 'N/A', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTk2Mzg5Njc4NzIzNTM2MzY2LTk2NDA4NzE3MzczNTExOTA3', 'RESOLVED'),
+('-1002668507763', 'The Cursed Mage', 6, '2025-05-27T14:25:04+00:00', '21-40', 'N/A', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTk2NDA5NzE5NDA3NzIxMTQ2LTk2NDI4NzU4MDU3Njk2Njg3', 'RESOLVED'),
+('-1002668507763', 'The Cursed Mage', 6, '2025-05-27T14:25:04+00:00', '41-60', 'N/A', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTk2NDI5NzYwMDkxOTA1OTI2LTk2NDQ4Nzk4NzQxODgxNDY3', 'RESOLVED'),
+('-1002668507763', 'The Cursed Mage', 6, '2025-05-27T14:25:04+00:00', '61-70', 'N/A', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTk2NDQ5ODAwNzc2MDkwNzA2LTk2NDU4ODE5MDgzOTczODU3', 'RESOLVED'),
 ('-1002749211320', 'The Dragon Inside Me', 21, '2025-09-27T12:07:42+00:00', '01-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEwMjg1NTMzMzg1MDk3NTczMzc2MjY4NzM5NzMxOTE5NDUzMzk2NiI=', 'RESOLVED'),
 ('-1002749211320', 'The Dragon Inside Me', 21, '2025-09-27T12:07:42+00:00', '21-40', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE0MjYzMTQ4MDA3NzA0NDEwMzc1MDE1NDU5NjUyMDEwODA0MjA0OSI=', 'RESOLVED'),
 ('-1002749211320', 'The Dragon Inside Me', 21, '2025-09-27T12:07:42+00:00', '41-60', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE5OTYwMDI0NjEyNDMxMTczNTgzMDUyNjEwMTYwMDExNTI5MjU3MSI=', 'RESOLVED'),
