@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 18:31:55 UTC
--- Total Records: 10584
+-- Generated on: 2026-08-22 18:32:48 UTC
+-- Total Records: 10610
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -8095,6 +8095,32 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1003921108945', 'Supreme Sword Cultivator (English) •|Pocket FM|•', 15, '2026-04-20T14:43:15+00:00', '531-540', 'https://urlshortx.io/sw8Nnr', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI1MTI1MTg2MjQ2NTAzMjA5MDA2MTY4NDA2MDcyNzY0ODkzNDgyMiI=', 'RESOLVED'),
 ('-1003921108945', 'Supreme Sword Cultivator (English) •|Pocket FM|•', 15, '2026-04-20T14:43:15+00:00', '541-550', 'https://linkshortx.in/tiOagC', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjQwODMzODYwNTYwNzEyNzUyNzc5MTAxNzY2NzM1MzIwOTI4NDcyIg==', 'RESOLVED'),
 ('-1003921108945', 'Supreme Sword Cultivator (English) •|Pocket FM|•', 15, '2026-04-20T14:43:15+00:00', '551-560', 'https://linkshortx.in/xEVd6', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEzNzQ1MTAxNzAwMjI5NjU2NDgzMjM5Mzk3NTk4MzI0NzUwNzM0MSI=', 'RESOLVED'),
+('-1003812102790', 'Syl', 7, '2026-03-04T15:30:42+00:00', '01-10', 'https://linkshortx.in/cYXVbT', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyODgwOTY0ODY3Nzk5NjkxLTUyODkxOTg2NTM2NTg2MjA0', 'RESOLVED'),
+('-1003812102790', 'Syl', 7, '2026-03-04T15:30:42+00:00', '11-20', 'https://urlshortx.io/awxbIM70', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyODkyOTg4NTA2NDc1ODg3LTUyOTAyMDA2MjM1NDgzMDM0', 'RESOLVED'),
+('-1003812102790', 'Syl', 7, '2026-03-04T15:30:42+00:00', '21-30', 'https://linkshortx.in/BEM85', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyOTAzMDA4MjA1MzcyNzE3LTUyOTEyMDI1OTM0Mzc5ODY0', 'RESOLVED'),
+('-1003812102790', 'Syl', 7, '2026-03-04T15:30:42+00:00', '31-40', 'https://urlshortx.io/FYG42Zis', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyOTEzMDI3OTA0MjY5NTQ3LTUyOTIyMDQ1NjMzMjc2Njk0', 'RESOLVED'),
+('-1003812102790', 'Syl', 7, '2026-03-04T15:30:42+00:00', '41-50', 'https://linkshortx.in/PhcA7', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyOTIzMDQ3NjAzMTY2Mzc3LTUyOTMyMDY1MzMyMTczNTI0', 'RESOLVED'),
+('-1003812102790', 'Syl', 7, '2026-03-04T15:30:42+00:00', '51-60', 'https://urlshortx.io/qRV3k', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyOTMzMDY3MzAyMDYzMjA3LTUyOTQyMDg1MDMxMDcwMzU0', 'RESOLVED'),
+('-1003812102790', 'Syl', 4, '2026-03-04T14:59:41+00:00', '61-70', 'https://linkshortx.in/cjCOcmOO', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNzYwNzI4NDgxMDM3NzMxLTUyNzY5NzQ2MjEwMDQ0ODc4', 'RESOLVED'),
+('-1003812102790', 'Syl', 7, '2026-03-04T15:30:42+00:00', '61-67', 'https://linkshortx.in/ndlg3Dis', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyOTQzMDg3MDAwOTYwMDM3LTUyOTUwMTAwNzkwMTg3ODE4', 'RESOLVED'),
+('-1003812102790', 'Syl', 4, '2026-03-04T14:59:41+00:00', '71-80', 'https://urlshortx.io/aRfBqBex', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNzcwNzQ4MTc5OTM0NTYxLTUyNzc5NzY1OTA4OTQxNzA4', 'RESOLVED'),
+('-1003812102790', 'Syl', 4, '2026-03-04T14:59:41+00:00', '81-90', 'https://linkshortx.in/7e6S', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNzgwNzY3ODc4ODMxMzkxLTUyNzg5Nzg1NjA3ODM4NTM4', 'RESOLVED'),
+('-1003812102790', 'Syl', 4, '2026-03-04T14:59:41+00:00', '91-100', 'https://urlshortx.io/GoHp', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNzkwNzg3NTc3NzI4MjIxLTUyNzk5ODA1MzA2NzM1MzY4', 'RESOLVED'),
+('-1003812102790', 'Syl', 5, '2026-03-04T15:09:35+00:00', '101-110', 'https://urlshortx.io/qIUzaU0', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyODA2ODE5MDk1OTYzMTQ5LTUyODE3ODQwNzY0NzQ5NjYy', 'RESOLVED'),
+('-1003812102790', 'Syl', 5, '2026-03-04T15:09:35+00:00', '111-120', 'https://linkshortx.in/S6gyOU9', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyODE4ODQyNzM0NjM5MzQ1LTUyODI3ODYwNDYzNjQ2NDky', 'RESOLVED'),
+('-1003812102790', 'Syl', 5, '2026-03-04T15:09:35+00:00', '121-130', 'https://urlshortx.io/nopQgM', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyODI4ODYyNDMzNTM2MTc1LTUyODM3ODgwMTYyNTQzMzIy', 'RESOLVED'),
+('-1003812102790', 'Syl', 5, '2026-03-04T15:09:35+00:00', '131-140', 'https://linkshortx.in/Ve0z4', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyODM4ODgyMTMyNDMzMDA1LTUyODQ3ODk5ODYxNDQwMTUy', 'RESOLVED'),
+('-1003812102790', 'Syl', 5, '2026-03-04T15:09:35+00:00', '141-150', 'https://urlshortx.io/VwHWlOmP', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyODQ4OTAxODMxMzI5ODM1LTUyODU3OTE5NTYwMzM2OTgy', 'RESOLVED'),
+('-1003812102790', 'Syl', 5, '2026-03-04T15:09:35+00:00', '151-160', 'https://linkshortx.in/qF0ecF', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyODU4OTIxNTMwMjI2NjY1LTUyODY3OTM5MjU5MjMzODEy', 'RESOLVED'),
+('-1003812102790', 'Syl', 5, '2026-03-04T15:09:35+00:00', '161-168', 'https://urlshortx.io/bUqg', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyODY4OTQxMjI5MTIzNDk1LTUyODc3OTU4OTU4MTMwNjQy', 'RESOLVED'),
+('-1003812102790', 'Syl', 6, '2026-03-04T15:23:40+00:00', '169-170', 'https://linkshortx.in/9I3xN', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNDcwMTU3MjEzMDI5NjYxLTUyNDczMTYzMTIyNjk4NzEw', 'RESOLVED'),
+('-1003812102790', 'Syl', 6, '2026-03-04T15:23:40+00:00', '171-180', 'https://urlshortx.io/UrVoFs', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNDc0MTY1MDkyNTg4MzkzLTUyNDgzMTgyODIxNTk1NTQw', 'RESOLVED'),
+('-1003812102790', 'Syl', 6, '2026-03-04T15:23:40+00:00', '181-190', 'https://linkshortx.in/Jjh1l', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNDg0MTg0NzkxNDg1MjIzLTUyNDkzMjAyNTIwNDkyMzcw', 'RESOLVED'),
+('-1003812102790', 'Syl', 6, '2026-03-04T15:23:40+00:00', '191-200', 'https://urlshortx.io/kPIVo6G', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNDk0MjA0NDkwMzgyMDUzLTUyNTAzMjIyMjE5Mzg5MjAw', 'RESOLVED'),
+('-1003812102790', 'Syl', 6, '2026-03-04T15:23:40+00:00', '201-210', 'https://linkshortx.in/3QBY6', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNTA0MjI0MTg5Mjc4ODgzLTUyNTEzMjQxOTE4Mjg2MDMw', 'RESOLVED'),
+('-1003812102790', 'Syl', 6, '2026-03-04T15:23:40+00:00', '211-220', 'https://urlshortx.io/vAV3ibI', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNTE0MjQzODg4MTc1NzEzLTUyNTIzMjYxNjE3MTgyODYw', 'RESOLVED'),
+('-1003812102790', 'Syl', 6, '2026-03-04T15:23:40+00:00', '221-230', 'https://linkshortx.in/xzYZy9', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNTI0MjYzNTg3MDcyNTQzLTUyNTMzMjgxMzE2MDc5Njkw', 'RESOLVED'),
+('-1003812102790', 'Syl', 6, '2026-03-04T15:23:40+00:00', '231-240', 'https://urlshortx.io/ugNB5nkP', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTUyNTM0MjgzMjg1OTY5MzczLTUyNTQzMzAxMDE0OTc2NTIw', 'RESOLVED'),
 ('-1003887932714', 'System Bonds, the Rise (English) •|Pocket FM|•', 34, '2026-08-19T13:57:55+00:00', '01-20', 'N/A', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTExMDU2NDE0NDU1MTk4MTc4MC0xMTA1ODMxODQwMTEzMjM2NzI', 'RESOLVED'),
 ('-1003887932714', 'System Bonds, the Rise (English) •|Pocket FM|•', 34, '2026-08-19T13:57:55+00:00', '21-40', 'N/A', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTExMDU4NDE4NjA4ODEzMTE0MC0xMTA2MDMyMjU1NDc0NzMwMzI', 'RESOLVED'),
 ('-1003887932714', 'System Bonds, the Rise (English) •|Pocket FM|•', 34, '2026-08-19T13:57:55+00:00', '41-60', 'N/A', 'https://telegram.me/RazeCromwell_Bot?start=Z2V0LTExMDYwNDIyNzYyNDI4MDUwMC0xMTA2MjMyNjcwODM2MjIzOTI', 'RESOLVED'),
