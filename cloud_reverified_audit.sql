@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 17:30:39 UTC
--- Total Records: 8617
+-- Generated on: 2026-08-22 17:31:34 UTC
+-- Total Records: 8633
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -3812,6 +3812,22 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1004492956512', 'Omniscient Reader''s Viewpoint', 4, '2026-06-16T04:10:20+00:00', '11-15', 'https://linkshortx.in/BJBZp6', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjY1NTc2MDgzNjQ4NjE5LTMwMjY5NTg5Njg2NTUwNjcx', 'RESOLVED'),
 ('-1004492956512', 'Omniscient Reader''s Viewpoint', 4, '2026-06-16T04:10:20+00:00', '16-20', 'https://linkshortx.in/ekAVTb6T', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjcwNTkzMDg3Mjc2MTg0LTMwMjc0NjA2NjkwMTc4MjM2', 'RESOLVED'),
 ('-1004492956512', 'Omniscient Reader''s Viewpoint', 4, '2026-06-16T04:10:20+00:00', '21-22', 'https://urlshortx.io/Fni3', 'https://telegram.me/AVFile_BOT?start=Z2V0LTMwMjc1NjEwMDkwOTAzNzQ5LTMwMjc2NjEzNDkxNjI5MjYy', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 4, '2025-06-26T05:04:56+00:00', '01-10', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTk5NzYwNTIxODAzNDE2MzYyLTk5NzcxNTQ0MTc5NzE3OTkx', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 16, '2026-04-27T10:41:39+00:00', '01-05', 'https://linkshortx.in/WtSeHvZr', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3NjczOTc5NTg1OTc4NDA1OS0xNzY3NDM4MDM5OTY2MjEwMTU', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 16, '2026-04-27T10:41:39+00:00', '06-10', 'https://urlshortx.io/uFyzs', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3Njc0NDgwNjAzMDgzMDI1NC0xNzY3NDg4MTQxNjc2NjcyMTA', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 4, '2025-06-26T05:04:56+00:00', '11-20', 'https://linkshortx.in/Sw4V16B', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTk5NzcyNTQ2MjEzOTI3MjMwLTk5NzgxNTY0NTIxODEwMzgx', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 16, '2026-04-27T10:41:39+00:00', '11-15', 'https://linkshortx.in/mE5NPO', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3Njc0OTgxNjIwMTg3NjQ0OS0xNzY3NTM4MjQzMzg3MTM0MDU', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 16, '2026-04-27T10:41:39+00:00', '16-20', 'https://linkshortx.in/WZdDl', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3Njc1NDgyNjM3MjkyMjY0NC0xNzY3NTg4MzQ1MDk3NTk2MDA', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 4, '2025-06-26T05:04:56+00:00', '21-30', 'https://linkshortx.in/XV0FNBB', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTk5NzgyNTY2NTU2MDE5NjIwLTk5NzkxNTg0ODYzOTAyNzcx', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 16, '2026-04-27T10:41:39+00:00', '21-25', 'https://urlshortx.io/AHYmbe3', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3Njc1OTgzNjU0Mzk2ODgzOS0xNzY3NjM4NDQ2ODA4MDU3OTU', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 5, '2025-06-26T05:13:52+00:00', '26-31', 'https://linkshortx.in/QrVruRz', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTk5ODMyNjY4MjY2NDgxNTcwLTk5ODM5NjgyNTA1OTQ2MjQz', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 16, '2026-04-27T10:41:39+00:00', '26-30', 'https://linkshortx.in/kPgGa', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3Njc2NDg0NjcxNTAxNTAzNC0xNzY3Njg4NTQ4NTE4NTE5OTA', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 4, '2025-06-26T05:04:56+00:00', '31-41', 'https://linkshortx.in/nhfjA', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTk5NzkyNTg2ODk4MTEyMDEwLTk5ODAzNjA5Mjc0NDEzNjM5', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 15, '2025-11-13T12:49:03+00:00', '31-33', 'https://urlshortx.io/5FSD', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTEzNzI2NTY2MDIyMTAyMjg5My0xMzcyNjk2NjgzNTc4NTk4NDk', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 10, '2025-07-21T17:59:02+00:00', '31-35', 'https://urlshortx.io/B0794s', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTEwMzI5MjY5MjM5MDk4MzgzNy0xMDMyOTY3MDA1Mjc4MjA3OTM', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 13, '2025-08-05T17:54:22+00:00', '31-34', 'https://linkshortx.in/hPLN8ho', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTEwOTgzNzk3OTg0NTczMjk4NS0xMDk4NDE5ODc5ODI1Njk5NDE', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 16, '2026-04-27T10:41:39+00:00', '31-32', 'https://linkshortx.in/dukQJ', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3Njc2OTg1Njg4NjA2MTIyOS0xNzY3NzA4NTg5MjAyNzA0Njg', 'RESOLVED'),
+('-1002794247943', 'Path Of Ascension', 10, '2025-07-21T17:59:02+00:00', '36-40', 'https://linkshortx.in/NzT61XI', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTEwMzI5NzcwMjU2MjAzMDAzMi0xMDMzMDM3MTQ3NjcyODU0NjY', 'RESOLVED'),
 ('-1004299144032', 'Path of Ascension', 4, '2026-07-30T15:22:48+00:00', '01-20', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc0NjEzNjkxNzc1MDIzOTYxLTc0NjMyNzI5MjAyOTI3OTM4', 'RESOLVED'),
 ('-1004299144032', 'Path of Ascension', 4, '2026-07-30T15:22:48+00:00', '21-40', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc0NjMzNzMxMTcyODE3NjIxLTc0NjUyNzY4NjAwNzIxNTk4', 'RESOLVED'),
 ('-1004299144032', 'Path of Ascension', 4, '2026-07-30T15:22:48+00:00', '41-60', 'N/A', 'https://telegram.me/XavierBM_Bot?start=Z2V0LTc0NjUzNzcwNTcwNjExMjgxLTc0NjcyODA3OTk4NTE1MjU4', 'RESOLVED'),
