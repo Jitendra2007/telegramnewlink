@@ -22056,6 +22056,66 @@
     "status": "RESOLVED"
   },
   {
+    "channel_id": "-1003993018877",
+    "channel_name": "King Pocket FM Telugu",
+    "message_id": 80,
+    "message_date": "2026-07-27T08:41:38+00:00",
+    "start_ep": 1,
+    "end_ep": 10,
+    "range_label": "01-10",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/KingAudioPocketFm_bot?start=7151ad8dae16d542",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1003993018877",
+    "channel_name": "King Pocket FM Telugu",
+    "message_id": 80,
+    "message_date": "2026-07-27T08:41:38+00:00",
+    "start_ep": 11,
+    "end_ep": 20,
+    "range_label": "11-20",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/KingAudioPocketFm_bot?start=75477fb9f3253274",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1003993018877",
+    "channel_name": "King Pocket FM Telugu",
+    "message_id": 80,
+    "message_date": "2026-07-27T08:41:38+00:00",
+    "start_ep": 21,
+    "end_ep": 30,
+    "range_label": "21-30",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/KingAudioPocketFm_bot?start=e23e4999b497e8ee",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1003993018877",
+    "channel_name": "King Pocket FM Telugu",
+    "message_id": 80,
+    "message_date": "2026-07-27T08:41:38+00:00",
+    "start_ep": 31,
+    "end_ep": 40,
+    "range_label": "31-40",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/KingAudioPocketFm_bot?start=2926d4a1baafa499",
+    "status": "RESOLVED"
+  },
+  {
+    "channel_id": "-1003993018877",
+    "channel_name": "King Pocket FM Telugu",
+    "message_id": 80,
+    "message_date": "2026-07-27T08:41:38+00:00",
+    "start_ep": 41,
+    "end_ep": 50,
+    "range_label": "41-50",
+    "shortlink": "N/A",
+    "bot_link": "https://telegram.me/KingAudioPocketFm_bot?start=5ebac7311051b9e4",
+    "status": "RESOLVED"
+  },
+  {
     "channel_id": "-1003960715577",
     "channel_name": "Legend of the Beastmaster (English) •|Pocket FM|•",
     "message_id": 10,

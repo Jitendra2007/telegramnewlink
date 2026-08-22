@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 14:33:13 UTC
--- Total Records: 5116
+-- Generated on: 2026-08-22 14:33:18 UTC
+-- Total Records: 5121
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -1854,6 +1854,11 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1002972751867', 'How I Became the World''s Strongest Warrior by Using Basic Attacks', 10, '2025-10-05T14:29:24+00:00', '61-70', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMxNDE3MTAzMjExNTI4NzI3Nzc1MzAzNjM2MDg4Mjk3ODM2MjI2NyI=', 'RESOLVED'),
 ('-1002972751867', 'How I Became the World''s Strongest Warrior by Using Basic Attacks', 10, '2025-10-05T14:29:24+00:00', '71-80', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE3OTM3MjEyNTQ0MDUyMTc0NTk3MTQ4OTA2OTgwMjUxOTczMzMzNCI=', 'RESOLVED'),
 ('-1002972751867', 'How I Became the World''s Strongest Warrior by Using Basic Attacks', 10, '2025-10-05T14:29:24+00:00', '81-87', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjQ0MzM3MjI1OTI0MjQ1NDI0ODc5MTY0NzI4MTEyNDkxMjcxNjUzIg==', 'RESOLVED'),
+('-1003993018877', 'King Pocket FM Telugu', 80, '2026-07-27T08:41:38+00:00', '01-10', 'N/A', 'https://telegram.me/KingAudioPocketFm_bot?start=7151ad8dae16d542', 'RESOLVED'),
+('-1003993018877', 'King Pocket FM Telugu', 80, '2026-07-27T08:41:38+00:00', '11-20', 'N/A', 'https://telegram.me/KingAudioPocketFm_bot?start=75477fb9f3253274', 'RESOLVED'),
+('-1003993018877', 'King Pocket FM Telugu', 80, '2026-07-27T08:41:38+00:00', '21-30', 'N/A', 'https://telegram.me/KingAudioPocketFm_bot?start=e23e4999b497e8ee', 'RESOLVED'),
+('-1003993018877', 'King Pocket FM Telugu', 80, '2026-07-27T08:41:38+00:00', '31-40', 'N/A', 'https://telegram.me/KingAudioPocketFm_bot?start=2926d4a1baafa499', 'RESOLVED'),
+('-1003993018877', 'King Pocket FM Telugu', 80, '2026-07-27T08:41:38+00:00', '41-50', 'N/A', 'https://telegram.me/KingAudioPocketFm_bot?start=5ebac7311051b9e4', 'RESOLVED'),
 ('-1003960715577', 'Legend of the Beastmaster (English) •|Pocket FM|•', 10, '2026-04-26T06:34:22+00:00', '01-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEwNTU2NDIzNjY4NTQ1MTE2NTg2NDM4MDEyMTQxMjA0MTIyNzkxMSI=', 'RESOLVED'),
 ('-1003960715577', 'Legend of the Beastmaster (English) •|Pocket FM|•', 10, '2026-04-26T06:34:22+00:00', '21-40', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzNjIzMjg0ODg4NjU5MTEwMzA4NDM3MDk1NDYyNDE4OTU1NTIxNyI=', 'RESOLVED'),
 ('-1003960715577', 'Legend of the Beastmaster (English) •|Pocket FM|•', 10, '2026-04-26T06:34:22+00:00', '41-60', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjY5NDYzNzM2NDk0NDUxNzAyMDE2NjM0NjczMzcyNjQyNTEzMzAi', 'RESOLVED'),
