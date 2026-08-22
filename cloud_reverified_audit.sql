@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 19:59:46 UTC
--- Total Records: 13880
+-- Generated on: 2026-08-22 20:00:45 UTC
+-- Total Records: 13922
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -16,6 +16,48 @@ CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message_id`, `message_date`, `button_range`, `shortlink_url`, `telegram_bot_link`, `status`) VALUES
+('-1002620965748', 'A Presidential Affair', 6, '2025-05-17T16:19:35+00:00', '01-20', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTkyNjk5MTg2NzMwOTA5MTI5LTkyNzE4MjI1MzgwODg0Njcw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 6, '2025-05-17T16:19:35+00:00', '21-40', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTkyNzE5MjI3NDE1MDkzOTA5LTkyNzM4MjY2MDY1MDY5NDUw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 6, '2025-05-17T16:19:35+00:00', '41-60', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTkyNzM5MjY4MDk5Mjc4Njg5LTkyNzU4MzA2NzQ5MjU0MjMw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 6, '2025-05-17T16:19:35+00:00', '61-80', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTkyNzU5MzA4NzgzNDYzNDY5LTkyNzc4MzQ3NDMzNDM5MDEw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 6, '2025-05-17T16:19:35+00:00', '81-100', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTkyNzc5MzQ5NDY3NjQ4MjQ5LTkyNzk4Mzg4MTE3NjIzNzkw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 7, '2025-05-17T16:24:30+00:00', '101-110', 'https://linkshortx.in/t9DV2HU', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTkyNzk5MzkwMTUxODMzMDI5LTkyODA4NDA4NDU5NzE2MTgw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 7, '2025-05-17T16:24:30+00:00', '111-120', 'https://linkshortx.in/w7AQu', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTkyODA5NDEwNDkzOTI1NDE5LTkyODE4NDI4ODAxODA4NTcw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 7, '2025-05-17T16:24:30+00:00', '121-130', 'https://linkshortx.in/lH634d', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTkyODE5NDMwODM2MDE3ODA5LTkyODI4NDQ5MTQzOTAwOTYw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 7, '2025-05-17T16:24:30+00:00', '131-140', 'https://linkshortx.in/n8VFJCF', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTkyODI5NDUxMTc4MTEwMTk5LTkyODM4NDY5NDg1OTkzMzUw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 7, '2025-05-17T16:24:30+00:00', '141-150', 'https://linkshortx.in/EZVF', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTkyODM5NDcxNTIwMjAyNTg5LTkyODQ4NDg5ODI4MDg1NzQw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 7, '2025-05-17T16:24:30+00:00', '151-160', 'https://urlshortx.io/zPNyfj', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTkyODQ5NDkxODYyMjk0OTc5LTkyODU4NTEwMTcwMTc4MTMw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 7, '2025-05-17T16:24:30+00:00', '161-170', 'https://urlshortx.io/jalvNx', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTkyODU5NTEyMjA0Mzg3MzY5LTkyODY4NTMwNTEyMjcwNTIw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 7, '2025-05-17T16:24:30+00:00', '171-180', 'https://urlshortx.io/fbqZ1', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTkyODY5NTMyNTQ2NDc5NzU5LTkyODc4NTUwODU0MzYyOTEw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 7, '2025-05-17T16:24:30+00:00', '181-190', 'https://urlshortx.io/WSLhmG', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTkyODc5NTUyODg4NTcyMTQ5LTkyODg4NTcxMTk2NDU1MzAw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 7, '2025-05-17T16:24:30+00:00', '191-200', 'https://urlshortx.io/rSE9aip', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTkyODg5NTczMjMwNjY0NTM5LTkyODk4NTkxNTM4NTQ3Njkw', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 8, '2025-05-17T16:28:59+00:00', '201-210', 'https://urlshortx.io/PKKI3v', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDMwMDgyMTg0MDgwNzgyNC0xNDAzMDk4NDAxNDg2OTA5NzU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 8, '2025-05-17T16:28:59+00:00', '211-220', 'https://linkshortx.in/NrzAu6U', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDMxMDg0MjE4MjkwMDIxNC0xNDAzMTk4NjA0OTA3ODMzNjU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 8, '2025-05-17T16:28:59+00:00', '221-230', 'https://urlshortx.io/2xQD6whL', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDMyMDg2MjUyNDk5MjYwNC0xNDAzMjk4ODA4MzI4NzU3NTU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 8, '2025-05-17T16:28:59+00:00', '231-240', 'https://linkshortx.in/hnSS3oz', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDMzMDg4Mjg2NzA4NDk5NC0xNDAzMzk5MDExNzQ5NjgxNDU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 8, '2025-05-17T16:28:59+00:00', '241-250', 'https://urlshortx.io/UWA34yVF', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDM0MDkwMzIwOTE3NzM4NC0xNDAzNDk5MjE1MTcwNjA1MzU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 8, '2025-05-17T16:28:59+00:00', '251-260', 'https://linkshortx.in/7q2soyel', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDM1MDkyMzU1MTI2OTc3NC0xNDAzNTk5NDE4NTkxNTI5MjU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 8, '2025-05-17T16:28:59+00:00', '261-270', 'https://urlshortx.io/3PfSQAW', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDM2MDk0Mzg5MzM2MjE2NC0xNDAzNjk5NjIyMDEyNDUzMTU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 8, '2025-05-17T16:28:59+00:00', '271-280', 'https://linkshortx.in/ExyXYYCI', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDM3MDk2NDIzNTQ1NDU1NC0xNDAzNzk5ODI1NDMzMzc3MDU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 8, '2025-05-17T16:28:59+00:00', '281-290', 'https://urlshortx.io/m5KCj0oH', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDM4MDk4NDU3NzU0Njk0NC0xNDAzOTAwMDI4ODU0MzAwOTU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 8, '2025-05-17T16:28:59+00:00', '291-300', 'https://linkshortx.in/OJslLw', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDM5MTAwNDkxOTYzOTMzNC0xNDA0MDAwMjMyMjc1MjI0ODU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 10, '2025-11-27T15:17:55+00:00', '301-310', 'https://urlshortx.io/MEKaNM', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDQwMTAyNTI2MTczMTcyNC0xNDA0MTAwNDM1Njk2MTQ4NzU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 10, '2025-11-27T15:17:55+00:00', '311-320', 'https://linkshortx.in/xEq0', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDQxMTA0NTYwMzgyNDExNC0xNDA0MjAwNjM5MTE3MDcyNjU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 10, '2025-11-27T15:17:55+00:00', '321-330', 'https://urlshortx.io/mNhHtxYz', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDQyMTA2NTk0NTkxNjUwNC0xNDA0MzAwODQyNTM3OTk2NTU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 10, '2025-11-27T15:17:55+00:00', '331-340', 'https://linkshortx.in/18jwg7GN', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDQzMTA4NjI4ODAwODg5NC0xNDA0NDAxMDQ1OTU4OTIwNDU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 10, '2025-11-27T15:17:55+00:00', '341-350', 'https://urlshortx.io/0LgJcDN', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDQ0MTEwNjYzMDEwMTI4NC0xNDA0NTAxMjQ5Mzc5ODQ0MzU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 10, '2025-11-27T15:17:55+00:00', '351-360', 'https://linkshortx.in/V3NZvF', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDQ1MTEyNjk3MjE5MzY3NC0xNDA0NjAxNDUyODAwNzY4MjU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 10, '2025-11-27T15:17:55+00:00', '361-370', 'https://urlshortx.io/PfU7ol', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDQ2MTE0NzMxNDI4NjA2NC0xNDA0NzAxNjU2MjIxNjkyMTU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 10, '2025-11-27T15:17:55+00:00', '371-380', 'https://linkshortx.in/jBlwAY', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDQ3MTE2NzY1NjM3ODQ1NC0xNDA0ODAxODU5NjQyNjE2MDU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 10, '2025-11-27T15:17:55+00:00', '381-390', 'https://urlshortx.io/INcY', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDQ4MTE4Nzk5ODQ3MDg0NC0xNDA0OTAyMDYzMDYzNTM5OTU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 10, '2025-11-27T15:17:55+00:00', '391-400', 'https://linkshortx.in/a3jAx0', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDQ5MTIwODM0MDU2MzIzNC0xNDA1MDAyMjY2NDg0NDYzODU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 11, '2025-11-27T15:20:50+00:00', '401-410', 'https://urlshortx.io/2oHk2', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDUwMTIyODY4MjY1NTYyNC0xNDA1MTAyNDY5OTA1Mzg3NzU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 11, '2025-11-27T15:20:50+00:00', '411-420', 'https://linkshortx.in/QvMep', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDUxMTI0OTAyNDc0ODAxNC0xNDA1MjAyNjczMzI2MzExNjU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 11, '2025-11-27T15:20:50+00:00', '421-430', 'https://urlshortx.io/Vd49r0', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDUyMTI2OTM2Njg0MDQwNC0xNDA1MzAyODc2NzQ3MjM1NTU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 11, '2025-11-27T15:20:50+00:00', '431-440', 'https://linkshortx.in/ngzcsZ', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDUzMTI4OTcwODkzMjc5NC0xNDA1NDAzMDgwMTY4MTU5NDU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 11, '2025-11-27T15:20:50+00:00', '441-450', 'https://urlshortx.io/kYWPl', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDU0MTMxMDA1MTAyNTE4NC0xNDA1NTAzMjgzNTg5MDgzMzU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 11, '2025-11-27T15:20:50+00:00', '451-460', 'https://linkshortx.in/eHzx3Qm0', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDU1MTMzMDM5MzExNzU3NC0xNDA1NjAzNDg3MDEwMDA3MjU', 'RESOLVED'),
+('-1002620965748', 'A Presidential Affair', 11, '2025-11-27T15:20:50+00:00', '461-465', 'https://urlshortx.io/IIhhcq', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE0MDU2MTM1MDczNTIwOTk2NC0xNDA1NjUzNTg4NzIwNDY5MjA', 'RESOLVED'),
 ('-1002192691500', 'Accidentally Yours', 25, '2026-05-15T17:00:28+00:00', '01-20', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4MDI2OTk2MjM3ODkzMzA1Ni0xODAyODkwMDEwMjg5MDg1OTc', 'RESOLVED'),
 ('-1002192691500', 'Accidentally Yours', 25, '2026-05-15T17:00:28+00:00', '21-40', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4MDI5MDAwMzA2MzExNzgzNi0xODAzMDkwNDE3MTMwOTMzNzc', 'RESOLVED'),
 ('-1002192691500', 'Accidentally Yours', 25, '2026-05-15T17:00:28+00:00', '41-60', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4MDMxMDA0Mzc0NzMwMjYxNi0xODAzMjkwODIzOTcyNzgxNTc', 'RESOLVED'),
