@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 17:31:34 UTC
--- Total Records: 8633
+-- Generated on: 2026-08-22 17:32:17 UTC
+-- Total Records: 8660
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -2253,6 +2253,33 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '251-260', 'https://linkshortx.in/5LeGC', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODUyNjc5NDkyNTg4ODczLTM4ODYxNzEwMDk5MTE4NDkw', 'RESOLVED'),
 ('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '261-270', 'https://urlshortx.io/HCfVk', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODYyNzEzNDk5ODQ0MDAzLTM4ODcxNzQ0MTA2MzczNjIw', 'RESOLVED'),
 ('-1004359781350', 'From bullets to billions', 5, '2026-07-25T03:35:08+00:00', '271-279', 'https://linkshortx.in/SwW5U', 'https://telegram.me/AVFile_BOT?start=Z2V0LTM4ODcyNzQ3NTA3MDk5MTMzLTM4ODgwNzc0NzEyOTAzMjM3', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 4, '2026-03-03T11:54:32+00:00', '01-20', 'N/A', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NDU2OTQzNDY4NDIyNTgzLTE5NDc2MDA4MDgyMjA3MzMw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 4, '2026-03-03T11:54:32+00:00', '21-40', 'N/A', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NDc3MDExNDgyOTMyODQzLTE5NDk2MDc2MDk2NzE3NTkw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 4, '2026-03-03T11:54:32+00:00', '41-60', 'N/A', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NDk3MDc5NDk3NDQzMTAzLTE5NTE2MTQ0MTExMjI3ODUw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 4, '2026-03-03T11:54:32+00:00', '61-80', 'N/A', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NTE3MTQ3NTExOTUzMzYzLTE5NTM2MjEyMTI1NzM4MTEw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 4, '2026-03-03T11:54:32+00:00', '81-100', 'N/A', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NTM3MjE1NTI2NDYzNjIzLTE5NTU2MjgwMTQwMjQ4Mzcw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 5, '2026-03-03T11:54:51+00:00', '101-110', 'https://urlshortx.io/lMwDZNU', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NTU3MjgzNTQwOTczODgzLTE5NTY2MzE0MTQ3NTAzNTAw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 5, '2026-03-03T11:54:51+00:00', '111-120', 'https://linkshortx.in/847KsiHD', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NTY3MzE3NTQ4MjI5MDEzLTE5NTc2MzQ4MTU0NzU4NjMw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 5, '2026-03-03T11:54:51+00:00', '121-130', 'https://urlshortx.io/vIR5F', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NTc3MzUxNTU1NDg0MTQzLTE5NTg2MzgyMTYyMDEzNzYw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 5, '2026-03-03T11:54:51+00:00', '131-140', 'https://linkshortx.in/dlzMCmk', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NTg3Mzg1NTYyNzM5MjczLTE5NTk2NDE2MTY5MjY4ODkw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 5, '2026-03-03T11:54:51+00:00', '141-150', 'https://urlshortx.io/jZvKOz', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NTk3NDE5NTY5OTk0NDAzLTE5NjA2NDUwMTc2NTI0MDIw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 5, '2026-03-03T11:54:51+00:00', '151-160', 'https://linkshortx.in/c2RCKIV', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NjA3NDUzNTc3MjQ5NTMzLTE5NjE2NDg0MTgzNzc5MTUw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 5, '2026-03-03T11:54:51+00:00', '161-170', 'https://urlshortx.io/TD90wP', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NjE3NDg3NTg0NTA0NjYzLTE5NjI2NTE4MTkxMDM0Mjgw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 5, '2026-03-03T11:54:51+00:00', '171-180', 'https://linkshortx.in/zW4hj', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NjI3NTIxNTkxNzU5NzkzLTE5NjM2NTUyMTk4Mjg5NDEw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 5, '2026-03-03T11:54:51+00:00', '181-190', 'https://urlshortx.io/IESx', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NjM3NTU1NTk5MDE0OTIzLTE5NjQ2NTg2MjA1NTQ0NTQw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 5, '2026-03-03T11:54:51+00:00', '191-200', 'https://linkshortx.in/0h5hzL', 'https://telegram.me/AVFile_BOT?start=Z2V0LTE5NjQ3NTg5NjA2MjcwMDUzLTE5NjU2NjIwMjEyNzk5Njcw', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 13, '2026-04-28T17:39:26+00:00', '201-210', 'https://linkshortx.in/O0ksGZe', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3NjgzNzk5NTIxMjI4OTQ4MS0xNzY4NDcwMTM1MjAxNzI2MzI', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 13, '2026-04-28T17:39:26+00:00', '211-220', 'https://urlshortx.io/buRsxau', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3Njg0ODAxNTU1NDM4MTg3MS0xNzY4NTcwMzM4NjIyNjUwMjI', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 13, '2026-04-28T17:39:26+00:00', '221-230', 'https://linkshortx.in/qrgWd00T', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3Njg1ODAzNTg5NjQ3NDI2MS0xNzY4NjcwNTQyMDQzNTc0MTI', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 13, '2026-04-28T17:39:26+00:00', '231-240', 'https://linkshortx.in/6lAmY', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3Njg2ODA1NjIzODU2NjY1MS0xNzY4NzcwNzQ1NDY0NDk4MDI', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 13, '2026-04-28T17:39:26+00:00', '241-250', 'https://urlshortx.io/5B79jDWT', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE3Njg3ODA3NjU4MDY1OTA0MS0xNzY4ODcwOTQ4ODg1NDIxOTI', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 14, '2026-04-28T17:50:18+00:00', '251-255', 'https://linkshortx.in/43sOo', 'https://telegram.me/AVFile_BOT?start=Z2V0LTI0Mjc1MjczNzUyMzM2MDA5LTI0Mjc5Mjg3MzU1MjM4MDYx', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 15, '2026-04-28T17:50:26+00:00', '256-260', 'https://UrlShortx.io/JcdDQz', 'https://telegram.me/AVFile_BOT?start=Z2V0LTI0MjgwMjkwNzU1OTYzNTc0LTI0Mjg0MzA0MzU4ODY1NjI2', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 16, '2026-04-28T17:50:33+00:00', '261-265', 'https://linkshortx.in/duxVm', 'https://telegram.me/AVFile_BOT?start=Z2V0LTI0Mjg1MzA3NzU5NTkxMTM5LTI0Mjg5MzIxMzYyNDkzMTkx', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 17, '2026-04-28T17:50:42+00:00', '266-270', 'https://UrlShortx.io/2k6jX', 'https://telegram.me/AVFile_BOT?start=Z2V0LTI0MjkwMzI0NzYzMjE4NzA0LTI0Mjk0MzM4MzY2MTIwNzU2', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 18, '2026-04-28T17:50:49+00:00', '271-275', 'https://linkshortx.in/JmVI1', 'https://telegram.me/AVFile_BOT?start=Z2V0LTI0Mjk1MzQxNzY2ODQ2MjY5LTI0Mjk5MzU1MzY5NzQ4MzIx', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 19, '2026-04-28T17:50:56+00:00', '276-280', 'https://UrlShortx.io/t3mPVllk', 'https://telegram.me/AVFile_BOT?start=Z2V0LTI0MzAwMzU4NzcwNDczODM0LTI0MzA0MzcyMzczMzc1ODg2', 'RESOLVED'),
+('-1003610121373', 'Goblin Mode', 20, '2026-04-28T17:51:04+00:00', '281-283', 'https://linkshortx.in/Z8g5Zm', 'https://telegram.me/AVFile_BOT?start=Z2V0LTI0MzA1Mzc1Nzc0MTAxMzk5LTI0MzA3MzgyNTc1NTUyNDI1', 'RESOLVED'),
 ('-1002210956567', 'God Of The Six Elements', 19, '2025-10-08T11:13:43+00:00', '01-20', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4MTEzNDcxNzkwMTUwNjMxMy0xODExNTM3NTY1NTE0ODE4NTQ', 'RESOLVED'),
 ('-1002210956567', 'God Of The Six Elements', 19, '2025-10-08T11:13:43+00:00', '21-40', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4MTE1NDc1ODU4NTY5MTA5My0xODExNzM3OTcyMzU2NjY2MzQ', 'RESOLVED'),
 ('-1002210956567', 'God Of The Six Elements', 19, '2025-10-08T11:13:43+00:00', '41-60', 'N/A', 'https://telegram.me/PockettPFM_BOT?start=Z2V0LTE4MTE3NDc5OTI2OTg3NTg3My0xODExOTM4Mzc5MTk4NTE0MTQ', 'RESOLVED'),
