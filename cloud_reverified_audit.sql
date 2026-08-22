@@ -1,6 +1,6 @@
 -- CODEX 8-COLUMN MASTER LINK PROVENANCE AUDIT DATASET
--- Generated on: 2026-08-22 21:29:36 UTC
--- Total Records: 16540
+-- Generated on: 2026-08-22 21:30:14 UTC
+-- Total Records: 16563
 
 CREATE TABLE IF NOT EXISTS `pocket_fm_all_in_one_links` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -3443,6 +3443,29 @@ INSERT INTO `pocket_fm_all_in_one_links` (`channel_id`, `channel_name`, `message
 ('-1002323339713', 'Earth’s Greatest Magus (English) •|Pocket FM|•', 147, '2026-02-28T14:40:14+00:00', '1432-1436', 'https://linkshortx.in/1hRm', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTgyODMwNjY2ODI4NDk3NDEyLTgyODM0Njc1MTM1NzI3Mjg0', 'RESOLVED'),
 ('-1002323339713', 'Earth’s Greatest Magus (English) •|Pocket FM|•', 149, '2026-03-09T15:02:09+00:00', '1446-1449', 'https://linkshortx.in/rvQsD', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTgzNTM2MTI4OTAwOTU0ODg0LTgzNTM5MTM1MTMxMzc3Mjg4', 'RESOLVED'),
 ('-1002323339713', 'Earth’s Greatest Magus (English) •|Pocket FM|•', 150, '2026-04-10T15:00:46+00:00', '1454-1457', 'https://linkshortx.in/hARXO', 'https://telegram.me/RayTalenT_Bot?start=Z2V0LTg3MTUzNjI2MTc1OTE0MzY0LTg3MTU2NjMyNDA2MzM2NzY4', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 8, '2024-12-29T04:36:25+00:00', '01-10', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE1MjI5NjUzMzA0NjYxNDg3MjMzNjM1OTE2NDk5MzgyNzg4NzgxNSI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 8, '2024-12-29T04:36:25+00:00', '11-20', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIyNzAxMzM1MjQ0MjQ0NzcxMzI1MDUxMjk1NTExMTg0MzcxMDk1OCI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 8, '2024-12-29T04:36:25+00:00', '21-30', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIyNzMwMDA5MjkwMjcxNjY2MDI2MjUyMTA4MTY4MzQyNTY2NDU0MyI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 8, '2024-12-29T04:36:25+00:00', '31-40', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjQ0NTE4NTY3MDE1Nzc4MDYzNTY3MTE5NDQ2OTQyNTM4OTM1MjQ4Ig', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 8, '2024-12-29T04:36:25+00:00', '41-50', 'N/A', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjY2MjM5NjM1OTMzOTMzMDEyNDUwMDk2MDI2Mzg0MTczNTY3NjQ3Ig', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 8, '2024-12-29T04:36:25+00:00', '51-60', 'https://linkshortx.in/14TS', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjExNzk1NDE3MzEwMjgxODUwNjY5NDU5NTA0MTEzMTMwNjE1NDc2NCI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 8, '2024-12-29T04:36:25+00:00', '61-70', 'https://urlshortx.io/V6dPJmK', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE1MjcwOTQ3MTExODE4MDI5ODc0OTQ3MTU5Mzc1MzA3MTUxNDU1OCI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 8, '2024-12-29T04:36:25+00:00', '71-80', 'https://linkshortx.in/RxKTcB4', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzODU1MTkxMTM1NDEzNzc4ODA2ODIzNjI1Njg1MzE2MTQ4NTgwOCI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 8, '2024-12-29T04:36:25+00:00', '81-90', 'https://linkshortx.in/jHMCJ7y', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIwMTY0NjQ3Njc1NjYyOTA4NDYyMzU0OTM3NTAyNDgyMjE1NTQxNyI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 8, '2024-12-29T04:36:25+00:00', '91-100', 'https://urlshortx.io/msCZhqT', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMyNTQyMDg3Nzk3NzI2Mzk5MjUwNzUxNjE1NTQ0ODE2NTcxODE4NCI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 9, '2024-12-29T04:36:26+00:00', '101-110', 'https://linkshortx.in/75fW', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMwNDA4Njg2MDY5OTY1MzE0Mjg3OTk4NTcwMjA4NzMzNTM1MjUzNSI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 9, '2024-12-29T04:36:26+00:00', '111-120', 'https://linkshortx.in/igeA9y', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI0MzU1MTk2NDQxNjk0NjgzMDUwMTE5MTE3NDgzOTI0MjQ2MzY1OCI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 9, '2024-12-29T04:36:26+00:00', '121-130', 'https://urlshortx.io/3BO1', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjMwNjY5NTA1NDc2NzgzNjM2MDcwMTcyMDkwODA5NTYwNzEwMTM3NSI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 9, '2024-12-29T04:36:26+00:00', '131-140', 'https://linkshortx.in/SChc', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjM3MDI1ODg1OTQwNjY5MjMzNjY2MjI3MDkwMTA2Nzk3NTA5NjQ5Ig', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 9, '2024-12-29T04:36:26+00:00', '141-150', 'https://linkshortx.in/anQA', 'https://telegram.me/AV_File_Sharing1_Bot?start=Ijc5NzczMTU5MDcwOTcyNjg2NzE2MjMxNTgzMzA4NjU2NzI2Njk4Ig', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 9, '2024-12-29T04:36:26+00:00', '151-160', 'https://urlshortx.io/0CM5qk', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzNDg2MzQ1NDExNjM2MzI3ODkyNDQ3NjcwOTkxMDI0MzY3NDA3MSI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 9, '2024-12-29T04:36:26+00:00', '161-170', 'https://linkshortx.in/tLhun', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIwNjkzNjM5MDUzMTQ0OTg2MjcyMTM4NDAyMDcxOTYwMTY0MzcxNiI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 9, '2024-12-29T04:36:26+00:00', '171-180', 'https://linkshortx.in/7Rdn', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjQ4NTI1ODg5NjQ0MDQzMTkxNTkwNzc3OTg4MTkyMTgwMTE4MDAzIg', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 10, '2024-12-29T04:36:26+00:00', '181-190', 'https://urlshortx.io/74cTFZE3', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjE1MzgwNzA3NjU1ODg4NjY2OTQzMzkyMDY2ODAzMDk3NTkyNjc0MCI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 10, '2024-12-29T04:36:26+00:00', '191-200', 'https://linkshortx.in/uhOd', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjEyMjU0OTg4MjUzNjg5MDAwNTMwMzI3ODc5MzU1NDA1MjE0NjI4NiI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 10, '2024-12-29T04:36:26+00:00', '201-210', 'https://linkshortx.in/RldLPYZ3', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI4MjA3NTc4OTgyNDk2NTc3NTQzMDc0NzQ5NTMwMjMwNDEwODQ1NyI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 10, '2024-12-29T04:36:26+00:00', '211-220', 'https://urlshortx.io/pDOi', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjIzODU4NTU1NTg0NjYyMTg5Mzc0MTU2NDUwNTg1NDg5MjYxNDk0MCI', 'RESOLVED'),
+('-1002287429131', 'Edge Of Collapse (English) •|Pocket FM|•', 10, '2024-12-29T04:36:26+00:00', '221-225', 'https://linkshortx.in/CJ8Nx', 'https://telegram.me/AV_File_Sharing1_Bot?start=IjI0NjUzMDkwODYxMDE3OTQ5MDI4MjU5ODU0NzAxODY3MzkyNzMwIg', 'RESOLVED'),
 ('-1003363435535', 'Endless evolution system', 4, '2026-01-16T17:45:08+00:00', '01-20', 'N/A', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE1Njg0ODQxNDc3MjE4MDY3MC0xNTY4Njc0NTM0MjIxNTYyMTE', 'RESOLVED'),
 ('-1003363435535', 'Endless evolution system', 4, '2026-01-16T17:45:08+00:00', '21-40', 'N/A', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE1Njg2ODQ1NTQ1NjM2NTQ1MC0xNTY4ODc0OTQxMDYzNDA5OTE', 'RESOLVED'),
 ('-1003363435535', 'Endless evolution system', 4, '2026-01-16T17:45:08+00:00', '41-60', 'N/A', 'https://telegram.me/VictorAlucard_Bot?start=Z2V0LTE1Njg4ODQ5NjE0MDU1MDIzMC0xNTY5MDc1MzQ3OTA1MjU3NzE', 'RESOLVED'),
